@@ -1,0 +1,175 @@
+:root {
+  --bg: #eef1f5;
+  --panel: #ffffff;
+  --ink: #1f2733;
+  --muted: #8b95a5;
+  --line: #d5dbe4;
+  --accent: #2f9be0;
+  --accent-soft: #d9eefb;
+  --good: #1f2733;
+  --bad: #e5484d;
+  --bad-soft: #ffd5d6;
+  --todo: #b3bcc9;
+  --cur: #5a6473;
+  --menu-a: #f7f9fb;
+  --menu-b: #e6eaf0;
+  --bar: #dfe4eb;
+  --clock: #6b7686;
+  --stripe-a: #f3f5f8;
+  --stripe-b: #eceff3;
+  --empty-ink: #c2c9d4;
+  --launch-a: #ffffff;
+  --launch-b: #e9eef4;
+  --flash: #ffffff;
+  --veil: rgba(238, 241, 245, 0.94);
+  --shadow: rgba(31, 39, 51, 0.12);
+}
+:root[data-theme="dark"] {
+  --bg: #12161d;
+  --panel: #1d232d;
+  --ink: #e8ecf2;
+  --muted: #8590a2;
+  --line: #303a49;
+  --accent: #4cb0f0;
+  --accent-soft: #1b3a52;
+  --good: #e8ecf2;
+  --bad: #ff6b6f;
+  --bad-soft: #5a2226;
+  --todo: #4f5a6b;
+  --cur: #9aa5b5;
+  --menu-a: #1a2029;
+  --menu-b: #10141a;
+  --bar: #0c0f14;
+  --clock: #9aa5b5;
+  --stripe-a: #181d25;
+  --stripe-b: #151a21;
+  --empty-ink: #3a4454;
+  --launch-a: #222a35;
+  --launch-b: #12161d;
+  --flash: #05070a;
+  --veil: rgba(18, 22, 29, 0.94);
+  --shadow: rgba(0, 0, 0, 0.5);
+}
+#themeBtn {
+  position: fixed;
+  top: 16px;
+  right: 22px;
+  z-index: 40;
+  border: 2px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: 999px;
+  height: 38px;
+  padding: 0 16px;
+  font-weight: 600;
+  font-size: 14px;
+}
+#themeBtn:hover,
+#soundBtn:hover {
+  border-color: var(--accent);
+}
+#soundBtn {
+  position: fixed;
+  top: 16px;
+  right: 182px;
+  z-index: 40;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 2px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+#soundBtn svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+#soundBtn .x,
+#soundBtn.off .w {
+  display: none;
+}
+#soundBtn.off .x {
+  display: inline;
+}
+#soundBtn.off {
+  color: var(--muted);
+}
+body,
+.tile,
+.card,
+.back,
+.btn,
+.menu-bar,
+#themeBtn {
+  transition:
+    background-color 0.25s,
+    color 0.25s,
+    border-color 0.25s;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family:
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  overflow: hidden;
+}
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.screen {
+  position: fixed;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+}
+.screen.active {
+  display: flex;
+  animation: fade 0.35s ease;
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes shake {
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}

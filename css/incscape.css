@@ -1,0 +1,23 @@
+#incscape {
+  background: var(--bg);
+}
+.ink-area {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  margin: 16px;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 10px 30px var(--shadow);
+  overflow: hidden;
+}
+#inkCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: crosshair;
+}

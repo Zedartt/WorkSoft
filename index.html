@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Worksoft</title>
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/menu.css" />
+    <link rel="stylesheet" href="css/wikopy.css" />
+    <link rel="stylesheet" href="css/kaplab.css" />
+    <link rel="stylesheet" href="css/incscape.css" />
+    <link rel="stylesheet" href="css/cooktou.css" />
+  </head>
+  <body>
+    <button id="themeBtn" title="Changer de thème"></button>
+    <button id="soundBtn" aria-label="Son">
+      <svg viewBox="0 0 24 24">
+        <path d="M4 9v6h4l5 4V5L8 9z" />
+        <path class="w" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
+        <path class="x" d="M16 9l6 6M22 9l-6 6" />
+      </svg>
+    </button>
+
+    <section id="menu" class="screen active">
+      <div class="menu-top">
+        <div class="logo">Work<span>soft</span></div>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="menu-bar">
+        <div id="clock">--:--</div>
+        <div id="date"></div>
+      </div>
+    </section>
+
+    <div id="launch">
+      <div class="launch-body">
+        <div class="art" id="launchArt"></div>
+        <h2 id="launchName"></h2>
+        <p id="launchTag"></p>
+      </div>
+      <div class="launch-bar">
+        <button id="launchBack">Menu Worksoft</button>
+        <button id="launchStart">Démarrer</button>
+      </div>
+    </div>
+    <div id="flash"></div>
+
+    <section id="wikopy" class="screen">
+      <div class="game-top">
+        <button class="back" id="backBtn">← Menu</button>
+        <h1 class="game-title" id="wikiTitle">…</h1>
+        <div></div>
+      </div>
+      <div class="game-bar">
+        <button class="icon-btn" id="wkNew" title="Nouvelle page (Échap)" aria-label="Nouvelle page">
+          <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v5h5" /></svg>
+        </button>
+        <div class="chrono"><b id="liveTime">0.0</b> s</div>
+        <div hidden><b id="liveWpm"></b><b id="liveErr"></b></div>
+      </div>
+      <div class="stage" id="stage">
+        <div id="text">
+          <div id="tape"><span id="status">Recherche d'une page Wikipédia…</span></div>
+        </div>
+        <input id="hidden" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        <div class="hint" id="hint">
+          Le chrono démarre à la première lettre · <kbd>Espace</kbd> valide le mot · <kbd>Échap</kbd> nouvelle page
+        </div>
+        <div id="results">
+          <div class="card">
+            <h2>Résultat</h2>
+            <div class="big" id="rWpm">0</div>
+            <div class="big-label">mots par minute</div>
+            <div class="stats">
+              <div><b id="rAcc">0%</b><span>précision</span></div>
+              <div><b id="rErr">0</b><span>erreurs</span></div>
+              <div><b id="rTime">0s</b><span>temps</span></div>
+              <div><b id="rCpm">0</b><span>caract./min</span></div>
+            </div>
+            <div id="record"></div>
+            <div class="actions">
+              <button class="btn primary" id="nextBtn">Nouvelle page (Entrée)</button>
+              <button class="btn" id="retryBtn">Refaire ce texte</button>
+              <a class="btn" id="wikiLink" target="_blank" rel="noopener">Lire l'article</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="planks" class="screen">
+      <div class="game-top">
+        <button class="back" id="plkBack">← Menu</button>
+        <h1 class="game-title">Kaplab</h1>
+        <div><b id="plkCount" hidden></b></div>
+      </div>
+      <div class="game-bar">
+        <button class="icon-btn" id="plkAdd" title="Ajouter une planchette" aria-label="Ajouter une planchette">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+        </button>
+        <button class="icon-btn" id="plkReset" title="Recommencer" aria-label="Recommencer">
+          <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v5h5" /></svg>
+        </button>
+        <button class="icon-btn" id="plkClear" title="Tout enlever" aria-label="Tout enlever">
+          <svg viewBox="0 0 24 24"><path d="M4 7h16M10 7V4h4v3M6 7l1 13h10l1-13M10 11v6M14 11v6" /></svg>
+        </button>
+        <span>Tourner : molette ou <kbd>←</kbd> <kbd>→</kbd> · <kbd>G</kbd> gravité en main : <b id="plkGrav">non</b></span>
+      </div>
+      <div class="plk-area">
+        <canvas id="plkCanvas"></canvas>
+      </div>
+    </section>
+
+    <section id="incscape" class="screen">
+      <div class="game-top">
+        <button class="back" id="inkBack">← Menu</button>
+        <h1 class="game-title">Incscape</h1>
+        <div></div>
+      </div>
+      <div class="game-bar">
+        <button class="icon-btn" id="inkRestart" title="Recommencer" aria-label="Recommencer">
+          <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v5h5" /></svg>
+        </button>
+        <div class="stat">Capturés <b id="inkScore">0</b></div>
+        <div class="stat">Échappés <span id="inkEsc"></span></div>
+      </div>
+      <div class="ink-area">
+        <canvas id="inkCanvas"></canvas>
+        <div class="overlay" id="inkOver">
+          <div class="card">
+            <h2>Partie terminée</h2>
+            <div class="big" id="inkFinal">0</div>
+            <div class="big-label">bonhommes capturés</div>
+            <div id="inkRecord" style="font-size: 14px; color: var(--muted); margin-bottom: 18px"></div>
+            <div class="actions">
+              <button class="btn primary" id="inkAgain">Rejouer (Entrée)</button>
+              <button class="btn" id="inkMenu">Menu</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="cooktou" class="screen">
+      <div class="game-top">
+        <button class="back" id="ckBack">← Menu</button>
+        <h1 class="game-title">Cooktou</h1>
+        <div></div>
+      </div>
+      <div class="game-bar">
+        <button class="icon-btn" id="ckRestart" title="Recommencer" aria-label="Recommencer">
+          <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v5h5" /></svg>
+        </button>
+        <button class="icon-btn" id="ckWho" title="Changer de personnage (homme / femme)" aria-label="Changer de personnage">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 21c0-5 4-8 8-8s8 3 8 8" />
+          </svg>
+        </button>
+        <div class="stat">Score <b id="ckScore">0</b></div>
+        <div class="stat">Clients perdus <span id="ckLost"></span></div>
+      </div>
+      <div class="ck-area" id="ckArea">
+        <div class="ck-view">
+          <div class="ck-world" id="ckWorld"></div>
+          <div class="ck-clients" id="ckClients"></div>
+          <button class="ck-nav left" id="ckLeft" aria-label="Voir à gauche">◀</button>
+          <button class="ck-nav right" id="ckRight" aria-label="Voir à droite">▶</button>
+        </div>
+        <div class="ck-strip" id="ckNow"></div>
+        <div class="ck-ghost" id="ckGhost"></div>
+        <div class="overlay" id="ckOver">
+          <div class="card">
+            <h2>Service terminé</h2>
+            <div class="big" id="ckFinal">0</div>
+            <div class="big-label" id="ckServed"></div>
+            <div id="ckRecord" style="font-size: 14px; color: var(--muted); margin-bottom: 18px"></div>
+            <div class="actions">
+              <button class="btn primary" id="ckAgain">Rejouer (Entrée)</button>
+              <button class="btn" id="ckMenu">Menu</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script src="js/vendor/matter.min.js"></script>
+    <script src="js/core/Dom.js"></script>
+    <script src="js/core/SoundEngine.js"></script>
+    <script src="js/core/Game.js"></script>
+    <script src="js/core/ThemeSwitch.js"></script>
+    <script src="js/core/Launcher.js"></script>
+    <script src="js/games/wikopy/TextRules.js"></script>
+    <script src="js/games/wikopy/WikiSource.js"></script>
+    <script src="js/games/wikopy/WikopyGame.js"></script>
+    <script src="js/games/kaplab/KaplabGame.js"></script>
+    <script src="js/games/incscape/Geometry.js"></script>
+    <script src="js/games/incscape/IncscapeGame.js"></script>
+    <script src="js/games/cooktou/data/Catalog.js"></script>
+    <script src="js/games/cooktou/data/Recipe.js"></script>
+    <script src="js/games/cooktou/data/RecipeBook.js"></script>
+    <script src="js/games/cooktou/art/Icons.js"></script>
+    <script src="js/games/cooktou/art/Avatar.js"></script>
+    <script src="js/games/cooktou/KitchenView.js"></script>
+    <script src="js/games/cooktou/PointerController.js"></script>
+    <script src="js/games/cooktou/CooktouGame.js"></script>
+    <script src="js/core/App.js"></script>
+  </body>
+</html>

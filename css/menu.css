@@ -1,0 +1,234 @@
+#menu {
+  background: linear-gradient(var(--menu-a), var(--menu-b));
+}
+.menu-top {
+  padding: 22px 34px 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+}
+.logo {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.logo span {
+  color: var(--accent);
+}
+.menu-top small {
+  color: var(--muted);
+  font-size: 14px;
+}
+.grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 18px;
+  padding: 18px 34px 26px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+.tile {
+  border: 2px solid var(--line);
+  border-radius: 22px;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+  box-shadow: 0 2px 0 rgba(31, 39, 51, 0.05);
+}
+.tile.game:hover,
+.tile.game:focus-visible {
+  transform: scale(1.045);
+  border-color: var(--accent);
+  outline: none;
+  box-shadow:
+    0 0 0 5px var(--accent-soft),
+    0 14px 30px rgba(47, 155, 224, 0.25);
+  z-index: 2;
+}
+.tile.empty {
+  background: repeating-linear-gradient(0deg, var(--stripe-a) 0 3px, var(--stripe-b) 3px 6px);
+  cursor: default;
+  color: var(--empty-ink);
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.tile .art {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(40px, 7vh, 72px);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+.tile .art i {
+  display: inline-block;
+  width: 4px;
+  height: 0.9em;
+  background: var(--accent);
+  margin-left: 6px;
+  animation: blink 1s steps(1) infinite;
+}
+.tile .name {
+  font-weight: 700;
+  font-size: clamp(14px, 2.2vh, 19px);
+}
+.tile .tag {
+  font-size: 12px;
+  color: var(--muted);
+}
+.menu-bar {
+  height: 92px;
+  background: var(--bar);
+  border-top: 2px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 50% 50%0 0/22px 22px 0 0;
+}
+#clock {
+  font-size: 34px;
+  font-weight: 300;
+  letter-spacing: 2px;
+  color: var(--clock);
+  font-variant-numeric: tabular-nums;
+}
+#date {
+  font-size: 13px;
+  color: var(--muted);
+  text-transform: capitalize;
+}
+#launch {
+  position: fixed;
+  z-index: 50;
+  display: none;
+  overflow: hidden;
+  background: linear-gradient(var(--launch-a), var(--launch-b));
+  border: 2px solid var(--accent);
+  border-radius: 22px;
+  transition:
+    left 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+    top 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-radius 0.5s,
+    border-color 0.5s;
+  flex-direction: column;
+}
+#launch.open {
+  border-radius: 0;
+  border-color: transparent;
+}
+.launch-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  padding: 20px;
+}
+.launch-body .art {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(90px, 22vh, 200px);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  animation: floaty 3s ease-in-out infinite;
+}
+.launch-body .art i {
+  display: inline-block;
+  width: 8px;
+  height: 0.9em;
+  background: var(--accent);
+  margin-left: 12px;
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes floaty {
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.launch-body h2 {
+  margin: 0;
+  font-size: clamp(28px, 5vh, 46px);
+}
+.launch-body p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 18px;
+}
+.launch-bar {
+  height: 120px;
+  background: var(--bar);
+  border-top: 2px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8vw;
+}
+.launch-bar button {
+  min-width: 220px;
+  padding: 16px 30px;
+  font-size: 20px;
+  font-weight: 700;
+  border-radius: 999px;
+  border: 3px solid var(--accent);
+  background: var(--panel);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+.launch-bar button:hover,
+.launch-bar button:focus-visible {
+  transform: scale(1.07);
+  box-shadow: 0 0 0 6px var(--accent-soft);
+  outline: none;
+}
+#launch .launch-body,
+#launch .launch-bar {
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+#launch.ready .launch-body,
+#launch.ready .launch-bar {
+  opacity: 1;
+  transition: opacity 0.35s 0.1s;
+}
+#flash {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--flash);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+#flash.on {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: none;
+    grid-auto-rows: 130px;
+    overflow: auto;
+    padding: 12px 16px;
+  }
+}

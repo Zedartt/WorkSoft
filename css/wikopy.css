@@ -1,0 +1,189 @@
+#wikopy {
+  background: var(--bg);
+}
+.game-bar .chrono {
+  margin: 0;
+  font-size: 16px;
+}
+.game-bar .chrono b {
+  font-size: 24px;
+}
+.chrono {
+  margin-top: 6px;
+  font-size: 20px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.chrono b {
+  font-size: 30px;
+  color: var(--accent);
+}
+.live {
+  justify-self: end;
+  display: flex;
+  gap: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.live div {
+  text-align: right;
+}
+.live b {
+  display: block;
+  font-size: 22px;
+}
+.live .wpm b {
+  font-size: 34px;
+  color: var(--accent);
+  line-height: 1;
+}
+.live {
+  align-items: flex-end;
+}
+.live span {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 26px 40px;
+  position: relative;
+}
+#text {
+  max-width: 1100px;
+  width: 100%;
+  font-family: "Cascadia Mono", Consolas, "DejaVu Sans Mono", Menlo, monospace;
+  font-size: clamp(22px, 3vw, 38px);
+  line-height: 1.75;
+  color: var(--todo);
+  cursor: text;
+  user-select: none;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0.6em 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 12%, #000 70%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 12%, #000 70%, transparent 100%);
+}
+#tape {
+  display: inline-block;
+  transition: transform 0.18s ease-out;
+  will-change: transform;
+}
+.w.gone {
+  visibility: hidden;
+}
+.w.cur .l {
+  color: var(--cur);
+}
+.w {
+  display: inline-block;
+  white-space: pre;
+  border-radius: 4px;
+}
+.w.done {
+  color: var(--good);
+}
+.w.cur {
+  box-shadow: 0 2px 0 var(--accent);
+}
+.w.shake {
+  animation: shake 0.25s;
+}
+.w.cur .l.ok {
+  color: var(--good);
+}
+.w.cur .l.bad {
+  color: var(--bad);
+  background: var(--bad-soft);
+  border-radius: 3px;
+}
+.w.cur .l.extra {
+  color: var(--bad);
+  background: var(--bad-soft);
+  border-radius: 3px;
+  text-decoration: line-through;
+}
+.caret {
+  display: inline-block;
+  width: 0;
+  position: relative;
+}
+.caret::after {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -1em;
+  width: 3px;
+  height: 1.25em;
+  background: var(--accent);
+  border-radius: 2px;
+  animation: blink 1s steps(1) infinite;
+}
+#hidden {
+  position: absolute;
+  opacity: 0;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  height: 1px;
+  border: 0;
+  padding: 0;
+}
+.hint {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+#status {
+  color: var(--muted);
+  font-size: 18px;
+  font-family: inherit;
+}
+.chrono.small {
+  font-size: 14px;
+}
+.chrono.small b {
+  font-size: 16px;
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.stats div {
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 12px 6px;
+}
+.stats b {
+  display: block;
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+.stats span {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+#record {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 18px;
+  min-height: 1.2em;
+}
+@media (max-width: 720px) {
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
