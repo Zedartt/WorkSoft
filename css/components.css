@@ -118,9 +118,15 @@ kbd {
   inset: 0;
   background: var(--veil);
   display: none;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+#results > .card,
+.overlay > .card {
+  margin: auto 0;
 }
 #results.show,
 .overlay.show {
@@ -218,11 +224,18 @@ kbd {
   .game-bar .stat b {
     font-size: 18px;
   }
+  #results,
+  .overlay {
+    padding: 8px;
+  }
   .card {
-    padding: 16px 24px;
+    padding: 14px 20px;
+  }
+  .card h2 {
+    font-size: 12px;
   }
   .big {
-    font-size: 56px;
+    font-size: 48px;
   }
   .big-label {
     margin-bottom: 10px;

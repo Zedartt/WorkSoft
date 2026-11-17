@@ -9,6 +9,9 @@
   --good: #1f2733;
   --bad: #e5484d;
   --bad-soft: #ffd5d6;
+  --found: #1f9d55;
+  --found-soft: #c9f0d8;
+  --marker: #ffe066;
   --todo: #b3bcc9;
   --cur: #5a6473;
   --menu-a: #f7f9fb;
@@ -23,10 +26,10 @@
   --flash: #ffffff;
   --veil: rgba(238, 241, 245, 0.94);
   --shadow: rgba(31, 39, 51, 0.12);
-  --sky-top: #d4ebfb;
-  --sky-bottom: #f5fbf6;
-  --hill-far: #dcefd2;
-  --hill-near: #c9e7ba;
+  --sky-top: #9ccdf0;
+  --sky-bottom: #cfe8ec;
+  --hill-far: #a9d58f;
+  --hill-near: #8cc673;
   --sun-opacity: 1;
   --moon-opacity: 0;
   --stars-opacity: 0;
@@ -43,6 +46,9 @@
   --good: #e8ecf2;
   --bad: #ff6b6f;
   --bad-soft: #5a2226;
+  --found: #4fd08a;
+  --found-soft: #1d4a32;
+  --marker: #7a6420;
   --todo: #4f5a6b;
   --cur: #9aa5b5;
   --menu-a: #1a2029;
@@ -70,7 +76,7 @@
   position: fixed;
   top: calc(16px + env(safe-area-inset-top));
   right: calc(22px + env(safe-area-inset-right));
-  z-index: 40;
+  z-index: 100;
   display: flex;
   gap: 8px;
 }
@@ -173,6 +179,9 @@ button {
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   display: none;
   flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .screen.active {
   display: flex;

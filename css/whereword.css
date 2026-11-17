@@ -1,0 +1,257 @@
+#whereword {
+  background: var(--bg);
+}
+.ww-area {
+  position: relative;
+  flex: 1;
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(900px, calc(100% - 32px));
+  margin: 16px auto;
+}
+.ww-head {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 20px 12px;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 6px 18px var(--shadow);
+}
+.ww-target {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.ww-ask {
+  color: var(--muted);
+  font-size: 15px;
+}
+#wwTarget {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+.ww-worth {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--marker);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.ww-worth.on {
+  opacity: 1;
+}
+.ww-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.ww-gain {
+  color: var(--found);
+  font-weight: 800;
+}
+.ww-clock {
+  margin-left: auto;
+}
+.ww-clock b {
+  font-size: 20px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.ww-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+.ww-bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left;
+}
+.ww-bar i.ww-run {
+  animation: ww-drain linear forwards;
+}
+.ww-bar i.ww-late {
+  background: var(--bad);
+}
+@keyframes ww-drain {
+  to {
+    transform: scaleX(0);
+  }
+}
+.ww-page {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 22px 28px;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 6px 18px var(--shadow);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+  line-height: 1.65;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ww-page h2 {
+  margin: 0 0 12px;
+  font-size: 28px;
+  font-weight: 400;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 6px;
+}
+.ww-page h3 {
+  margin: 20px 0 6px;
+  font-size: 20px;
+}
+.ww-page p {
+  margin: 0 0 12px;
+}
+.ww-w::before,
+.ww-title::before {
+  content: attr(data-t);
+}
+.ww-w {
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+.ww-w:hover {
+  background: var(--accent-soft);
+}
+.ww-w.ww-miss {
+  animation: ww-miss 0.45s ease;
+}
+.ww-w.ww-found {
+  background: var(--found-soft);
+  color: var(--found);
+  font-weight: 700;
+}
+.ww-w.ww-reveal {
+  background: var(--marker);
+  box-shadow: 0 0 0 3px var(--marker);
+}
+.ww-status {
+  color: var(--muted);
+  font-family: system-ui, sans-serif;
+}
+.ww-offline {
+  color: var(--bad);
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+}
+.ww-answer {
+  margin-bottom: 6px;
+}
+.ww-record {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+#wwOver {
+  border-radius: 18px;
+}
+@keyframes ww-miss {
+  0%,
+  100% {
+    background: transparent;
+  }
+  25%,
+  60% {
+    background: var(--bad-soft);
+    color: var(--bad);
+  }
+}
+.ww-page {
+  min-height: 90px;
+}
+@media (max-width: 720px), (max-height: 500px) {
+  .ww-area {
+    width: calc(100% - 16px);
+    margin: 8px auto;
+    gap: 8px;
+  }
+  .ww-head {
+    padding: 10px 14px 8px;
+    gap: 6px;
+  }
+  #wwTarget {
+    font-size: 24px;
+  }
+  .ww-meta {
+    font-size: 12px;
+    gap: 10px;
+  }
+  .ww-page {
+    padding: 14px 16px;
+    font-size: 17px;
+  }
+  .ww-page h2 {
+    font-size: 22px;
+  }
+}
+@media (max-height: 500px) {
+  .ww-head {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 12px;
+    padding: 6px 14px;
+    border-radius: 12px;
+  }
+  .ww-target {
+    gap: 8px;
+  }
+  .ww-ask {
+    font-size: 13px;
+  }
+  #wwTarget {
+    font-size: 20px;
+  }
+  .ww-worth {
+    font-size: 11px;
+    padding: 1px 8px;
+  }
+  .ww-meta {
+    flex: 1;
+    min-width: 0;
+    font-size: 12px;
+  }
+  .ww-clock b {
+    font-size: 16px;
+  }
+  .ww-bar {
+    flex-basis: 100%;
+    height: 4px;
+  }
+  .ww-page {
+    padding: 10px 14px;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+  .ww-page h2 {
+    font-size: 19px;
+    margin-bottom: 6px;
+  }
+  .ww-page h3 {
+    margin-top: 10px;
+    font-size: 16px;
+  }
+}

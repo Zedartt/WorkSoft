@@ -19,6 +19,8 @@ class FlyingWord {
   static FADE_SPEED = 110;
   static GLOW_SPEED = 6;
   static GLOW_DEPTH = 14;
+  static HIGHLIGHT_ALPHA = 0.3;
+  static HIGHLIGHT_PAD = 8;
 
   constructor(text, width, area, duration, effectChance) {
     this.text = text;
@@ -148,23 +150,33 @@ class FlyingWord {
   }
 
   drawText(ctx, colors, matched) {
-    const { rot, scale, dx, dy } = this.pose(),
-      perLetter = !matched && this.paint.perLetter;
+    const { rot, scale, dx, dy } = this.pose();
     ctx.save();
     ctx.translate(this.x + dx, this.y + dy);
     ctx.rotate(rot);
     ctx.scale(scale, scale);
+    if (matched) this.drawHighlight(ctx, colors.accent);
     ctx.lineWidth = 6;
     ctx.strokeStyle = colors.outline;
-    if (matched) ctx.fillStyle = colors.accent;
-    else if (this.paint.name === "plain") ctx.fillStyle = colors.ink;
-    else ctx.fillStyle = this.letterColor(0, colors.lightness);
-    if (this.effect === "wave" || perLetter) this.drawLetters(ctx, perLetter, colors.lightness);
+    ctx.fillStyle = this.paint.name === "plain" ? colors.ink : this.letterColor(0, colors.lightness);
+    if (this.effect === "wave" || this.paint.perLetter) this.drawLetters(ctx, this.paint.perLetter, colors.lightness);
     else {
       ctx.strokeText(this.text, 0, 0);
       ctx.fillText(this.text, 0, 0);
     }
     ctx.restore();
+  }
+
+  drawHighlight(ctx, color) {
+    const metrics = ctx.measureText(this.text),
+      height = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent + FlyingWord.HIGHLIGHT_PAD,
+      width = this.width + FlyingWord.HIGHLIGHT_PAD * 2;
+    ctx.globalAlpha = FlyingWord.HIGHLIGHT_ALPHA;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(-width / 2, -height / 2, width, height, height / 3);
+    ctx.fill();
+    ctx.globalAlpha = 1;
   }
 
   drawLetters(ctx, perLetter, lightness) {

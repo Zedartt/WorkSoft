@@ -3,6 +3,7 @@ class WikiSource {
     "https://fr.wikipedia.org/w/api.php?action=query&format=json" +
     "&generator=random&grnnamespace=0&grnfilterredir=nonredirects&grnlimit=20" +
     "&prop=extracts%7Cinfo%7Cpageprops&exintro=1&explaintext=1&exlimit=20&inprop=url&ppprop=disambiguation";
+  static TIMEOUT = 8000;
   static FALLBACK = [
     {
       title: "Machine à écrire",
@@ -25,7 +26,8 @@ class WikiSource {
       text: "La dactylographie est l'art de taper un texte au clavier. Avec de l'entraînement, on apprend à écrire vite sans regarder ses doigts et en faisant peu de fautes.",
     },
   ];
-  constructor() {
+  constructor(api = WikiSource.API) {
+    this.api = api;
     this.queue = [];
     this.lastError = "";
   }
@@ -40,7 +42,7 @@ class WikiSource {
         sc.remove();
         fn(v);
       };
-      const to = setTimeout(() => done(reject, new Error("délai dépassé")), 8000);
+      const to = setTimeout(() => done(reject, new Error("délai dépassé")), WikiSource.TIMEOUT);
       window[cb] = (data) => done(resolve, data);
       sc.onerror = () => done(reject, new Error("script bloqué"));
       sc.src = url + "&callback=" + cb;
@@ -50,14 +52,17 @@ class WikiSource {
 
   async getBatch() {
     try {
-      const r = await fetch(WikiSource.API + "&origin=*", {
+      const abort = new AbortController(),
+        timer = setTimeout(() => abort.abort(), WikiSource.TIMEOUT);
+      const r = await fetch(this.api + "&origin=*", {
         cache: "no-store",
-      });
+        signal: abort.signal,
+      }).finally(() => clearTimeout(timer));
       if (!r.ok) throw new Error("HTTP " + r.status);
       return await r.json();
     } catch (e1) {
       try {
-        return await this.jsonp(WikiSource.API);
+        return await this.jsonp(this.api);
       } catch (e2) {
         throw new Error("fetch : " + e1.message + " / script : " + e2.message);
       }

@@ -22,3 +22,6 @@ Tu es en cuisine : prends les commandes des clients et prépare de vraies recett
 
 ### WordHunt
 Des mots traversent le ciel en laissant une traînée arc-en-ciel ou d'étoile filante. Tape-les et appuie sur Entrée pour les faire éclater avant qu'ils ne s'envolent. Les mots colorés ou qui bougent rapportent plus de points, et le jeu accélère petit à petit.
+
+### WhereWord
+Une page Wikipédia s'ouvre au hasard et un mot de la page t'est donné : trouve-le dans le texte et clique dessus le plus vite possible pour passer à la page suivante. Tu as une minute par page. Trouvé dans les 5 premières secondes, le mot vaut 100 points ; ensuite il perd de la valeur à mesure que le temps passe.

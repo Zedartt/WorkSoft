@@ -268,10 +268,9 @@ class IncscapeGame extends Game {
   }
 
   draw() {
-    const css = getComputedStyle(document.documentElement);
-    const ink = css.getPropertyValue("--ink").trim(),
-      accent = css.getPropertyValue("--accent").trim(),
-      bad = css.getPropertyValue("--bad").trim();
+    const ink = ThemeSwitch.color("--ink"),
+      accent = ThemeSwitch.color("--accent"),
+      bad = ThemeSwitch.color("--bad");
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     this.ctx.clearRect(0, 0, this.W, this.H);
     this.ctx.lineCap = "round";

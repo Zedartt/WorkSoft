@@ -11,7 +11,7 @@
 }
 .wh-sky {
   flex: 1;
-  min-height: 0;
+  min-height: 170px;
   position: relative;
   border: 2px solid var(--line);
   border-radius: 6px;
@@ -49,10 +49,6 @@
   opacity: var(--sun-opacity);
   filter: drop-shadow(0 0 18px rgba(255, 210, 90, 0.55));
 }
-.wh-rays {
-  transform-origin: 50px 50px;
-  animation: wh-turn 80s linear infinite;
-}
 .wh-moon {
   fill: #f1edd2;
   opacity: var(--moon-opacity);
@@ -69,11 +65,6 @@
 }
 .wh-hill-near {
   fill: var(--hill-near);
-}
-@keyframes wh-turn {
-  to {
-    transform: rotate(360deg);
-  }
 }
 #whCanvas {
   position: absolute;

@@ -267,14 +267,13 @@ class WordHuntGame extends Game {
   }
 
   draw() {
-    const css = getComputedStyle(document.documentElement),
-      colors = {
-        ink: css.getPropertyValue("--ink").trim(),
-        outline: css.getPropertyValue("--panel").trim(),
-        accent: css.getPropertyValue("--accent").trim(),
-        lightness: parseFloat(css.getPropertyValue("--word-lightness")),
+    const colors = {
+        ink: ThemeSwitch.color("--ink"),
+        outline: ThemeSwitch.color("--panel"),
+        accent: ThemeSwitch.color("--accent"),
+        lightness: parseFloat(ThemeSwitch.color("--word-lightness")),
       },
-      bad = css.getPropertyValue("--bad").trim(),
+      bad = ThemeSwitch.color("--bad"),
       ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     ctx.clearRect(0, 0, this.W, this.H);

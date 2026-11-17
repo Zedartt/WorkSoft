@@ -1,5 +1,6 @@
 class KitchenView {
   static DESIGN_H = 640;
+  static ARROW_PAD = 24;
   static MIN_SCALE = 0.55;
   static MAX_SCALE = 1.8;
   static PUDDLE = "M6 26c-2-10 8-17 19-16 12 0 20 7 18 16-1 9-10 13-20 12-9 0-16-4-17-12z";
@@ -466,9 +467,15 @@ class KitchenView {
         [x2, y2] = pts[1],
         dir = x2 > x1 ? 1 : -1,
         ya = y1 - 34,
-        yb = y2 - 34;
+        yb = y2 - 34,
+        boxLeft = Math.min(x1, x2) - KitchenView.ARROW_PAD,
+        boxTop = Math.min(ya, yb) - 46 - KitchenView.ARROW_PAD,
+        width = Math.abs(x2 - x1) + KitchenView.ARROW_PAD * 2,
+        height = Math.abs(yb - ya) + 46 + KitchenView.ARROW_PAD * 2,
+        sx = x1 + dir * 24 - boxLeft,
+        ex = x2 - dir * 24 - boxLeft;
       html =
-        `<svg class="ck-arrow" width="${CooktouGame.WORLD_W}" height="100%"><defs><marker id="ckHead" viewBox="0 0 10 10" refX="6" refY="5" markerUnits="userSpaceOnUse" markerWidth="22" markerHeight="22" orient="auto"><path class="ck-arrow-head" d="M0 0l10 5-10 5 2.5-5z"/></marker></defs><path class="ck-arrow-line" d="M${x1 + dir * 24} ${ya} Q ${(x1 + x2) / 2} ${Math.min(ya, yb) - 46} ${x2 - dir * 24} ${yb}" marker-end="url(#ckHead)"/></svg>` +
+        `<svg class="ck-arrow" style="left:${boxLeft}px;top:${boxTop}px" width="${width}" height="${height}"><defs><marker id="ckHead" viewBox="0 0 10 10" refX="6" refY="5" markerUnits="userSpaceOnUse" markerWidth="22" markerHeight="22" orient="auto"><path class="ck-arrow-head" d="M0 0l10 5-10 5 2.5-5z"/></marker></defs><path class="ck-arrow-line" d="M${sx} ${ya - boxTop} Q ${(x1 + x2) / 2 - boxLeft} ${Math.min(ya, yb) - 46 - boxTop} ${ex} ${yb - boxTop}" marker-end="url(#ckHead)"/></svg>` +
         html;
       sig += "arrow";
     }

@@ -1,5 +1,12 @@
 class ThemeSwitch {
   static KEY = "worksoft_theme";
+  static colors = new Map();
+
+  static color(name) {
+    if (!ThemeSwitch.colors.has(name))
+      ThemeSwitch.colors.set(name, getComputedStyle(document.documentElement).getPropertyValue(name).trim());
+    return ThemeSwitch.colors.get(name);
+  }
 
   constructor(button) {
     this.button = button;
@@ -16,6 +23,7 @@ class ThemeSwitch {
 
   apply(theme) {
     document.documentElement.dataset.theme = theme;
+    ThemeSwitch.colors.clear();
     const label = theme === "dark" ? "Mode clair" : "Mode sombre";
     this.button.querySelector(".theme-icon").textContent = theme === "dark" ? "☀" : "☾";
     this.button.querySelector(".theme-label").textContent = label;

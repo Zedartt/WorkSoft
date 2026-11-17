@@ -238,15 +238,14 @@ class KaplabGame extends Game {
   }
 
   draw() {
-    const css = getComputedStyle(document.documentElement);
     const dark = document.documentElement.dataset.theme === "dark";
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     this.ctx.clearRect(0, 0, this.W, this.H);
-    this.ctx.fillStyle = css.getPropertyValue("--bar");
+    this.ctx.fillStyle = ThemeSwitch.color("--bar");
     this.ctx.fillRect(0, this.H - KaplabGame.FLOOR, this.W, KaplabGame.FLOOR);
-    this.ctx.fillStyle = css.getPropertyValue("--line");
+    this.ctx.fillStyle = ThemeSwitch.color("--line");
     this.ctx.fillRect(0, this.H - KaplabGame.FLOOR, this.W, 2);
-    const accent = css.getPropertyValue("--accent");
+    const accent = ThemeSwitch.color("--accent");
     const hover = !this.mc.body && this.pointerIn ? Matter.Query.point(this.planks, this.mouse.position)[0] : null;
     for (const b of this.planks) {
       this.ctx.save();
