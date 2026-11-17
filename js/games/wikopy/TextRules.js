@@ -55,12 +55,12 @@ class TextRules {
     return out;
   }
 
+  static fold(ch) {
+    return ch.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  }
+
   static charOk(typed, expected) {
-    if (typed === expected) return true;
-    if (expected !== expected.toLowerCase()) {
-      return typed === expected.normalize("NFD").replace(/[̀-ͯ]/g, "");
-    }
-    return false;
+    return typed === expected || TextRules.fold(typed) === TextRules.fold(expected);
   }
 
   static wordOk(val, word) {
