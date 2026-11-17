@@ -4,7 +4,7 @@ Worksoft est un petit site de mini-jeux gratuits, à jouer directement dans le n
 
 On choisit son jeu dans un menu en grille, comme on zappe entre des chaînes de télé. Le site existe en thème clair et en thème sombre, et il s'adapte à l'ordinateur comme au téléphone.
 
-**Jouer en ligne : https://zedartt.github.io/WorkSoft/**
+**Jouer en ligne : https://capable-babka-73d457.netlify.app**
 
 ## Les jeux
 
