@@ -1,29 +1,24 @@
 # Worksoft
 
-Un site de mini-jeux dans l'esprit de neal.fun, avec un menu en grille de chaînes.
+Worksoft est un petit site de mini-jeux gratuits, à jouer directement dans le navigateur, sans compte ni installation. L'idée : des jeux courts, simples à comprendre et un peu originaux, qu'on lance en un clic pour une pause de quelques minutes.
 
-| Jeu | Principe |
-| --- | --- |
-| Wikopy-past | Recopier le plus vite possible l'introduction d'une page Wikipédia tirée au hasard |
-| Kaplab | Bac à sable de planchettes en bois soumises à la gravité |
-| Incscape | Entourer d'un trait les bonhommes d'encre avant qu'ils ne s'enfuient de la feuille |
-| Cooktou | Prendre les commandes et cuisiner de vraies recettes simplifiées, geste par geste |
-| WordHunt | Taper les mots lancés dans le ciel avant qu'ils ne sortent de l'écran |
+On choisit son jeu dans un menu en grille, comme on zappe entre des chaînes de télé. Le site existe en thème clair et en thème sombre, et il s'adapte à l'ordinateur comme au téléphone.
 
-## Lancer en local
+**Jouer en ligne : https://zedartt.github.io/WorkSoft/**
 
-Aucune installation : ouvrir `index.html` dans un navigateur (double-clic), ou utiliser l'extension Live Server de VS Code.
+## Les jeux
 
-Wikopy-past a besoin d'Internet pour joindre Wikipédia ; sans connexion il utilise des textes de secours.
+### Wikopy-past
+Une page Wikipédia est tirée au hasard et tu dois recopier son introduction le plus vite possible. À la fin, tu découvres ta vitesse en mots par minute et ta précision. Pas besoin de respecter les majuscules ni les accents.
 
-## Mettre en ligne
+### Kaplab
+Un bac à sable de planchettes en bois soumises à la gravité. Empile, tourne et construis ce que tu veux… puis regarde tout s'écrouler.
 
-Le site est 100 % statique (HTML, CSS, JavaScript) : il suffit de publier le dossier tel quel, `index.html` à la racine.
+### Incscape
+Des bonhommes d'encre se baladent sur une feuille. Entoure-les d'un trait pour les attraper avant qu'ils ne s'échappent, mais attention à ta réserve d'encre.
 
-- **GitHub Pages** : pousser le dossier dans un dépôt, puis activer Pages dans les réglages du dépôt.
-- **Netlify** ou **Cloudflare Pages** : relier le dépôt, ou glisser-déposer le dossier ; aucune commande de build, dossier de sortie = racine.
-- **itch.io** : compresser le dossier en zip et le téléverser comme jeu HTML.
+### Cooktou
+Tu es en cuisine : prends les commandes des clients et prépare de vraies recettes simplifiées, geste par geste (couper, mélanger, verser, cuire…). Sers vite, sinon les clients s'impatientent. À jouer sur ordinateur.
 
-## Structure
-
-Voir `CLAUDE.md` pour l'architecture détaillée et les conventions.
+### WordHunt
+Des mots traversent le ciel en laissant une traînée arc-en-ciel ou d'étoile filante. Tape-les et appuie sur Entrée pour les faire éclater avant qu'ils ne s'envolent. Les mots colorés ou qui bougent rapportent plus de points, et le jeu accélère petit à petit.

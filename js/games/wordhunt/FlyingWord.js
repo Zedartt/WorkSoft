@@ -4,6 +4,21 @@ class FlyingWord {
   static TRAIL_MAX = 26;
   static TRAIL_STEP = 5;
   static TOP_MARGIN = 0.14;
+  static PAINTS = [
+    { name: "plain", weight: 45, bonus: 0, perLetter: false },
+    { name: "color", weight: 12, bonus: 0.25, perLetter: false },
+    { name: "duo", weight: 8, bonus: 0.25, perLetter: true },
+    { name: "gradient", weight: 8, bonus: 0.25, perLetter: true },
+    { name: "glow", weight: 7, bonus: 0.25, perLetter: false },
+    { name: "fade", weight: 10, bonus: 0.5, perLetter: false },
+    { name: "rainbow", weight: 10, bonus: 0.5, perLetter: true },
+  ];
+  static EFFECT_BONUS = 0.5;
+  static RAINBOW_SPEED = 240;
+  static RAINBOW_LETTER_STEP = 45;
+  static FADE_SPEED = 110;
+  static GLOW_SPEED = 6;
+  static GLOW_DEPTH = 14;
 
   constructor(text, width, area, duration, effectChance) {
     this.text = text;
@@ -22,10 +37,26 @@ class FlyingWord {
     this.effect = Math.random() < effectChance ? FlyingWord.EFFECTS[Math.floor(Math.random() * FlyingWord.EFFECTS.length)] : "calm";
     this.spinDir = Math.random() < 0.5 ? 1 : -1;
     this.trailKind = Math.random() < 0.5 ? "rainbow" : "comet";
+    this.paint = FlyingWord.pickPaint();
+    this.hue = Math.floor(Math.random() * 360);
+    this.hue2 = (this.hue + 90 + Math.random() * 180) % 360;
     this.trail = [];
     this.letters = null;
     this.x = this.startX;
     this.y = this.startY;
+  }
+
+  static pickPaint() {
+    let roll = Math.random() * FlyingWord.PAINTS.reduce((sum, paint) => sum + paint.weight, 0);
+    for (const paint of FlyingWord.PAINTS) {
+      roll -= paint.weight;
+      if (roll < 0) return paint;
+    }
+    return FlyingWord.PAINTS[0];
+  }
+
+  get bonus() {
+    return 1 + (this.effect === "calm" ? 0 : FlyingWord.EFFECT_BONUS) + this.paint.bonus;
   }
 
   get progress() {
@@ -104,16 +135,31 @@ class FlyingWord {
     for (let i = 1; i < this.trail.length; i++) ctx.lineTo(this.trail[i].x, this.trail[i].y + shift);
   }
 
-  drawText(ctx, fill, outline) {
-    const { rot, scale, dx, dy } = this.pose();
+  letterColor(i, lightness) {
+    const count = this.letters ? this.letters.length : 1;
+    let hue = this.hue,
+      light = lightness;
+    if (this.paint.name === "duo" && i % 2) hue = this.hue2;
+    else if (this.paint.name === "gradient") hue = this.hue + ((this.hue2 - this.hue) * i) / Math.max(1, count - 1);
+    else if (this.paint.name === "fade") hue = this.hue + this.age * FlyingWord.FADE_SPEED;
+    else if (this.paint.name === "rainbow") hue = this.hue + i * FlyingWord.RAINBOW_LETTER_STEP + this.age * FlyingWord.RAINBOW_SPEED;
+    else if (this.paint.name === "glow") light += Math.sin(this.age * FlyingWord.GLOW_SPEED) * FlyingWord.GLOW_DEPTH;
+    return `hsl(${Math.round(hue % 360)},85%,${light}%)`;
+  }
+
+  drawText(ctx, colors, matched) {
+    const { rot, scale, dx, dy } = this.pose(),
+      perLetter = !matched && this.paint.perLetter;
     ctx.save();
     ctx.translate(this.x + dx, this.y + dy);
     ctx.rotate(rot);
     ctx.scale(scale, scale);
     ctx.lineWidth = 6;
-    ctx.strokeStyle = outline;
-    ctx.fillStyle = fill;
-    if (this.effect === "wave") this.drawWave(ctx);
+    ctx.strokeStyle = colors.outline;
+    if (matched) ctx.fillStyle = colors.accent;
+    else if (this.paint.name === "plain") ctx.fillStyle = colors.ink;
+    else ctx.fillStyle = this.letterColor(0, colors.lightness);
+    if (this.effect === "wave" || perLetter) this.drawLetters(ctx, perLetter, colors.lightness);
     else {
       ctx.strokeText(this.text, 0, 0);
       ctx.fillText(this.text, 0, 0);
@@ -121,7 +167,7 @@ class FlyingWord {
     ctx.restore();
   }
 
-  drawWave(ctx) {
+  drawLetters(ctx, perLetter, lightness) {
     if (!this.letters) {
       let left = -this.width / 2;
       this.letters = [...this.text].map((letter) => {
@@ -132,7 +178,8 @@ class FlyingWord {
       });
     }
     this.letters.forEach(({ letter, center }, i) => {
-      const lift = Math.sin(this.age * 5 + i * 0.7) * 4;
+      const lift = this.effect === "wave" ? Math.sin(this.age * 5 + i * 0.7) * 4 : 0;
+      if (perLetter) ctx.fillStyle = this.letterColor(i, lightness);
       ctx.strokeText(letter, center, lift);
       ctx.fillText(letter, center, lift);
     });

@@ -146,6 +146,8 @@ Script de contrôle à coller dans la console après avoir lancé Cooktou (doit 
 - Des mots tirés de `WordList.WORDS` sont lancés d'un bord du ciel à l'autre en arc (`FlyingWord`). Le joueur tape un mot dans le champ du bas puis appuie sur Entrée : s'il est à l'écran, il éclate et rapporte `POINTS_PER_LETTER` points par lettre. Un mot qui sort de l'autre côté est raté ; `MAX_MISSES` (3) ratés = fin.
 - `WordList.plain()` ignore accents et majuscules (`œ` = `oe`) ; si le même mot est deux fois à l'écran, c'est le plus avancé qui part. Les mots qui commencent par ce qui est tapé s'affichent en couleur d'accent. Une erreur ne coûte rien (le champ tremble).
 - Chaque mot a une traînée arc-en-ciel ou étoile filante, et parfois un effet doux : balancement, rotation lente, tremblement, à l'envers, vague, pulsation. La part de mots avec effet passe de 20 % à 75 % en `EFFECTS_RAMP` secondes.
+- Peinture du mot (`FlyingWord.PAINTS`, tirage pondéré, indépendant de l'effet) : normal, couleur fixe, deux couleurs alternées, dégradé, lueur qui pulse, fondu qui change de teinte, arc-en-ciel animé lettre par lettre. Environ 55 % des mots sont colorés. La clarté des couleurs suit le thème (`--word-lightness`).
+- Bonus de points : un effet de mouvement ajoute `EFFECT_BONUS` (+50 %), chaque peinture ajoute son `bonus` (+25 % ou +50 %) ; jusqu'à ×2. Le gain affiché montre le multiplicateur (« +123 ×1,75 »).
 - Difficulté (selon le temps de jeu) : écart entre deux mots de `FIRST_GAP` à `MIN_GAP` secondes, traversée de `FIRST_CROSS` à `MIN_CROSS` secondes (plus `LETTER_TIME` par lettre), nombre de mots à l'écran de 2 à 8 (+1 toutes les `MORE_EVERY` secondes).
 
 ## Sons

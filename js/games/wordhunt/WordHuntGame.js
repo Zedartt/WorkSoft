@@ -21,7 +21,7 @@ class WordHuntGame extends Game {
       id: "wordhunt",
       name: "WordHunt",
       tag: "Tape les mots lancés dans le ciel avant qu'ils ne s'envolent",
-      art: '<svg viewBox="0 0 80 60" style="height:1em" fill="none" stroke-width="5" stroke-linecap="round"><path d="M10 52a30 30 0 0 1 60 0" stroke="#e5484d"/><path d="M17 52a23 23 0 0 1 46 0" stroke="#ffc83d"/><path d="M24 52a16 16 0 0 1 32 0" stroke="#2f9be0"/><text x="40" y="34" text-anchor="middle" font-size="22" font-weight="800" fill="currentColor" stroke="none">A</text></svg>',
+      art: '<svg viewBox="34 0 60 60" style="height:1em" fill="none" stroke-linecap="round"><text x="64" y="39" text-anchor="middle" font-size="25" font-weight="800" fill="currentColor">A</text><g stroke="#e5484d" stroke-width="4"><circle cx="64" cy="30" r="19"/><path d="M64 4v9M64 47v9M38 30h9M81 30h9"/></g></svg>',
     });
     this.canvas = $("whCanvas");
     this.ctx = this.canvas.getContext("2d");
@@ -92,10 +92,11 @@ class WordHuntGame extends Game {
       this.wrong();
       return;
     }
-    const points = target.plain.length * WordHuntGame.POINTS_PER_LETTER;
+    const bonus = target.bonus,
+      points = Math.round(target.plain.length * WordHuntGame.POINTS_PER_LETTER * bonus);
     this.words = this.words.filter((w) => w !== target);
     this.score += points;
-    this.burst(target, points);
+    this.burst(target, bonus > 1 ? `+${points} ×${String(bonus).replace(".", ",")}` : `+${points}`);
     this.input.value = "";
     this.typed = "";
     Sfx.play("pop");
@@ -112,7 +113,7 @@ class WordHuntGame extends Game {
     Sfx.play("bad");
   }
 
-  burst(word, points) {
+  burst(word, label) {
     for (let i = 0; i < WordHuntGame.SPARKS; i++) {
       const angle = (i / WordHuntGame.SPARKS) * Math.PI * 2,
         speed = 90 + Math.random() * 140;
@@ -126,7 +127,7 @@ class WordHuntGame extends Game {
         max: 0.7,
       });
     }
-    this.labels.push({ x: word.x, y: word.y, text: "+" + points, life: 0.9, max: 0.9 });
+    this.labels.push({ x: word.x, y: word.y, text: label, life: 0.9, max: 0.9 });
   }
 
   miss(word) {
@@ -267,19 +268,22 @@ class WordHuntGame extends Game {
 
   draw() {
     const css = getComputedStyle(document.documentElement),
-      ink = css.getPropertyValue("--ink").trim(),
-      panel = css.getPropertyValue("--panel").trim(),
-      accent = css.getPropertyValue("--accent").trim(),
+      colors = {
+        ink: css.getPropertyValue("--ink").trim(),
+        outline: css.getPropertyValue("--panel").trim(),
+        accent: css.getPropertyValue("--accent").trim(),
+        lightness: parseFloat(css.getPropertyValue("--word-lightness")),
+      },
       bad = css.getPropertyValue("--bad").trim(),
       ctx = this.ctx;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     ctx.clearRect(0, 0, this.W, this.H);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    this.drawIntro(ink);
+    this.drawIntro(colors.ink);
     for (const w of this.words) w.drawTrail(ctx);
     ctx.font = this.font;
-    for (const w of this.words) w.drawText(ctx, this.typed && w.plain.startsWith(this.typed) ? accent : ink, panel);
+    for (const w of this.words) w.drawText(ctx, colors, !!this.typed && w.plain.startsWith(this.typed));
     this.drawEffects(bad);
   }
 
