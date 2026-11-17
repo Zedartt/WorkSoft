@@ -66,10 +66,12 @@ class Launcher {
     this.panel.style.display = "flex";
     void this.panel.offsetWidth;
     this.panel.classList.add("open");
-    this.setBox({ left: 0, top: 0, width: innerWidth, height: innerHeight });
+    const visible = window.visualViewport;
+    this.setBox({ left: 0, top: visible ? visible.offsetTop : 0, width: innerWidth, height: visible ? visible.height : innerHeight });
     await this.wait(480);
+    this.panel.style.top = "var(--app-top, 0px)";
     this.panel.style.width = "100vw";
-    this.panel.style.height = "100vh";
+    this.panel.style.height = "var(--app-height, 100dvh)";
     this.panel.classList.add("ready");
     $("launchStart").focus();
     this.busy = false;

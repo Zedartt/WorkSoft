@@ -243,6 +243,24 @@
     font-size: 17px;
   }
 }
+@media (max-width: 720px) and (orientation: portrait) {
+  .launch-body {
+    justify-content: flex-end;
+    padding-bottom: 28px;
+  }
+  .launch-bar {
+    height: auto;
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 12px;
+    padding: 24px 24px calc(32px + env(safe-area-inset-bottom));
+  }
+  .launch-bar button {
+    min-width: 0;
+    padding: 16px;
+    font-size: 19px;
+  }
+}
 @media (max-height: 500px) {
   .menu-top {
     padding-top: 10px;

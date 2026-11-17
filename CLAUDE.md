@@ -60,12 +60,13 @@ Mesurer les zones de jeu avec `clientWidth` / `clientHeight`, jamais `getBoundin
 
 ## Écrans, zoom et mobile
 
+- Écran de lancement : en portrait sur téléphone, les boutons sont empilés et remontés au-dessus de la barre de Safari ; le panneau prend `--app-height` (jamais `100vh`, qui passe sous la barre sur iPhone).
 - Référence mobile : iPhone 16 (393 × 852 en portrait, 852 × 393 en paysage). Tester aussi un grand écran dézoomé (par exemple 2560 × 1300).
 - Les boutons son et thème sont dans `.corner` (coin haut droit). `--corner-w` réserve leur place à droite de `.game-top` et `.menu-top` pour que le titre ne passe jamais dessous. Sous 720 px de large, le bouton de thème n'affiche que son icône.
 - Deux paliers CSS communs : `max-width: 720px` (écran étroit) et `max-height: 500px` (téléphone en paysage : en-têtes et bandes plus fins, horloge du menu masquée).
 - `.screen` respecte les zones sûres de l'iPhone (`env(safe-area-inset-*)`, `viewport-fit=cover`).
 - Les champs de saisie font au moins 16 px de police, sinon l'iPhone zoome tout seul au focus.
-- Cooktou : la cuisine est mise à l'échelle de la hauteur visible (`KitchenView.fit()`, `DESIGN_H`, bornée par `MIN_SCALE` / `MAX_SCALE`) ; la caméra reste en pixels du monde et `applyCam()` applique l'échelle. En portrait sur téléphone, `.ck-rotate` demande de tourner l'écran.
+- Cooktou : la cuisine est mise à l'échelle de la hauteur visible (`KitchenView.fit()`, `DESIGN_H`, bornée par `MIN_SCALE` / `MAX_SCALE`) ; la caméra reste en pixels du monde et `applyCam()` applique l'échelle. Sur téléphone (`CooktouGame.PHONE_QUERY` : écran tactile étroit ou peu haut), le jeu ne démarre pas et `.ck-desktop-only` invite à jouer sur ordinateur, choix du propriétaire.
 - Kaplab : boutons pour tourner (tenus appuyés, `TURN_SPEED`, agissent sur la planchette tenue ou la dernière touchée) et bouton « Gravité en main », pour jouer au doigt.
 
 ### Ajouter un jeu

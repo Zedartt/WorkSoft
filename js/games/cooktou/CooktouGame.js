@@ -4,6 +4,7 @@ class CooktouGame extends Game {
   static WORLD_W = 2280;
   static CHEF_X = 1235;
   static POUR_T = 1.1;
+  static PHONE_QUERY = "(pointer: coarse) and (max-width: 600px), (pointer: coarse) and (max-height: 500px)";
   static SHAKES = 4;
   constructor() {
     super({
@@ -34,6 +35,7 @@ class CooktouGame extends Game {
     this.built = false;
     this.view = new KitchenView(this);
     this.pointer = new PointerController(this);
+    $("ckPhoneMenu").addEventListener("click", () => app.launcher.backToMenu());
   }
 
   pick(a) {
@@ -363,6 +365,9 @@ class CooktouGame extends Game {
   }
 
   open() {
+    const phone = matchMedia(CooktouGame.PHONE_QUERY).matches;
+    $("cooktou").classList.toggle("ck-phone", phone);
+    if (phone) return;
     if (!this.built) this.view.build();
     this.reset();
     this.last = performance.now();
