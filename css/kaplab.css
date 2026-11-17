@@ -15,3 +15,24 @@
   touch-action: none;
   cursor: grab;
 }
+.plk-grav {
+  flex: none;
+  height: 34px;
+  padding: 0 12px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 13px;
+}
+.plk-grav:hover {
+  border-color: var(--accent);
+}
+.plk-grav b {
+  color: var(--accent);
+}
+@media (pointer: coarse), (max-width: 720px) {
+  .plk-keys {
+    display: none;
+  }
+}

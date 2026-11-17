@@ -146,7 +146,7 @@ class CooktouGame extends Game {
     void c.offsetWidth;
     c.classList.add("chop");
     if (this.chops >= s.n) {
-      this.cont.planche = this.cont.planche.map((x) => x.replace("~", "") + "~");
+      this.cont.planche = this.cont.planche.map((x) => (Catalog.isMix(x) ? x : x.replace("~", "") + "~"));
       this.complete();
     } else this.view.progress();
   }
@@ -157,7 +157,7 @@ class CooktouGame extends Game {
     if (Math.floor(Math.abs(this.stirAcc + d) / 1.6) !== Math.floor(Math.abs(this.stirAcc) / 1.6)) Sfx.play("stir");
     this.stirAcc += d;
     if (Math.abs(this.stirAcc) >= Math.PI * 2 * s.n) {
-      this.flags.bol = "mixed";
+      this.cont.bol = [Catalog.mixOf(this.cont.bol)];
       this.complete();
     } else {
       this.view.query(`[data-from="bol"]`).style.transform = `rotate(${this.stirAcc}rad)`;
@@ -261,7 +261,7 @@ class CooktouGame extends Game {
     this.lastRecipe = null;
     this.view.guideSig = null;
     $("ckOver").classList.remove("show");
-    this.view.viewW = this.view.area.clientWidth;
+    this.view.fit();
     this.view.cam = this.view.camTarget = CooktouGame.CHEF_X - this.view.viewW / 2;
     this.view.clampCam();
     this.view.cam = this.view.camTarget;

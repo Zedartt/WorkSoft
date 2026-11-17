@@ -16,7 +16,10 @@ class ThemeSwitch {
 
   apply(theme) {
     document.documentElement.dataset.theme = theme;
-    this.button.textContent = theme === "dark" ? "☀ Mode clair" : "☾ Mode sombre";
+    const label = theme === "dark" ? "Mode clair" : "Mode sombre";
+    this.button.querySelector(".theme-icon").textContent = theme === "dark" ? "☀" : "☾";
+    this.button.querySelector(".theme-label").textContent = label;
+    this.button.setAttribute("aria-label", label);
   }
 
   toggle() {

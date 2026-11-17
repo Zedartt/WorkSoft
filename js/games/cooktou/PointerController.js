@@ -23,6 +23,14 @@ class PointerController {
     this.game.doPut(d.id, st, this.game.view.query(`[data-drop="${st}"]`));
   }
 
+  closeFridgeWhenLeft() {
+    const fridge = $("ckFridge");
+    if (!fridge.classList.contains("open")) return;
+    const r = fridge.getBoundingClientRect();
+    if (this.px >= r.left && this.px <= r.right && this.py >= r.top && this.py <= r.bottom) return;
+    this.game.view.setFridge(false);
+  }
+
   down(e) {
     if (this.game.over || e.button > 0 || this.drag || this.pan) return;
     this.px = e.clientX;
@@ -66,7 +74,7 @@ class PointerController {
             ? Icons.draw(this.game.active.recipe.id)
             : this.game.cont[id]
                 .slice(-3)
-                .map((x) => Icons.draw(x.replace("~", "")))
+                .map((x) => this.game.view.entryIcon(x))
                 .join(""),
       };
     } else
@@ -90,8 +98,9 @@ class PointerController {
   move(e) {
     this.px = e.clientX;
     this.py = e.clientY;
+    this.closeFridgeWhenLeft();
     if (this.pan) {
-      this.game.view.camTarget = this.pan.cam - (this.px - this.pan.x);
+      this.game.view.camTarget = this.pan.cam - (this.px - this.pan.x) / this.game.view.scale;
       this.game.view.clampCam();
       this.game.view.cam = this.game.view.camTarget;
       this.game.view.applyCam();

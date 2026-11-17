@@ -1,8 +1,9 @@
 class App {
   constructor() {
+    this.viewport = new Viewport();
     this.theme = new ThemeSwitch($("themeBtn"));
     this.sound = new SoundSwitch($("soundBtn"));
-    this.games = [new WikopyGame(), new KaplabGame(), new IncscapeGame(), new CooktouGame()];
+    this.games = [new WikopyGame(), new KaplabGame(), new IncscapeGame(), new CooktouGame(), new WordHuntGame()];
     this.launcher = new Launcher(this.games);
   }
 

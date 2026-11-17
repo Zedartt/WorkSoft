@@ -1,9 +1,26 @@
 class KitchenView {
+  static DESIGN_H = 640;
+  static MIN_SCALE = 0.55;
+  static MAX_SCALE = 1.8;
+  static PUDDLE = "M6 26c-2-10 8-17 19-16 12 0 20 7 18 16-1 9-10 13-20 12-9 0-16-4-17-12z";
+  static SPECKS = [
+    [14, 20],
+    [24, 15],
+    [33, 18],
+    [38, 26],
+    [28, 24],
+    [18, 28],
+    [11, 30],
+    [24, 33],
+    [33, 32],
+    [20, 22],
+  ];
   constructor(game) {
     this.game = game;
     this.cam = 0;
     this.camTarget = 0;
     this.viewW = 0;
+    this.scale = 1;
     this.hintIn = 0;
     this.guideSig = null;
     this.who = "homme";
@@ -56,10 +73,11 @@ class KitchenView {
     this.area.addEventListener("pointermove", (...args) => this.game.pointer.move(...args));
     this.area.addEventListener("pointerup", (...args) => this.game.pointer.up(...args));
     this.area.addEventListener("pointercancel", (...args) => this.game.pointer.up(...args));
+    this.area.addEventListener("pointerleave", () => this.setFridge(false));
     this.area.addEventListener(
       "wheel",
       (e) => {
-        this.camTarget += Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+        this.camTarget += (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) / this.scale;
         this.clampCam();
       },
       {
@@ -110,13 +128,12 @@ class KitchenView {
         this.clampCam();
       }
     });
-    window.addEventListener("resize", () => {
-      if (this.game.raf) {
-        this.viewW = this.area.clientWidth;
-        this.clampCam();
-        this.guideSig = null;
-      }
-    });
+    new ResizeObserver(() => {
+      if (!this.game.raf) return;
+      this.fit();
+      this.applyCam();
+      this.guideSig = null;
+    }).observe(this.area);
     $("ckRestart").addEventListener("click", (...args) => this.game.reset(...args));
     $("ckWho").addEventListener("click", () => {
       this.who = this.who === "femme" ? "homme" : "femme";
@@ -257,13 +274,14 @@ class KitchenView {
           rot = ((i * 47) % 50) - 25;
         const one = (dx, dy, dr, size, inner) =>
           `<svg class="ic" viewBox="0 0 48 48" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" style="left:calc(50% + ${(px_ + dx).toFixed(1)}px);top:calc(50% + ${(py_ + dy).toFixed(1)}px);width:${size}px;height:${size}px;margin:${-size / 2}px 0 0 ${-size / 2}px;transform:rotate(${rot + dr}deg)">${inner || Icons.shapes[x]}</svg>`;
+        if (Catalog.isMix(raw)) return one(0, 0, 0, 62, this.mixture(raw)).replace('class="ic"', 'class="ic liq"');
         if (g.pour)
           return one(
             0,
             0,
             0,
             54,
-            `<path d="M6 26c-2-10 8-17 19-16 12 0 20 7 18 16-1 9-10 13-20 12-9 0-16-4-17-12z" fill="${g.pour}" stroke="rgba(0,0,0,.14)" opacity=".9"/><path d="M13 22q6-7 16-6" stroke="#fff" opacity=".6" fill="none"/>`,
+            `<path d="${KitchenView.PUDDLE}" fill="${g.pour}" stroke="rgba(0,0,0,.14)" opacity=".9"/><path d="M13 22q6-7 16-6" stroke="#fff" opacity=".6" fill="none"/>`,
           ).replace('class="ic"', 'class="ic liq"');
         if (g.shake)
           return one(
@@ -292,6 +310,36 @@ class KitchenView {
         return cut ? one(-11, 3, -20, 22) + one(9, -6, 25, 22) + one(2, 9, 70, 22) : one(0, 0, 0, big);
       })
       .join("");
+  }
+
+  blend(ids) {
+    let r = 0,
+      g = 0,
+      b = 0,
+      total = 0;
+    for (const id of ids) {
+      const weight = Catalog.ingredients[id].shake ? 0.25 : 1,
+        hex = parseInt(Catalog.tint(id).slice(1), 16);
+      r += (hex >> 16) * weight;
+      g += ((hex >> 8) & 255) * weight;
+      b += (hex & 255) * weight;
+      total += weight;
+    }
+    return `rgb(${Math.round(r / total)},${Math.round(g / total)},${Math.round(b / total)})`;
+  }
+
+  mixture(raw) {
+    const parts = Catalog.parts(raw);
+    const specks = KitchenView.SPECKS.map(
+      ([cx, cy], k) => `<circle cx="${cx}" cy="${cy}" r="1.9" fill="${Catalog.tint(parts[k % parts.length])}" stroke="rgba(0,0,0,.2)" stroke-width=".5"/>`,
+    ).join("");
+    return `<path d="${KitchenView.PUDDLE}" fill="${this.blend(parts)}" stroke="rgba(0,0,0,.18)"/><path d="M13 22q6-7 16-6" stroke="#fff" opacity=".5" fill="none"/>${specks}`;
+  }
+
+  entryIcon(raw) {
+    return Catalog.isMix(raw)
+      ? `<svg class="ic" viewBox="0 0 48 48" stroke-width="2" stroke-linecap="round">${this.mixture(raw)}</svg>`
+      : Icons.draw(raw.replace("~", ""));
   }
 
   renderStations() {
@@ -407,8 +455,8 @@ class KitchenView {
       const r = el.getBoundingClientRect();
       if (r.right < a.left + 40) left = true;
       if (r.left > a.right - 40) right = true;
-      const x = Math.round(r.left - w.left + r.width / 2),
-        y = Math.round(r.top - w.top + Math.min(14, r.height * 0.2));
+      const x = Math.round((r.left - w.left + r.width / 2) / this.scale),
+        y = Math.round((r.top - w.top + Math.min(14, r.height * 0.2)) / this.scale);
       pts.push([x, y]);
       html += `<div class="ck-bub b${n}" style="left:${x}px;top:${y}px">${label}</div>`;
       sig += label + x + "," + y + ";";
@@ -420,7 +468,7 @@ class KitchenView {
         ya = y1 - 34,
         yb = y2 - 34;
       html =
-        `<svg class="ck-arrow" width="${CooktouGame.WORLD_W}" height="100%"><defs><marker id="ckHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0l10 5-10 5z" fill="#2f9be0"/></marker></defs><path d="M${x1 + dir * 24} ${ya} Q ${(x1 + x2) / 2} ${Math.min(ya, yb) - 46} ${x2 - dir * 24} ${yb}" marker-end="url(#ckHead)"/></svg>` +
+        `<svg class="ck-arrow" width="${CooktouGame.WORLD_W}" height="100%"><defs><marker id="ckHead" viewBox="0 0 10 10" refX="6" refY="5" markerUnits="userSpaceOnUse" markerWidth="22" markerHeight="22" orient="auto"><path class="ck-arrow-head" d="M0 0l10 5-10 5 2.5-5z"/></marker></defs><path class="ck-arrow-line" d="M${x1 + dir * 24} ${ya} Q ${(x1 + x2) / 2} ${Math.min(ya, yb) - 46} ${x2 - dir * 24} ${yb}" marker-end="url(#ckHead)"/></svg>` +
         html;
       sig += "arrow";
     }
@@ -444,11 +492,19 @@ class KitchenView {
     g.style.top = this.game.pointer.py + "px";
   }
 
+  fit() {
+    const height = $("ckWorld").parentNode.clientHeight;
+    this.scale = Math.min(KitchenView.MAX_SCALE, Math.max(KitchenView.MIN_SCALE, height / KitchenView.DESIGN_H));
+    $("ckWorld").style.height = height / this.scale + "px";
+    this.viewW = this.area.clientWidth / this.scale;
+    this.clampCam();
+  }
+
   clampCam() {
     this.camTarget = Math.max(0, Math.min(Math.max(0, CooktouGame.WORLD_W - this.viewW), this.camTarget));
   }
 
   applyCam() {
-    $("ckWorld").style.transform = `translateX(${-Math.round(this.cam)}px)`;
+    $("ckWorld").style.transform = `translateX(${-Math.round(this.cam * this.scale)}px) scale(${this.scale})`;
   }
 }

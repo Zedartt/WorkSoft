@@ -279,9 +279,12 @@ class IncscapeGame extends Game {
     if (!this.over && this.score === 0 && this.t < 6) {
       this.ctx.globalAlpha = Math.min(1, (6 - this.t) / 1.5) * 0.55;
       this.ctx.fillStyle = ink;
+      const intro = "Entoure les bonhommes d'un trait avant qu'ils ne s'enfuient de la feuille";
       this.ctx.font = "600 18px 'Segoe UI', system-ui, sans-serif";
+      const size = Math.min(18, (18 * (this.W - 24)) / this.ctx.measureText(intro).width);
+      this.ctx.font = `600 ${size}px 'Segoe UI', system-ui, sans-serif`;
       this.ctx.textAlign = "center";
-      this.ctx.fillText("Entoure les bonhommes d'un trait avant qu'ils ne s'enfuient de la feuille", this.W / 2, 34);
+      this.ctx.fillText(intro, this.W / 2, 34);
       this.ctx.globalAlpha = 1;
     }
     this.ctx.fillStyle = ink;

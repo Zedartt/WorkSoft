@@ -173,6 +173,12 @@ class SoundEngine {
           vol: 0.07,
           type: "triangle",
         }),
+      whoosh: () =>
+        this.noise(0.4, {
+          f: 900,
+          q: 0.8,
+          vol: 0.06,
+        }),
       escape: () =>
         this.tone(620, 0.32, {
           to: 140,

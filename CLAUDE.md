@@ -16,7 +16,7 @@ Site de mini-jeux statique (HTML + CSS + JavaScript, sans framework ni étape de
 4. **Programmation orientée objet** : état dans des champs d'instance, réglages dans des champs `static` en MAJUSCULES, pas de variables globales en dehors de `$`, `Store`, `Sfx` et `app`.
 5. **Aucune dépendance externe** hormis `js/vendor/matter.min.js` (Matter.js 0.20.0, licence MIT, l'en-tête de licence doit rester). Pas de CDN, pas de npm à l'exécution.
 6. **Textes de l'interface en français**, tutoiement.
-7. **Classes CSS préfixées par jeu** (`ck-` Cooktou, `plk-` Kaplab, `ink-` Incscape). Une classe générique a déjà provoqué une collision (`.hint` de Wikopy contre un repère de Cooktou).
+7. **Classes CSS préfixées par jeu** (`ck-` Cooktou, `plk-` Kaplab, `ink-` Incscape, `wh-` WordHunt). Une classe générique a déjà provoqué une collision (`.hint` de Wikopy contre un repère de Cooktou).
 8. **Thème clair/sombre** : n'utiliser que les variables CSS de `css/base.css` (`--bg`, `--panel`, `--ink`, `--muted`, `--line`, `--accent`, `--bad`…) pour tout ce qui doit changer avec le thème. Le thème est porté par `data-theme` sur `<html>`.
 9. **En-tête identique pour tous les jeux** : `.game-top` (bouton « ← Menu », titre centré) puis `.game-bar` (bande de hauteur fixe pour ce qui est propre au jeu, boutons `.icon-btn`).
 
@@ -28,10 +28,11 @@ css/
   base.css                     variables, thèmes, boutons de thème et de son, animations communes
   components.css               en-tête de jeu, bande de jeu, boutons, carte de résultat, pastilles
   menu.css                     grille des chaînes, horloge, écran de lancement, fondu
-  wikopy.css  kaplab.css  incscape.css  cooktou.css
+  wikopy.css  kaplab.css  incscape.css  cooktou.css  wordhunt.css
 js/
   core/
     Dom.js                     $(id) et Store (lecture/écriture localStorage protégée)
+    Viewport.js                cale les écrans sur la zone réellement visible (clavier iPhone) via --app-height et --app-top
     SoundEngine.js             sons synthétisés (Web Audio) ; instance globale Sfx
     Game.js                    classe de base des jeux : id, name, tag, art, open(), close()
     ThemeSwitch.js             bascule de thème et bouton de son
@@ -47,6 +48,7 @@ js/
       KitchenView.js           construction de la cuisine, affichage, repères du tutoriel, caméra
       PointerController.js     glisser-déposer, couteau, cuillère, verser, secouer, déplacement de la vue
       CooktouGame.js           état de la partie, règles, difficulté, boucle
+    wordhunt/  WordList.js (mots, comparaison sans accents ni majuscules), FlyingWord.js (trajectoire, effets, traînée), WordHuntGame.js
   vendor/matter.min.js
 ```
 
@@ -55,6 +57,16 @@ js/
 `App` instancie chaque jeu une seule fois au chargement. `Launcher` affiche la `<section id="{game.id}">` puis appelle `game.open()` ; au retour au menu il appelle `game.close()` et `Sfx.stopAll()`. `open()` doit (re)mesurer l'écran et démarrer la boucle ; `close()` doit arrêter `requestAnimationFrame`, les minuteries et les sons en boucle.
 
 Mesurer les zones de jeu avec `clientWidth` / `clientHeight`, jamais `getBoundingClientRect()` dans `open()` : l'écran s'ouvre avec une animation de zoom qui fausse le rectangle.
+
+## Écrans, zoom et mobile
+
+- Référence mobile : iPhone 16 (393 × 852 en portrait, 852 × 393 en paysage). Tester aussi un grand écran dézoomé (par exemple 2560 × 1300).
+- Les boutons son et thème sont dans `.corner` (coin haut droit). `--corner-w` réserve leur place à droite de `.game-top` et `.menu-top` pour que le titre ne passe jamais dessous. Sous 720 px de large, le bouton de thème n'affiche que son icône.
+- Deux paliers CSS communs : `max-width: 720px` (écran étroit) et `max-height: 500px` (téléphone en paysage : en-têtes et bandes plus fins, horloge du menu masquée).
+- `.screen` respecte les zones sûres de l'iPhone (`env(safe-area-inset-*)`, `viewport-fit=cover`).
+- Les champs de saisie font au moins 16 px de police, sinon l'iPhone zoome tout seul au focus.
+- Cooktou : la cuisine est mise à l'échelle de la hauteur visible (`KitchenView.fit()`, `DESIGN_H`, bornée par `MIN_SCALE` / `MAX_SCALE`) ; la caméra reste en pixels du monde et `applyCam()` applique l'échelle. En portrait sur téléphone, `.ck-rotate` demande de tourner l'écran.
+- Kaplab : boutons pour tourner (tenus appuyés, `TURN_SPEED`, agissent sur la planchette tenue ou la dernière touchée) et bouton « Gravité en main », pour jouer au doigt.
 
 ### Ajouter un jeu
 
@@ -77,7 +89,7 @@ Mesurer les zones de jeu avec `clientWidth` / `clientHeight`, jamais `getBoundin
 
 - Physique Matter.js à pas fixe de 1/120 s. Zone fermée (sol, murs, plafond).
 - Au démarrage : 4 planchettes en carré, puis une 5e tombe après 1 s et casse la structure (`demo`, `dropBreaker`).
-- Molette ou ← → : rotation de 1° de la planchette tenue. Touche G : « gravité en main » (la planchette pend au lieu de rester droite). Contour blanc sur la planchette survolée.
+- Molette ou ← → : rotation de 1° de la planchette tenue ; boutons ⟲ ⟳ de la bande : rotation continue tant qu'ils sont appuyés. Touche G ou bouton « Gravité en main » : la planchette pend au lieu de rester droite. Contour blanc sur la planchette survolée.
 
 ### Incscape
 
@@ -128,13 +140,20 @@ Script de contrôle à coller dans la console après avoir lancé Cooktou (doit 
 })();
 ```
 
+### WordHunt
+
+- Des mots tirés de `WordList.WORDS` sont lancés d'un bord du ciel à l'autre en arc (`FlyingWord`). Le joueur tape un mot dans le champ du bas puis appuie sur Entrée : s'il est à l'écran, il éclate et rapporte `POINTS_PER_LETTER` points par lettre. Un mot qui sort de l'autre côté est raté ; `MAX_MISSES` (3) ratés = fin.
+- `WordList.plain()` ignore accents et majuscules (`œ` = `oe`) ; si le même mot est deux fois à l'écran, c'est le plus avancé qui part. Les mots qui commencent par ce qui est tapé s'affichent en couleur d'accent. Une erreur ne coûte rien (le champ tremble).
+- Chaque mot a une traînée arc-en-ciel ou étoile filante, et parfois un effet doux : balancement, rotation lente, tremblement, à l'envers, vague, pulsation. La part de mots avec effet passe de 20 % à 75 % en `EFFECTS_RAMP` secondes.
+- Difficulté (selon le temps de jeu) : écart entre deux mots de `FIRST_GAP` à `MIN_GAP` secondes, traversée de `FIRST_CROSS` à `MIN_CROSS` secondes (plus `LETTER_TIME` par lettre), nombre de mots à l'écran de 2 à 8 (+1 toutes les `MORE_EVERY` secondes).
+
 ## Sons
 
-`SoundEngine` synthétise tout avec Web Audio (oscillateurs et bruit filtré), sans fichier audio. Le contexte audio n'est créé qu'après un premier geste de l'utilisateur. `Sfx.play(nom)` pour un son ponctuel, `Sfx.loop(nom, true|false)` pour `sizzle`, `pour`, `hum`. Le bouton haut-parleur coupe le son (mémorisé).
+`SoundEngine` synthétise tout avec Web Audio (oscillateurs et bruit filtré), sans fichier audio. Le contexte audio n'est créé qu'après un premier geste de l'utilisateur. `Sfx.play(nom)` pour un son ponctuel, `Sfx.loop(nom, true|false)` pour `sizzle`, `pour`, `hum`. `whoosh` accompagne le lancer d'un mot dans WordHunt. Le bouton haut-parleur coupe le son (mémorisé).
 
 ## Données mémorisées (localStorage)
 
-`worksoft_theme`, `worksoft_mute`, `wikopy_best`, `incscape_best`, `cooktou_best`, `cooktou_chef`. Toujours protéger l'accès par `try/catch` ou passer par `Store`.
+`worksoft_theme`, `worksoft_mute`, `wikopy_best`, `incscape_best`, `cooktou_best`, `wordhunt_best`, `cooktou_chef`. Toujours protéger l'accès par `try/catch` ou passer par `Store`.
 
 ## Hébergement
 
@@ -142,6 +161,6 @@ Site statique : publier le dossier tel quel (GitHub Pages, Netlify, Cloudflare P
 
 ## Façon de travailler attendue
 
-- Faire les changements demandés sans réécrire ce qui marche ; garder les quatre jeux fonctionnels à chaque étape.
+- Faire les changements demandés sans réécrire ce qui marche ; garder tous les jeux fonctionnels à chaque étape.
 - Vérifier dans un navigateur avant d'annoncer qu'une modification fonctionne, et dire clairement ce qui n'a pas pu être vérifié.
 - Expliquer les changements en français simple, sans jargon.

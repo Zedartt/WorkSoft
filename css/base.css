@@ -23,6 +23,13 @@
   --flash: #ffffff;
   --veil: rgba(238, 241, 245, 0.94);
   --shadow: rgba(31, 39, 51, 0.12);
+  --sky-top: #d4ebfb;
+  --sky-bottom: #f5fbf6;
+  --hill-far: #dcefd2;
+  --hill-near: #c9e7ba;
+  --sun-opacity: 1;
+  --moon-opacity: 0;
+  --stars-opacity: 0;
 }
 :root[data-theme="dark"] {
   --bg: #12161d;
@@ -49,12 +56,26 @@
   --flash: #05070a;
   --veil: rgba(18, 22, 29, 0.94);
   --shadow: rgba(0, 0, 0, 0.5);
+  --sky-top: #0c1629;
+  --sky-bottom: #1b2638;
+  --hill-far: #1a2c2a;
+  --hill-near: #172722;
+  --sun-opacity: 0;
+  --moon-opacity: 1;
+  --stars-opacity: 0.8;
+}
+.corner {
+  position: fixed;
+  top: calc(16px + env(safe-area-inset-top));
+  right: calc(22px + env(safe-area-inset-right));
+  z-index: 40;
+  display: flex;
+  gap: 8px;
 }
 #themeBtn {
-  position: fixed;
-  top: 16px;
-  right: 22px;
-  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   border: 2px solid var(--line);
   background: var(--panel);
   color: var(--ink);
@@ -69,10 +90,6 @@
   border-color: var(--accent);
 }
 #soundBtn {
-  position: fixed;
-  top: 16px;
-  right: 182px;
-  z-index: 40;
   width: 38px;
   height: 38px;
   padding: 0;
@@ -122,6 +139,9 @@ body {
   height: 100%;
   margin: 0;
 }
+:root {
+  --corner-w: 230px;
+}
 body {
   background: var(--bg);
   color: var(--ink);
@@ -134,6 +154,8 @@ body {
     Arial,
     sans-serif;
   overflow: hidden;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 button {
   font: inherit;
@@ -142,7 +164,11 @@ button {
 }
 .screen {
   position: fixed;
-  inset: 0;
+  left: 0;
+  right: 0;
+  top: var(--app-top, 0px);
+  height: var(--app-height, 100%);
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   display: none;
   flex-direction: column;
 }
@@ -171,5 +197,35 @@ button {
 @keyframes blink {
   50% {
     opacity: 0;
+  }
+}
+@media (max-width: 720px) {
+  :root {
+    --corner-w: 96px;
+  }
+  .corner {
+    right: calc(12px + env(safe-area-inset-right));
+    gap: 6px;
+  }
+  #themeBtn {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+    font-size: 17px;
+  }
+  .theme-label {
+    display: none;
+  }
+}
+@media (max-height: 500px) {
+  .corner {
+    top: calc(8px + env(safe-area-inset-top));
+  }
+  #themeBtn,
+  #soundBtn {
+    height: 32px;
+  }
+  #soundBtn {
+    width: 32px;
   }
 }

@@ -8,6 +8,7 @@ Un site de mini-jeux dans l'esprit de neal.fun, avec un menu en grille de chaîn
 | Kaplab | Bac à sable de planchettes en bois soumises à la gravité |
 | Incscape | Entourer d'un trait les bonhommes d'encre avant qu'ils ne s'enfuient de la feuille |
 | Cooktou | Prendre les commandes et cuisiner de vraies recettes simplifiées, geste par geste |
+| WordHunt | Taper les mots lancés dans le ciel avant qu'ils ne sortent de l'écran |
 
 ## Lancer en local
 

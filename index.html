@@ -2,7 +2,7 @@
 <html lang="fr">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Worksoft</title>
     <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/components.css" />
@@ -11,16 +11,19 @@
     <link rel="stylesheet" href="css/kaplab.css" />
     <link rel="stylesheet" href="css/incscape.css" />
     <link rel="stylesheet" href="css/cooktou.css" />
+    <link rel="stylesheet" href="css/wordhunt.css" />
   </head>
   <body>
-    <button id="themeBtn" title="Changer de thème"></button>
-    <button id="soundBtn" aria-label="Son">
-      <svg viewBox="0 0 24 24">
-        <path d="M4 9v6h4l5 4V5L8 9z" />
-        <path class="w" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
-        <path class="x" d="M16 9l6 6M22 9l-6 6" />
-      </svg>
-    </button>
+    <div class="corner">
+      <button id="soundBtn" aria-label="Son">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 9v6h4l5 4V5L8 9z" />
+          <path class="w" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
+          <path class="x" d="M16 9l6 6M22 9l-6 6" />
+        </svg>
+      </button>
+      <button id="themeBtn" title="Changer de thème"><span class="theme-icon"></span><span class="theme-label"></span></button>
+    </div>
 
     <section id="menu" class="screen active">
       <div class="menu-top">
@@ -105,7 +108,14 @@
         <button class="icon-btn" id="plkClear" title="Tout enlever" aria-label="Tout enlever">
           <svg viewBox="0 0 24 24"><path d="M4 7h16M10 7V4h4v3M6 7l1 13h10l1-13M10 11v6M14 11v6" /></svg>
         </button>
-        <span>Tourner : molette ou <kbd>←</kbd> <kbd>→</kbd> · <kbd>G</kbd> gravité en main : <b id="plkGrav">non</b></span>
+        <button class="icon-btn" id="plkTurnLeft" title="Tourner vers la gauche (←)" aria-label="Tourner vers la gauche">
+          <svg viewBox="0 0 24 24"><path d="M9 4H4v5M4.6 8.5A8 8 0 1 1 4 12" /></svg>
+        </button>
+        <button class="icon-btn" id="plkTurnRight" title="Tourner vers la droite (→)" aria-label="Tourner vers la droite">
+          <svg viewBox="0 0 24 24"><path d="M15 4h5v5M19.4 8.5A8 8 0 1 0 20 12" /></svg>
+        </button>
+        <button class="plk-grav" id="plkGravBtn" title="Gravité en main (G)">Gravité en main : <b id="plkGrav">non</b></button>
+        <span class="plk-keys">Molette ou <kbd>←</kbd> <kbd>→</kbd> pour tourner</span>
       </div>
       <div class="plk-area">
         <canvas id="plkCanvas"></canvas>
@@ -169,6 +179,7 @@
           <button class="ck-nav right" id="ckRight" aria-label="Voir à droite">▶</button>
         </div>
         <div class="ck-strip" id="ckNow"></div>
+        <div class="ck-rotate">Tourne ton téléphone en mode paysage pour cuisiner.</div>
         <div class="ck-ghost" id="ckGhost"></div>
         <div class="overlay" id="ckOver">
           <div class="card">
@@ -185,8 +196,54 @@
       </div>
     </section>
 
+    <section id="wordhunt" class="screen">
+      <div class="game-top">
+        <button class="back" id="whBack">← Menu</button>
+        <h1 class="game-title">WordHunt</h1>
+        <div></div>
+      </div>
+      <div class="game-bar">
+        <button class="icon-btn" id="whRestart" title="Recommencer" aria-label="Recommencer">
+          <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v5h5" /></svg>
+        </button>
+        <div class="stat">Points <b id="whScore">0</b></div>
+        <div class="stat">Ratés <span id="whMiss"></span></div>
+      </div>
+      <div class="wh-area" id="whArea">
+        <div class="wh-sky">
+          <div class="wh-scene" aria-hidden="true">
+            <svg class="wh-stars" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMin slice"><circle cx="673" cy="250" r="1" /><circle cx="818" cy="174" r="1" /><circle cx="158" cy="218" r="1" /><circle cx="758" cy="157" r="1" /><circle cx="1049" cy="62" r="1" /><circle cx="186" cy="119" r="1.6" /><circle cx="153" cy="69" r="1" /><circle cx="1138" cy="116" r="1" /><circle cx="1168" cy="39" r="1" /><circle cx="136" cy="155" r="1.6" /><circle cx="111" cy="64" r="1" /><circle cx="1150" cy="227" r="1" /><circle cx="603" cy="115" r="1" /><circle cx="1117" cy="38" r="1.3" /><circle cx="1157" cy="216" r="1" /><circle cx="221" cy="156" r="1" /><circle cx="772" cy="32" r="1" /><circle cx="1165" cy="23" r="1" /><circle cx="1026" cy="182" r="1.6" /><circle cx="653" cy="127" r="1.6" /><circle cx="750" cy="84" r="1" /><circle cx="378" cy="186" r="1" /><circle cx="177" cy="155" r="1.3" /><circle cx="1085" cy="134" r="1.3" /><circle cx="929" cy="81" r="1" /><circle cx="251" cy="139" r="1.6" /><circle cx="347" cy="201" r="1.3" /><circle cx="321" cy="246" r="1.6" /><circle cx="873" cy="18" r="1" /><circle cx="1152" cy="154" r="1.3" /><circle cx="706" cy="185" r="1.3" /><circle cx="1027" cy="156" r="1.6" /><circle cx="150" cy="223" r="1" /><circle cx="562" cy="129" r="1" /><circle cx="134" cy="195" r="1.3" /><circle cx="922" cy="80" r="1.6" /><circle cx="720" cy="13" r="1.6" /><circle cx="737" cy="51" r="1" /><circle cx="1021" cy="23" r="1" /><circle cx="598" cy="41" r="1" /><circle cx="824" cy="108" r="1.6" /><circle cx="175" cy="50" r="1.6" /><circle cx="832" cy="148" r="1.3" /><circle cx="290" cy="217" r="1.6" /><circle cx="1136" cy="79" r="1.6" /><circle cx="744" cy="182" r="1.6" /></svg>
+            <svg class="wh-sun" viewBox="0 0 100 100"><g class="wh-rays"><path d="M50 14V4" transform="rotate(0 50 50)" /><path d="M50 14V4" transform="rotate(30 50 50)" /><path d="M50 14V4" transform="rotate(60 50 50)" /><path d="M50 14V4" transform="rotate(90 50 50)" /><path d="M50 14V4" transform="rotate(120 50 50)" /><path d="M50 14V4" transform="rotate(150 50 50)" /><path d="M50 14V4" transform="rotate(180 50 50)" /><path d="M50 14V4" transform="rotate(210 50 50)" /><path d="M50 14V4" transform="rotate(240 50 50)" /><path d="M50 14V4" transform="rotate(270 50 50)" /><path d="M50 14V4" transform="rotate(300 50 50)" /><path d="M50 14V4" transform="rotate(330 50 50)" /></g><circle cx="50" cy="50" r="24" /></svg>
+            <svg class="wh-moon" viewBox="0 0 100 100"><path d="M62 18a34 34 0 1 0 20 52A28 28 0 1 1 62 18z" /></svg>
+            <svg class="wh-hills" viewBox="0 0 1200 200" preserveAspectRatio="none">
+              <path class="wh-hill-far" d="M0 110C180 50 380 60 600 95S1000 45 1200 80V200H0Z" />
+              <path class="wh-hill-near" d="M0 155C230 105 460 125 700 148S1050 115 1200 135V200H0Z" />
+            </svg>
+          </div>
+          <canvas id="whCanvas"></canvas>
+          <div class="overlay" id="whOver">
+            <div class="card">
+              <h2>Partie terminée</h2>
+              <div class="big" id="whFinal">0</div>
+              <div class="big-label">points</div>
+              <div class="wh-record" id="whRecord"></div>
+              <div class="actions">
+                <button class="btn primary" id="whAgain">Rejouer (Entrée)</button>
+                <button class="btn" id="whMenu">Menu</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="wh-field">
+          <input id="whInput" type="text" placeholder="Tape le mot qui passe…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Mot à taper" />
+          <kbd>Entrée</kbd>
+        </div>
+      </div>
+    </section>
+
     <script src="js/vendor/matter.min.js"></script>
     <script src="js/core/Dom.js"></script>
+    <script src="js/core/Viewport.js"></script>
     <script src="js/core/SoundEngine.js"></script>
     <script src="js/core/Game.js"></script>
     <script src="js/core/ThemeSwitch.js"></script>
@@ -205,6 +262,9 @@
     <script src="js/games/cooktou/KitchenView.js"></script>
     <script src="js/games/cooktou/PointerController.js"></script>
     <script src="js/games/cooktou/CooktouGame.js"></script>
+    <script src="js/games/wordhunt/WordList.js"></script>
+    <script src="js/games/wordhunt/FlyingWord.js"></script>
+    <script src="js/games/wordhunt/WordHuntGame.js"></script>
     <script src="js/core/App.js"></script>
   </body>
 </html>

@@ -1,10 +1,10 @@
 .game-top {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(var(--corner-w), 1fr) minmax(0, auto) minmax(var(--corner-w), 1fr);
   align-items: center;
   height: 70px;
   padding: 0 26px;
-  gap: 16px;
+  gap: 12px;
   flex: none;
 }
 .game-bar {
@@ -58,7 +58,7 @@ kbd {
   line-height: 1.2;
   margin: 0;
   font-weight: 500;
-  max-width: 58vw;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -180,8 +180,51 @@ kbd {
   color: #fff;
 }
 @media (max-width: 720px) {
+  .game-top {
+    padding: 0 12px;
+    gap: 8px;
+  }
   .game-title {
     font-size: 22px;
-    max-width: 46vw;
+  }
+  .back {
+    padding: 0 12px;
+  }
+  .game-bar {
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .game-bar > :first-child {
+    margin-left: auto;
+  }
+  .game-bar > :last-child {
+    margin-right: auto;
+  }
+}
+@media (max-height: 500px) {
+  .game-top {
+    height: 48px;
+  }
+  .game-title {
+    font-size: 22px;
+  }
+  .back {
+    height: 32px;
+  }
+  .game-bar {
+    height: 40px;
+  }
+  .game-bar .stat b {
+    font-size: 18px;
+  }
+  .card {
+    padding: 16px 24px;
+  }
+  .big {
+    font-size: 56px;
+  }
+  .big-label {
+    margin-bottom: 10px;
   }
 }

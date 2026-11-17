@@ -4,6 +4,7 @@ class KaplabGame extends Game {
   static FLOOR = 40;
   static MAX = 200;
   static TONES = ["#e6bd84", "#deb276", "#ecc690", "#d9aa6c", "#e2b87c"];
+  static TURN_SPEED = 2.4;
   constructor() {
     super({
       id: "planks",
@@ -28,6 +29,8 @@ class KaplabGame extends Game {
     this.dropIn = -1;
     this.pointerIn = false;
     this.handGravity = false;
+    this.lastPlank = null;
+    this.turn = 0;
   }
 
   spawn(x, y, angle) {
@@ -77,6 +80,7 @@ class KaplabGame extends Game {
   clearAll() {
     this.planks.forEach((b) => Matter.Composite.remove(this.engine.world, b));
     this.planks = [];
+    this.lastPlank = null;
     $("plkCount").textContent = 0;
     this.dropIn = -1;
   }
@@ -155,7 +159,10 @@ class KaplabGame extends Game {
         Sfx.play("knock", Math.min(1, v / 14));
       }
     });
-    Matter.Events.on(this.mc, "startdrag", () => Sfx.play("click"));
+    Matter.Events.on(this.mc, "startdrag", (e) => {
+      this.lastPlank = e.body;
+      Sfx.play("click");
+    });
     window.addEventListener("mouseup", (e) => this.mouse.mouseup(e));
     window.addEventListener("mousemove", (e) => {
       if (this.raf && this.mc.body && e.target !== this.canvas) this.mouse.mousemove(e);
@@ -170,9 +177,7 @@ class KaplabGame extends Game {
     document.addEventListener("keydown", (e) => {
       if (!this.raf) return;
       if ((e.key === "g" || e.key === "G") && !e.repeat) {
-        this.handGravity = !this.handGravity;
-        this.mc.constraint.angularStiffness = this.handGravity ? 0 : 1;
-        $("plkGrav").textContent = this.handGravity ? "oui" : "non";
+        this.toggleHandGravity();
         return;
       }
       if (!this.mc.body) return;
@@ -180,6 +185,9 @@ class KaplabGame extends Game {
       if (e.key === "ArrowRight" || e.key === "d" || e.key === "e") this.rotateHeld(1);
     });
     $("plkAdd").addEventListener("click", () => this.rain(1));
+    $("plkGravBtn").addEventListener("click", () => this.toggleHandGravity());
+    this.bindTurnButton($("plkTurnLeft"), -1);
+    this.bindTurnButton($("plkTurnRight"), 1);
     $("plkReset").addEventListener("click", (...args) => this.demo(...args));
     this.canvas.addEventListener("mouseenter", () => {
       this.pointerIn = true;
@@ -197,9 +205,36 @@ class KaplabGame extends Game {
   }
 
   rotateHeld(dir) {
-    const b = this.mc.body;
-    Matter.Body.setAngle(b, b.angle + (dir * Math.PI) / 180);
-    Matter.Body.setAngularVelocity(b, 0);
+    this.rotate(this.mc.body, (dir * Math.PI) / 180);
+  }
+
+  rotate(body, angle) {
+    Matter.Body.setAngle(body, body.angle + angle);
+    Matter.Body.setAngularVelocity(body, 0);
+    Matter.Sleeping.set(body, false);
+  }
+
+  bindTurnButton(button, dir) {
+    button.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      this.turn = dir;
+    });
+    for (const type of ["pointerup", "pointerleave", "pointercancel"])
+      button.addEventListener(type, () => {
+        if (this.turn === dir) this.turn = 0;
+      });
+  }
+
+  toggleHandGravity() {
+    this.handGravity = !this.handGravity;
+    this.mc.constraint.angularStiffness = this.handGravity ? 0 : 1;
+    $("plkGrav").textContent = this.handGravity ? "oui" : "non";
+  }
+
+  turnTarget(dt) {
+    const body = this.mc.body || this.lastPlank;
+    if (!this.turn || !body) return;
+    this.rotate(body, this.turn * KaplabGame.TURN_SPEED * dt);
   }
 
   draw() {
@@ -255,6 +290,7 @@ class KaplabGame extends Game {
       this.dropIn -= dt;
       if (this.dropIn < 0) this.dropBreaker();
     }
+    this.turnTarget(dt / 1000);
     const step = 1000 / 120;
     while (this.acc >= step) {
       Matter.Engine.update(this.engine, step);
