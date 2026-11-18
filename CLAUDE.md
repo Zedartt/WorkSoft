@@ -6,7 +6,7 @@ Site de mini-jeux statique (HTML + CSS + JavaScript, sans framework ni étape de
 
 - Ouvrir `index.html` par double-clic (protocole `file://`) ou avec Live Server. Il n'y a rien à installer ni à compiler.
 - Il n'y a pas de tests automatisés. Après toute modification, ouvrir le site, lancer le jeu touché et jouer une partie ; vérifier la console (aucune erreur attendue).
-- Wikopy-past appelle l'API de Wikipédia : sans réseau, le bandeau rouge « Wikipédia injoignable » et un texte de secours sont le comportement normal.
+- Wikopy-past appelle l'API de Wikipédia : sans réseau, le bandeau rouge « Wikipédia injoignable » et un texte de secours sont le comportement normal. Cooktou appelle TheMealDB et MyMemory : sans réseau, la pastille « Recettes en ligne injoignables » et quelques recettes de secours sont le comportement normal.
 
 ## Règles du projet (à respecter)
 
@@ -43,10 +43,14 @@ js/
     kaplab/    KaplabGame.js
     incscape/  Geometry.js (formes fermées), IncscapeGame.js
     cooktou/
-      data/    Catalog.js (ingrédients, postes), Recipe.js (Step, Recipe), RecipeBook.js (toutes les recettes)
-      art/     Icons.js (dessins SVG 48×48 et outils), Avatar.js (cuisiniers et clients)
-      KitchenView.js           construction de la cuisine, affichage, repères du tutoriel, caméra
-      PointerController.js     glisser-déposer, couteau, cuillère, verser, secouer, déplacement de la vue
+      data/    Catalog.js (dictionnaire des ingrédients anglais → français, placards, gestes, postes, outils, boissons), Recipe.js (Step, Recipe),
+               RecipeSource.js (recettes en ligne TheMealDB + traduction), RecipeWriter.js (transforme une vraie recette en étapes jouables), OfflineRecipes.js (secours hors ligne)
+      art/     Icons.js (dessins SVG 48×48, outils, verre, photos), Avatar.js (cuisiniers et clients)
+      Order.js                 menu d'un client (entrée, plat(s), dessert, boisson), points
+      KitchenView.js           construction de la cuisine, placards, affichage des postes, plateau, machine, caméra
+      KitchenGuide.js          bandeau d'aide, bulles ①/②, flèche, barres de progression
+      PointerController.js     glisser-déposer et tous les gestes (verser, secouer, casser, râper, presser, couper, éplucher, étaler, retourner, façonner)
+      ServiceHistory.js        historique des plats servis pendant la session, ticket de caisse
       CooktouGame.js           état de la partie, règles, difficulté, boucle
     wordhunt/  WordList.js (mots, comparaison sans accents ni majuscules), FlyingWord.js (trajectoire, effets, traînée), WordHuntGame.js
     whereword/ ArticleSource.js (article Wikipédia complet découpé en blocs), HuntText.js (découpage en mots, comptage, choix du mot), WhereWordGame.js
@@ -78,7 +82,7 @@ Mesurer les zones de jeu avec `clientWidth` / `clientHeight`, jamais `getBoundin
 - Couleurs du thème dans un canvas : `ThemeSwitch.color("--nom")` (valeur mise en cache, vidée au changement de thème), jamais `getComputedStyle` à chaque image.
 - Animations en boucle : n'animer que `transform` et `opacity` (calculés par la carte graphique). Pas d'animation infinie de `box-shadow`, `margin`, `width`, `top`… ni d'élément qui porte un `filter` (le halo est redessiné à chaque image). Pour un halo qui pulse, mettre l'ombre fixe sur un `::before` et animer son `opacity` (voir `.ck-client.ask::before`).
 - Pas de transition sur `box-shadow` pour les survols répétés (tuiles du menu).
-- Un SVG animé doit être aussi petit que son dessin (flèche guide de Cooktou cadrée sur la flèche, `KitchenView.ARROW_PAD`) : sinon toute sa surface est redessinée à chaque image.
+- Un SVG animé doit être aussi petit que son dessin (flèche guide de Cooktou cadrée sur la flèche, `KitchenGuide.ARROW_PAD`) : sinon toute sa surface est redessinée à chaque image.
 - Dans une boucle `requestAnimationFrame`, n'écrire dans la page que quand la valeur affichée change (chrono de WhereWord) ; une barre qui se vide régulièrement est une animation CSS (`ww-drain`).
 - Vérification utilisée : Chrome sans interface piloté par le protocole DevTools, trace de 3 s en bougeant la souris, en 1600×900, en zoom 300 % et en dézoom 33 %, somme des temps de rendu (raster, paint, layout, style, js).
 
@@ -113,43 +117,46 @@ Mesurer les zones de jeu avec `clientWidth` / `clientHeight`, jamais `getBoundin
 
 ### Cooktou
 
-- **Modèle** : une recette est une liste d'étapes créées avec `Step` : `put(ingrédient, poste, texte)`, `cut(coups, texte)`, `stir(tours, texte)`, `heat(poste, secondes, texte)`, `move(de, vers, texte)` ; `Recipe` ajoute l'étape finale `serve`. Postes : `planche`, `bol`, `plaque`, `four`, `assiette`.
-- **Règles** (`CooktouGame`) : une seule commande à la fois ; chaque geste est comparé à l'étape en cours (`doPut`, `doMove`, `doChop`, `doStir`, `doHeat`, `doServe`) ; un mauvais geste coûte de la patience ; 3 clients perdus = fin.
-- **Gestes** (`PointerController`) : glisser-déposer ; couteau = allers-retours verticaux sur la planche ; cuillère = remuer dans le saladier, n'importe quel sens ; ingrédients `pour` = tenir au-dessus pendant `CooktouGame.POUR_T` secondes ; ingrédients `shake` = `CooktouGame.SHAKES` secousses.
-- **Difficulté** (`spawn`, `update`) : recette tirée au hasard dans `RecipeBook.all` ; patience `max(55, 180 − 9 × servis) + 6 × étapes` secondes ; arrivée d'un client toutes les `max(15, 42 − 2,5 × servis)` secondes.
-- **Vue** (`KitchenView`) : monde de `CooktouGame.WORLD_W` px de large, positions des meubles en dur dans `build()` ; bandeau du bas (`renderGuide`) et bulles ①/② (`hints`) expliquent chaque étape ; `pile()` dessine les aliments en tas (un `~` en fin d'identifiant marque un aliment coupé, un liquide devient une flaque, un assaisonnement des grains).
+- **Recettes en ligne** (`RecipeSource`) : aucune recette n'est écrite dans le code. Les recettes viennent de l'API gratuite TheMealDB (`themealdb.com`, clé de test publique `1`, environ 800 recettes de très nombreux pays, catégories Starter/Side = entrée, Dessert = dessert, le reste = plat). Une file de `QUEUE` recettes par type est préchargée ; délai maximum `TIMEOUT` ; après un échec, nouvel essai au bout de `RETRY_MS`. Le nom du plat, le pays et les ingrédients inconnus sont traduits en français par l'API MyMemory (gratuite, quota quotidien ; sans traduction, le nom anglais reste). Sans réseau : recettes de `OfflineRecipes` et pastille rouge « Recettes en ligne injoignables ». Tout texte reçu passe par `Catalog.safe()` (échappement HTML) et les liens par `Catalog.safeUrl()` avant d'être affichés.
+- **De la vraie recette au jeu** (`RecipeWriter`) : chaque ingrédient anglais est reconnu par `Catalog.match()` (expressions `en` du dictionnaire ; la correspondance qui finit le plus tard dans le nom gagne, puis la plus longue, pour que « chicken stock » donne du bouillon). Un ingrédient inconnu reçoit un placard et un geste devinés (`guessStorage`, `guessGesture`) et la photo TheMealDB. Les méthodes du texte (four, friture, poêle, casserole, mixeur) choisissent les postes ; le rôle de chaque ingrédient (`Catalog.roleOf` : à couper, à éplucher, matière grasse, féculent, pâte, herbe, accompagnement…) choisit les étapes. Au plus `MAX_INGREDIENTS` ingrédients, l'eau est ignorée. Une recette dont les étapes ne passent pas `Recipe.problems()` est écartée. Le lien « Voir la vraie recette » mène à la source d'origine (ou à la page TheMealDB).
+- **Modèle** : étapes créées avec `Step` : `put(ingrédient, poste, texte, geste?)`, `cut`, `peel`, `roll`, `flip`, `stir`, `shape`, `heat(poste, secondes)`, `move(de, vers)` ; `Recipe` ajoute l'étape finale `serve` (poser l'assiette sur le plateau). Postes (`Catalog.stations`) : `planche`, `bol`, `mixeur`, `assiette`, `plaque` (poêle), `casserole`, `friteuse`, `four`. Règles vérifiées par `Recipe.problems()` : on ne coupe/épluche/étale/façonne que sur la planche pleine, on ne remue que le saladier plein, on ne retourne que dans la poêle pleine, on ne cuit jamais à vide, on ne déplace jamais depuis un poste vide, tout finit dans l'assiette.
+- **Menus** (`Order`) : chaque client commande un menu tiré dans `Order.MENUS` (plat seul, plat + boisson, entrée + plat, plat + plat + dessert, entrée + plat + dessert + boisson…) ; la taille maximale grandit avec les clients servis (`FIRST_SIZE`, `SIZE_STEP`). Les plats se cuisinent l'un après l'autre ; chaque assiette finie se pose sur le plateau ; les boissons se font à la machine ; le plateau complet se glisse sur le client. Points : `DISH_POINTS` par plat et `DRINK_POINTS` par boisson, augmentés selon la patience restante.
+- **Boissons** : prendre un verre (pile sous la machine), le poser sous le bec, cliquer la bonne boisson (`Catalog.drinks`), attendre `CooktouGame.DRINK_T` secondes, poser le verre plein sur le plateau.
+- **Gestes des ingrédients** (`Catalog.gestures`, champ `how`) : `drop` glisser, `pour` tenir au-dessus `POUR_T` s, `shake` secouer de haut en bas, `crack` taper deux fois (œufs), `grate` frotter de gauche à droite (fromages), `squeeze` faire des ronds (agrumes). Une étape peut imposer un autre geste (œufs entiers plongés dans l'eau).
+- **Outils** (`Catalog.tools`) : couteau, économe (coups de haut en bas), rouleau (gauche-droite) sur la planche ; cuillère (remuer) dans le saladier ; spatule (petits coups vers le haut) dans la poêle. `shape` = cliquer plusieurs fois sur la planche (pétrir, rouler, former des boulettes).
+- **Placards** : le frigo (porte à ouvrir) et un meuble à onglets (Légumes, Fruits & herbes, Épicerie, Pâtisserie, Épices & sauces). Ils montrent tous les ingrédients du dictionnaire (photos TheMealDB, dessins SVG pour les ingrédients de base) plus les ingrédients inconnus des commandes en cours, au plus `Catalog.SHELF_SIZE` par placard. Hors ligne, seuls les ingrédients dessinés restent.
+- **Règles** (`CooktouGame`) : une seule commande à la fois ; chaque geste est comparé à l'étape en cours ; un mauvais geste coûte de la patience ; 3 clients perdus = fin. Patience `max(55, 180 − 9 × servis) + 5 × étapes` ; client suivant après `(max(18, 42 − 2,5 × servis) + 1,2 × étapes)` secondes environ. Le premier client attend jusqu'à `MAX_WAIT` s que les recettes en ligne arrivent.
+- **Vue** : monde de `CooktouGame.WORLD_W` px, positions dans `KitchenView.LAYOUT` (four, friteuse, casserole, poêle, frigo, placards, planche, saladier, mixeur, assiette, plateau, machine) ; `pile()` dessine les aliments en tas (un `~` marque un aliment coupé, un liquide devient une flaque, un œuf cassé une flaque avec jaune, un assaisonnement ou un râpé des grains).
+- **Historique** (`ServiceHistory`) : chaque menu servi est noté (heure, points, numéro de partie) pour toute la session (jusqu'au rechargement, rien en localStorage). Le bouton ticket (pastille = nombre de plats) et « Voir le ticket » en fin de partie ouvrent un ticket de caisse : pour chaque plat, son pays, les étapes faites et « Voir la vraie recette ». Ticket ouvert = jeu en pause ; Échap ou Entrée le ferme.
 - **Personnages** (`Avatar.chef`) : homme roux (lettre J) ou femme aux longs cheveux rouge foncé (lettre E), choix mémorisé.
 
-#### Ajouter une recette
+#### Améliorer la reconnaissance des ingrédients
 
-1. Vérifier que les ingrédients existent dans `Catalog.ingredients` ; sinon les ajouter (`cold: 1` = frigo, `pour: "#couleur"` = à verser, `shake: "#couleur"` = à secouer) et dessiner leur icône dans `Icons.shapes` (SVG 48×48, même identifiant). Le frigo a 3 colonnes, le garde-manger 4 : garder des grilles pleines si possible.
-2. Dessiner l'icône du plat dans `Icons.shapes` sous l'identifiant de la recette.
-3. Ajouter `new Recipe(id, nom, niveau, [étapes])` dans `RecipeBook.all`, en suivant la vraie recette simplifiée.
-4. Contraintes : on ne coupe que ce qui est sur la planche, on ne mélange que dans le saladier, on ne déplace jamais depuis un poste vide, la dernière étape amène tout dans l'assiette et les autres postes doivent être vides à la fin.
+Ajouter un mot anglais dans le champ `en` de l'ingrédient voulu (`Catalog.ingredients`), ou un nouvel ingrédient (`n`, `at`, `color`, `how` éventuel, `role` éventuel, `en`). Si la photo TheMealDB ne s'affiche pas, donner son nom exact dans `Catalog.PICTURES`.
 
-Script de contrôle à coller dans la console après avoir lancé Cooktou (doit afficher un tableau vide) :
+Script de contrôle à coller dans la console après avoir lancé Cooktou (doit afficher un tableau vide) : il joue automatiquement une commande du premier client.
 
 ```js
 (() => {
-  const g = app.game("cooktou"), ko = [];
-  for (const r of RecipeBook.all) {
-    g.reset();
-    g.clients[0] = { recipe: r, pat: 999, max: 999, low: false, skin: "#eee", hair: "#333", shirt: "#39f" };
-    g.takeOrder(0, null);
-    let guard = 0, issue = "";
-    while (!g.ready && guard++ < 300) {
-      const s = r.steps[g.idx];
-      if (g.busy > 0) { g.update(0.5); continue; }
-      if (s.a === "put") g.doPut(s.ing, s.st, null);
-      else if (s.a === "move") { if (!g.cont[s.from].length) issue = "déplacement à vide"; g.doMove(s.from, s.to, null); }
-      else if (s.a === "cut") g.doChop();
-      else if (s.a === "stir") g.doStir(1);
-      else if (s.a === "heat") g.doHeat(s.st, document.querySelector(`[data-drop="${s.st}"]`));
-    }
-    const left = ["planche", "bol", "plaque", "four"].filter((k) => g.cont[k].length);
-    if (!g.ready || issue || left.length) ko.push([r.name, issue, left.join(",")]);
+  const g = app.game("cooktou"), i = g.clients.findIndex(Boolean), ko = [];
+  if (i < 0) return "attends un client";
+  for (const item of g.clients[i].order.items) if (item.recipe && item.recipe.problems().length) ko.push([item.recipe.name, item.recipe.problems()]);
+  g.takeOrder(i, null);
+  let guard = 0;
+  while (g.task() && guard++ < 800) {
+    const t = g.task();
+    if (g.busy > 0) { g.update(0.5); continue; }
+    if (t.a === "put") g.doPut(t.ing, t.st, null);
+    else if (t.a === "move") g.doMove(t.from, t.to, null);
+    else if (t.a === "stir") g.doStir(1);
+    else if (t.tool) g.doStroke(t.tool);
+    else if (t.a === "shape") g.doShape();
+    else if (t.a === "heat") g.doHeat(t.st, document.querySelector(`[data-drop="${t.st}"]`));
+    else if (t.a === "serve") g.doPlate(null);
+    else if (t.a === "drink") { if (!g.glass) g.doGlassDown(null); else if (!g.glass.drink) g.doDrink(t.drink.id, null); else g.update(0.5); if (g.glass && g.glass.fill >= CooktouGame.DRINK_T) g.doGlassToTray(null); }
+    else { g.doServe(i, null); break; }
   }
-  g.reset();
+  if (g.active) ko.push("commande non terminée");
   return ko;
 })();
 ```

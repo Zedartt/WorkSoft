@@ -1,8 +1,8 @@
 class KitchenView {
   static DESIGN_H = 640;
-  static ARROW_PAD = 24;
   static MIN_SCALE = 0.55;
   static MAX_SCALE = 1.8;
+  static CAM_SPEED = 12;
   static PUDDLE = "M6 26c-2-10 8-17 19-16 12 0 20 7 18 16-1 9-10 13-20 12-9 0-16-4-17-12z";
   static SPECKS = [
     [14, 20],
@@ -16,18 +16,29 @@ class KitchenView {
     [33, 32],
     [20, 22],
   ];
+  static LAYOUT = {
+    four: [30, 290],
+    friteuse: [340, 200],
+    casserole: [560, 220],
+    plaque: [800, 270],
+    frigo: [1100, 470],
+    placards: [1590, 560],
+    planche: [2180, 290],
+    bol: [2490, 210],
+    mixeur: [2720, 170],
+    assiette: [2910, 180],
+    plateau: [3110, 220],
+    machine: [3350, 300],
+  };
   constructor(game) {
     this.game = game;
     this.cam = 0;
     this.camTarget = 0;
     this.viewW = 0;
     this.scale = 1;
-    this.hintIn = 0;
-    this.guideSig = null;
-    this.who = "homme";
-    try {
-      if (localStorage.getItem("cooktou_chef") === "femme") this.who = "femme";
-    } catch (e) {}
+    this.placard = Catalog.PLACARDS[0];
+    this.stockSig = "";
+    this.who = Store.read("cooktou_chef") === "femme" ? "femme" : "homme";
     this.area = $("ckArea");
   }
 
@@ -35,292 +46,283 @@ class KitchenView {
     return $("ckWorld").querySelector(sel);
   }
 
+  place(id) {
+    const [x, w] = KitchenView.LAYOUT[id];
+    return `left:${x}px;width:${w}px`;
+  }
+
+  station(id, extra) {
+    const def = Catalog.stations[id];
+    const button = def.button ? `<button class="ck-heat" data-heat="${id}"><i></i>${def.button}</button>` : "";
+    return `<div class="ck-st ck-${id}" data-drop="${id}" style="${this.place(id)}"><div class="ck-surf"><div class="ck-cont" data-from="${id}"></div></div>${button}${extra || ""}<i class="ck-prog"></i><span class="ck-lab">${def.n}</span></div>`;
+  }
+
+  tool(id, right) {
+    return `<div class="ck-tool" data-tool="${id}" title="${Catalog.tools[id].n}" style="right:${right}px">${Icons.tools[id]}</div>`;
+  }
+
   build() {
-    const item = (id) => `<div class="ck-item" data-ing="${id}">${Icons.draw(id)}<span>${Catalog.ingredients[id].n}</span></div>`;
-    const st = (id, x, w, extra) =>
-      `<div class="ck-st ck-${id}" data-drop="${id}" style="left:${x}px;width:${w}px"><div class="ck-surf"><div class="ck-cont" data-from="${id}"></div></div>${extra || ""}<i class="ck-prog"></i><span class="ck-lab">${Catalog.stations[id].n}</span></div>`;
-    $("ckWorld").innerHTML = `
+    const world = $("ckWorld");
+    world.style.width = CooktouGame.WORLD_W + "px";
+    world.innerHTML = `
       <div class="ck-band"></div>
-      <div class="ck-clock" style="left:985px"><i></i><b></b></div>
-      <div class="ck-rail" style="left:925px"><span></span><span></span><span></span></div>
-      <div class="ck-hood" style="left:1590px"></div>
+      <div class="ck-hood" style="left:690px"></div>
+      <div class="ck-clock" style="left:2830px"><i></i><b></b></div>
+      <div class="ck-rail" style="left:2900px"><span></span><span></span><span></span></div>
       <div class="ck-chef" id="ckChef" style="left:${CooktouGame.CHEF_X - 105}px">${Avatar.chef(this.who)}</div>
       <div class="ck-pin" id="ckTicket" style="left:${CooktouGame.CHEF_X + 118}px"></div>
-      <div class="ck-fridge" id="ckFridge" style="left:50px;width:320px">
-        <div class="fr-body"><div class="fr-in"><div class="fr-top"><span>Frigo</span><button id="ckDoorClose">Fermer ✕</button></div>
-          <div class="ck-shelf three">${Object.keys(Catalog.ingredients)
-            .filter((k) => Catalog.ingredients[k].cold)
-            .map(item)
-            .join("")}</div></div></div>
-        <button class="fr-door" id="ckDoor" aria-label="Ouvrir le frigo"><i class="fr-handle"></i><i class="fr-note"></i><i class="fr-note b"></i><span>FRIGO</span></button>
-      </div>
-      <div class="ck-pantry" style="left:400px;width:470px">
-        <div class="ck-head">Garde-manger</div><div class="ck-shelf four">${Object.keys(Catalog.ingredients)
-          .filter((k) => !Catalog.ingredients[k].cold)
-          .map(item)
-          .join("")}</div></div>
-      ${st("planche", 920, 230, `<div class="ck-tool" data-tool="knife" title="Couteau">${Icons.tools.knife}</div>`)}
-      ${st("bol", 1170, 210, `<div class="ck-tool" data-tool="spoon" title="Cuillère">${Icons.tools.spoon}</div>`)}
-      ${st("assiette", 1400, 180)}
-      ${st("plaque", 1600, 270, `<button class="ck-heat" data-heat="plaque"><i></i>Feu</button>`)}
-      <div class="ck-oven" data-drop="four" style="left:1910px;width:290px">
-        <div class="ov-top"><i class="ov-knob"></i><i class="ov-knob"></i><span class="ov-disp">180°</span><button class="ck-heat" data-heat="four">▶ Lancer</button></div>
+      <div class="ck-oven" data-drop="four" style="${this.place("four")}">
+        <div class="ov-top"><i class="ov-knob"></i><i class="ov-knob"></i><span class="ov-disp">180°</span><button class="ck-heat" data-heat="four">${Catalog.stations.four.button}</button></div>
         <div class="ck-surf ov-win"><div class="ck-cont" data-from="four"></div></div>
         <div class="ov-handle"></div><i class="ck-prog"></i>
         <div class="ov-drawer"><span class="ck-lab">Four</span></div>
       </div>
+      ${this.station("friteuse")}
+      ${this.station("casserole")}
+      ${this.station("plaque", this.tool("spatula", 10))}
+      <div class="ck-fridge" id="ckFridge" style="${this.place("frigo")}">
+        <div class="fr-body"><div class="fr-in"><div class="fr-top"><span>Frigo</span><button id="ckDoorClose">Fermer ✕</button></div>
+          <div class="ck-shelf five" id="ckShelf-frigo"></div></div></div>
+        <button class="fr-door" id="ckDoor" aria-label="Ouvrir le frigo"><i class="fr-handle"></i><i class="fr-note"></i><i class="fr-note b"></i><span>FRIGO</span></button>
+      </div>
+      <div class="ck-pantry" style="${this.place("placards")}">
+        <div class="ck-shelf five" id="ckShelf"></div>
+        <div class="ck-tabs">${Catalog.PLACARDS.map((id) => `<button class="ck-tab" data-placard="${id}">${Catalog.storages[id].n}</button>`).join("")}</div>
+      </div>
+      ${this.station("planche", this.tool("knife", 6) + this.tool("peeler", 40) + this.tool("roller", 74))}
+      ${this.station("bol", this.tool("spoon", 6))}
+      ${this.station("mixeur")}
+      ${this.station("assiette")}
+      <div class="ck-st ck-plateau" data-drop="plateau" style="${this.place("plateau")}"><div class="ck-surf"><div class="ck-tray" id="ckTray"></div></div><span class="ck-lab">Plateau</span></div>
+      <div class="ck-machine" style="${this.place("machine")}">
+        <div class="mc-top">Boissons</div>
+        <div class="mc-slot" data-drop="machine"><i class="mc-spout"></i><div class="mc-glass" id="ckGlass"></div></div>
+        <div class="mc-buttons">${Catalog.drinks.map((drink) => `<button class="mc-btn" data-drink="${drink.id}"><i style="background:${drink.color}"></i>${drink.name}</button>`).join("")}</div>
+        <div class="mc-stack" data-glass="1">${Icons.glass("#fff", 0)}${Icons.glass("#fff", 0)}${Icons.glass("#fff", 0)}<span class="ck-lab">Verres</span></div>
+      </div>
       <div class="ck-guide" id="ckGuide"></div>`;
-    this.area.addEventListener("pointerdown", (...args) => this.game.pointer.down(...args));
-    this.area.addEventListener("pointermove", (...args) => this.game.pointer.move(...args));
-    this.area.addEventListener("pointerup", (...args) => this.game.pointer.up(...args));
-    this.area.addEventListener("pointercancel", (...args) => this.game.pointer.up(...args));
+    this.bind();
+    this.game.built = true;
+  }
+
+  bind() {
+    const pointer = this.game.pointer;
+    this.area.addEventListener("pointerdown", (event) => pointer.down(event));
+    this.area.addEventListener("pointermove", (event) => pointer.move(event));
+    this.area.addEventListener("pointerup", (event) => pointer.up(event));
+    this.area.addEventListener("pointercancel", (event) => pointer.up(event));
     this.area.addEventListener("pointerleave", () => this.setFridge(false));
-    this.area.addEventListener(
-      "wheel",
-      (e) => {
-        this.camTarget += (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) / this.scale;
-        this.clampCam();
-      },
-      {
-        passive: true,
-      },
-    );
-    this.area.addEventListener("click", (e) => {
-      const c = e.target.closest("[data-client]");
-      if (c) {
-        this.game.takeOrder(+c.dataset.client, c);
-        return;
-      }
-      const h = e.target.closest("[data-heat]");
-      if (h) {
-        this.game.doHeat(h.dataset.heat, h.closest("[data-drop]"));
-        return;
-      }
-      if (e.target.closest("#ckDoorClose")) {
-        this.setFridge(false);
-        return;
-      }
-      if (e.target.closest("#ckDoor")) {
-        this.setFridge(!$("ckFridge").classList.contains("open"));
-        return;
-      }
-      if (e.target.closest("#ckLeft")) {
-        this.camTarget -= this.viewW * 0.6;
-        this.clampCam();
-      }
-      if (e.target.closest("#ckRight")) {
-        this.camTarget += this.viewW * 0.6;
-        this.clampCam();
-      }
-    });
-    document.addEventListener("keydown", (e) => {
-      if (!this.game.raf) return;
-      if (this.game.over && e.key === "Enter") {
-        e.preventDefault();
-        this.game.reset();
-        return;
-      }
-      if (e.key === "ArrowLeft" || e.key === "q" || e.key === "a") {
-        this.camTarget -= 220;
-        this.clampCam();
-      }
-      if (e.key === "ArrowRight" || e.key === "d") {
-        this.camTarget += 220;
-        this.clampCam();
-      }
-    });
+    this.area.addEventListener("wheel", (event) => this.wheel(event), { passive: true });
+    this.area.addEventListener("click", (event) => this.click(event));
+    document.addEventListener("keydown", (event) => this.key(event));
     new ResizeObserver(() => {
       if (!this.game.raf) return;
       this.fit();
       this.applyCam();
-      this.guideSig = null;
+      this.game.guide.guideSig = null;
     }).observe(this.area);
-    $("ckRestart").addEventListener("click", (...args) => this.game.reset(...args));
-    $("ckWho").addEventListener("click", () => {
-      this.who = this.who === "femme" ? "homme" : "femme";
-      $("ckChef").innerHTML = Avatar.chef(this.who);
-      Sfx.play("click");
-      try {
-        localStorage.setItem("cooktou_chef", this.who);
-      } catch (e) {}
-    });
-    $("ckAgain").addEventListener("click", (...args) => this.game.reset(...args));
+    $("ckRestart").addEventListener("click", () => this.game.reset());
+    $("ckWho").addEventListener("click", () => this.switchChef());
+    $("ckAgain").addEventListener("click", () => this.game.reset());
     $("ckMenu").addEventListener("click", () => app.launcher.backToMenu());
-    this.game.built = true;
+  }
+
+  wheel(event) {
+    if (this.game.history.isOpen) return;
+    this.camTarget += (Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY) / this.scale;
+    this.clampCam();
+  }
+
+  click(event) {
+    const target = event.target;
+    const client = target.closest("[data-client]");
+    const heat = target.closest("[data-heat]");
+    const drink = target.closest("[data-drink]");
+    const tab = target.closest("[data-placard]");
+    if (client) this.game.takeOrder(+client.dataset.client, client);
+    else if (heat) this.game.doHeat(heat.dataset.heat, heat.closest("[data-drop]"));
+    else if (drink) this.game.doDrink(drink.dataset.drink, drink);
+    else if (tab) this.openPlacard(tab.dataset.placard);
+    else if (target.closest("#ckDoorClose")) this.setFridge(false);
+    else if (target.closest("#ckDoor")) this.setFridge(!$("ckFridge").classList.contains("open"));
+    else if (target.closest("#ckLeft")) this.pan(-0.6);
+    else if (target.closest("#ckRight")) this.pan(0.6);
+  }
+
+  key(event) {
+    if (!this.game.raf) return;
+    if (this.game.history.isOpen) {
+      if (event.key !== "Escape" && event.key !== "Enter") return;
+      event.preventDefault();
+      this.game.history.hide();
+      return;
+    }
+    if (this.game.over && event.key === "Enter") {
+      event.preventDefault();
+      this.game.reset();
+    } else if (event.key === "ArrowLeft" || event.key === "q" || event.key === "a") this.pan(-0.15);
+    else if (event.key === "ArrowRight" || event.key === "d") this.pan(0.15);
+  }
+
+  pan(part) {
+    this.camTarget += this.viewW * part;
+    this.clampCam();
+  }
+
+  switchChef() {
+    this.who = this.who === "femme" ? "homme" : "femme";
+    $("ckChef").innerHTML = Avatar.chef(this.who);
+    Sfx.play("click");
+    Store.write("cooktou_chef", this.who);
   }
 
   hud() {
     $("ckScore").textContent = this.game.score;
-    let h = "";
-    for (let i = 0; i < CooktouGame.MAX_LOST; i++) h += `<i class="esc${i < this.game.lost ? " on" : ""}"></i>`;
-    $("ckLost").innerHTML = h;
+    let marks = "";
+    for (let i = 0; i < CooktouGame.MAX_LOST; i++) marks += `<i class="esc${i < this.game.lost ? " on" : ""}"></i>`;
+    $("ckLost").innerHTML = marks;
+  }
+
+  clientLabel(client) {
+    const mine = client === this.game.active;
+    if (!mine) return this.game.active ? "Attend son tour" : "Clique pour prendre la commande";
+    return this.game.order().complete() ? "Glisse le plateau ici !" : "Commande en cours…";
   }
 
   renderClients() {
-    let h = "";
+    let html = "";
     for (let i = 0; i < CooktouGame.SLOTS; i++) {
-      const c = this.game.clients[i];
-      if (!c) {
-        h += `<div class="ck-client empty">place libre</div>`;
+      const client = this.game.clients[i];
+      if (!client) {
+        html += `<div class="ck-client empty">place libre</div>`;
         continue;
       }
-      const mine = c === this.game.active;
-      const label = mine
-        ? this.game.ready
-          ? "Glisse l'assiette ici !"
-          : "Commande en cours…"
-        : this.game.active
-          ? "Attend son tour"
-          : "Clique pour prendre la commande";
-      h += `<button class="ck-client${mine ? " active" : ""}${mine && this.game.ready ? " serve" : ""}${!this.game.active ? " ask" : ""}" data-client="${i}">
-        <span class="who">${Avatar.client(c)}</span>
-        <span class="order"><b>${c.recipe.name}</b><span>${label}</span></span>
-        ${Icons.draw(c.recipe.id, "dish")}
+      const mine = client === this.game.active;
+      const serve = mine && this.game.order().complete();
+      const icons = client.order.items.map((item) => (item.recipe ? Icons.dish(item.recipe, "dish") : Icons.glass(item.drink.color, 1, "dish"))).join("");
+      html += `<button class="ck-client${mine ? " active" : ""}${serve ? " serve" : ""}${!this.game.active ? " ask" : ""}" data-client="${i}">
+        <span class="who">${Avatar.client(client)}</span>
+        <span class="order"><b>${client.order.title()}</b><span>${this.clientLabel(client)}</span></span>
+        <span class="dishes">${icons}</span>
         <i class="pat" data-bar="${i}"></i></button>`;
     }
-    $("ckClients").innerHTML = h;
+    $("ckClients").innerHTML = html;
     this.bars();
   }
 
   bars() {
     for (let i = 0; i < CooktouGame.SLOTS; i++) {
-      const c = this.game.clients[i],
-        el = $("ckClients").querySelector(`[data-bar="${i}"]`);
-      if (!c || !el) continue;
-      const k = Math.max(0, c.pat / c.max);
-      el.style.width = k * 100 + "%";
-      el.classList.toggle("low", k < 0.3);
+      const client = this.game.clients[i];
+      const bar = $("ckClients").querySelector(`[data-bar="${i}"]`);
+      if (!client || !bar) continue;
+      const ratio = Math.max(0, client.pat / client.max);
+      bar.style.width = ratio * 100 + "%";
+      bar.classList.toggle("low", ratio < 0.3);
     }
   }
 
   renderTicket() {
-    const el = $("ckTicket");
-    if (!this.game.active) {
-      el.innerHTML = `<h3>Bon de commande</h3><p>${this.game.clients.some(Boolean) ? "Clique sur un client pour prendre sa commande." : "En attente du prochain client…"}</p>`;
+    const pin = $("ckTicket");
+    const order = this.game.order();
+    if (!order) {
+      pin.innerHTML = `<h3>Bon de commande</h3><p>${this.game.clients.some(Boolean) ? "Clique sur un client pour prendre sa commande." : "En attente du prochain client…"}</p>`;
       return;
     }
-    const st = this.game.active.recipe.steps;
-    el.innerHTML =
-      `<h3>${this.game.active.recipe.name}</h3><ol>` +
-      st
-        .map(
-          (s, i) =>
-            `<li class="${i < this.game.idx ? "done" : i === this.game.idx ? "cur" : ""}"><i>${i < this.game.idx ? "✓" : i + 1}</i>${s.txt}</li>`,
-        )
-        .join("") +
-      "</ol>";
-    const c = el.querySelector(".cur");
-    if (c) el.scrollTop = Math.max(0, c.offsetTop - 70);
+    const menu = order.items
+      .map((item) => {
+        const state = item.done ? "done" : item === this.game.dish ? "cur" : "";
+        return `<li class="${state}"><i>${item.done ? "✓" : "•"}</i><span><em>${Order.COURSE_NAMES[item.course]}</em> ${order.label(item)}</span></li>`;
+      })
+      .join("");
+    const steps = this.game.dish
+      ? this.game.dish.recipe.steps
+          .map((step, i) => `<li class="${i < this.game.idx ? "done" : i === this.game.idx ? "cur" : ""}"><i>${i < this.game.idx ? "✓" : i + 1}</i>${step.txt}</li>`)
+          .join("")
+      : "";
+    pin.innerHTML = `<h3>${order.title()}</h3><ul class="ck-menu">${menu}</ul>${steps ? `<ol>${steps}</ol>` : ""}`;
+    const current = pin.querySelector("ol .cur");
+    if (current) pin.scrollTop = Math.max(0, current.offsetTop - 110);
   }
 
-  renderGuide() {
-    const el = $("ckNow");
-    if (!this.game.active) {
-      const some = this.game.clients.some(Boolean);
-      el.innerHTML = `<span class="g-step">${some ? "Nouvelle commande" : "Pause"}</span><span class="g-txt">${some ? "Clique sur un client en haut pour prendre sa commande." : "En attente du prochain client…"}</span>`;
-      return;
+  stock() {
+    const needed = new Set(this.game.clients.filter(Boolean).flatMap((client) => client.order.items.filter((item) => item.recipe).flatMap((item) => item.recipe.steps.filter((step) => step.ing).map((step) => step.ing))));
+    const shelves = {};
+    for (const at in Catalog.storages) shelves[at] = [];
+    const online = this.game.source.online;
+    for (const id in Catalog.ingredients) {
+      const shown = needed.has(id) || Icons.shapes[id] || (online && !Catalog.isCustom(id));
+      if (shown) shelves[Catalog.ingredients[id].at].push(id);
     }
-    const st = this.game.active.recipe.steps,
-      s = st[this.game.idx];
-    const chip = (pic, label, sub) => `<span class="g-chip">${pic}<span><b>${label}</b>${sub ? `<em>${sub}</em>` : ""}</span></span>`;
-    const stChip = (id) => chip(`<i class="g-st g-${id}"></i>`, Catalog.stations[id].n);
-    let v = "",
-      how = "";
-    if (s.a === "put") {
-      v =
-        chip(Icons.draw(s.ing), Catalog.ingredients[s.ing].n, Catalog.ingredients[s.ing].cold ? "dans le frigo" : "dans le garde-manger") +
-        `<span class="g-arr">➜</span>` +
-        stChip(s.st);
-      how = Catalog.ingredients[s.ing].pour
-        ? "Attrape-le, tiens-le au-dessus du poste et laisse couler jusqu'au bout."
-        : Catalog.ingredients[s.ing].shake
-          ? `Attrape-le et secoue-le de haut en bas au-dessus du poste. <b id="ckCount"></b>`
-          : "Attrape l'ingrédient et fais-le glisser jusqu'au poste.";
-    } else if (s.a === "move") {
-      v = stChip(s.from) + `<span class="g-arr">➜</span>` + stChip(s.to);
-      how = "Attrape ce qu'il y a dedans et fais-le glisser.";
-    } else if (s.a === "cut") {
-      v = chip(Icons.tools.knife, "Couteau") + `<span class="g-arr">↕</span>` + stChip("planche");
-      how = `Garde le couteau en main et secoue de haut en bas sur la planche. <b id="ckCount"></b>`;
-    } else if (s.a === "stir") {
-      v = chip(Icons.tools.spoon, "Cuillère") + `<span class="g-arr">⇄</span>` + stChip("bol");
-      how = `Garde la cuillère en main et remue vite dans le saladier, dans n'importe quel sens. <b id="ckCount"></b>`;
-    } else if (s.a === "heat") {
-      v = chip(`<i class="g-btn">${s.st === "four" ? "▶ Lancer" : "Feu"}</i>`, s.st === "four" ? "Bouton du four" : "Bouton de la plaque");
-      how = this.game.busy > 0 ? "Ça cuit… patiente quelques secondes." : "Clique sur le bouton, puis attends la fin de la cuisson.";
-    } else {
-      v =
-        stChip("assiette") +
-        `<span class="g-arr">➜</span>` +
-        chip(Icons.draw(this.game.active.recipe.id), "Le client", "en haut de l'écran");
-      how = "Attrape l'assiette et fais-la glisser sur le client.";
+    for (const at in shelves) {
+      const extra = shelves[at].length - Catalog.SHELF_SIZE;
+      if (extra > 0) shelves[at] = shelves[at].filter((id, i) => needed.has(id) || i >= extra);
     }
-    el.innerHTML = `<span class="g-step">Étape ${this.game.idx + 1} / ${st.length}</span><span class="g-vis">${v}</span><span class="g-txt"><b>${s.txt}</b><span>${how}</span></span>`;
-    this.progress();
+    return shelves;
+  }
+
+  item(id) {
+    return `<div class="ck-item" data-ing="${id}">${Icons.draw(id)}<span>${Catalog.ingredients[id].n}</span></div>`;
+  }
+
+  renderStock() {
+    const shelves = this.stock();
+    const sig = JSON.stringify(shelves) + this.placard;
+    if (sig === this.stockSig) return;
+    this.stockSig = sig;
+    $("ckShelf-frigo").innerHTML = shelves.frigo.map((id) => this.item(id)).join("");
+    $("ckShelf").innerHTML = shelves[this.placard].map((id) => this.item(id)).join("");
+    for (const tab of this.query(".ck-tabs").children) tab.classList.toggle("open", tab.dataset.placard === this.placard);
+  }
+
+  openPlacard(id) {
+    if (this.placard === id) return;
+    this.placard = id;
+    Sfx.play("fridge");
+    this.renderStock();
+    this.game.guide.hintIn = 0;
   }
 
   pile(list, id) {
-    const sx = id === "planche" ? 1.5 : 1,
-      sy = id === "planche" ? 0.75 : 1,
-      big = list.length > 5 ? 30 : 38;
-    return list
-      .map((raw, i) => {
-        const x = raw.replace("~", ""),
-          cut = raw !== x,
-          g = Catalog.ingredients[x];
-        const a = i * 2.4 + 0.6,
-          r = Math.min(36, 14 * Math.sqrt(i)),
-          px_ = Math.cos(a) * r * sx,
-          py_ = Math.sin(a) * r * sy,
-          rot = ((i * 47) % 50) - 25;
-        const one = (dx, dy, dr, size, inner) =>
-          `<svg class="ic" viewBox="0 0 48 48" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" style="left:calc(50% + ${(px_ + dx).toFixed(1)}px);top:calc(50% + ${(py_ + dy).toFixed(1)}px);width:${size}px;height:${size}px;margin:${-size / 2}px 0 0 ${-size / 2}px;transform:rotate(${rot + dr}deg)">${inner || Icons.shapes[x]}</svg>`;
-        if (Catalog.isMix(raw)) return one(0, 0, 0, 62, this.mixture(raw)).replace('class="ic"', 'class="ic liq"');
-        if (g.pour)
-          return one(
-            0,
-            0,
-            0,
-            54,
-            `<path d="${KitchenView.PUDDLE}" fill="${g.pour}" stroke="rgba(0,0,0,.14)" opacity=".9"/><path d="M13 22q6-7 16-6" stroke="#fff" opacity=".6" fill="none"/>`,
-          ).replace('class="ic"', 'class="ic liq"');
-        if (g.shake)
-          return one(
-            0,
-            0,
-            0,
-            50,
-            `<g stroke="none">${[
-              [10, 14],
-              [22, 8],
-              [35, 13],
-              [41, 26],
-              [30, 22],
-              [17, 25],
-              [8, 33],
-              [24, 36],
-              [36, 38],
-              [15, 41],
-            ]
-              .map(
-                ([cx, cy], k) =>
-                  `<circle cx="${cx}" cy="${cy}" r="1.7" fill="${x === "sel" && k % 2 ? "#3b3b3b" : g.shake}" stroke="rgba(0,0,0,.25)" stroke-width=".6"/>`,
-              )
-              .join("")}</g>`,
-          );
-        return cut ? one(-11, 3, -20, 22) + one(9, -6, 25, 22) + one(2, 9, 70, 22) : one(0, 0, 0, big);
-      })
-      .join("");
+    const sx = id === "planche" ? 1.5 : 1;
+    const sy = id === "planche" ? 0.75 : 1;
+    const big = list.length > 5 ? 30 : 38;
+    return list.map((raw, i) => this.piece(raw, i, sx, sy, big)).join("");
+  }
+
+  piece(raw, i, sx, sy, big) {
+    const x = raw.replace("~", "");
+    const angle = i * 2.4 + 0.6;
+    const radius = Math.min(36, 14 * Math.sqrt(i));
+    const px = Math.cos(angle) * radius * sx;
+    const py = Math.sin(angle) * radius * sy;
+    const rot = ((i * 47) % 50) - 25;
+    const one = (dx, dy, dr, size, inner, cls) =>
+      `<svg class="ic${cls || ""}" viewBox="0 0 48 48" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" style="left:calc(50% + ${(px + dx).toFixed(1)}px);top:calc(50% + ${(py + dy).toFixed(1)}px);width:${size}px;height:${size}px;margin:${-size / 2}px 0 0 ${-size / 2}px;transform:rotate(${rot + dr}deg)">${inner || Icons.shape(x)}</svg>`;
+    if (Catalog.isMix(raw)) return one(0, 0, 0, 62, this.mixture(raw), " liq");
+    const def = Catalog.ingredients[x];
+    if (def.how === "pour" || def.how === "squeeze" || def.how === "crack") return one(0, 0, 0, 54, this.puddle(def), " liq");
+    if (def.how === "shake" || def.how === "grate") return one(0, 0, 0, 50, this.specks(x, def));
+    return raw !== x ? one(-11, 3, -20, 22) + one(9, -6, 25, 22) + one(2, 9, 70, 22) : one(0, 0, 0, big);
+  }
+
+  puddle(def) {
+    const yolk = def.how === "crack" ? `<circle cx="25" cy="25" r="7" fill="#f5b52a" stroke="#d9901a"/>` : "";
+    const color = def.how === "crack" ? "#fffdf6" : def.color;
+    return `<path d="${KitchenView.PUDDLE}" fill="${color}" stroke="rgba(0,0,0,.14)" opacity=".9"/><path d="M13 22q6-7 16-6" stroke="#fff" opacity=".6" fill="none"/>${yolk}`;
+  }
+
+  specks(id, def) {
+    return `<g stroke="none">${KitchenView.SPECKS.map(([cx, cy], k) => `<circle cx="${cx}" cy="${cy}" r="${def.how === "grate" ? 2.6 : 1.7}" fill="${id === "sel" && k % 2 ? "#3b3b3b" : def.color}" stroke="rgba(0,0,0,.25)" stroke-width=".6"/>`).join("")}</g>`;
   }
 
   blend(ids) {
-    let r = 0,
-      g = 0,
-      b = 0,
-      total = 0;
+    let r = 0;
+    let g = 0;
+    let b = 0;
+    let total = 0;
     for (const id of ids) {
-      const weight = Catalog.ingredients[id].shake ? 0.25 : 1,
-        hex = parseInt(Catalog.tint(id).slice(1), 16);
+      const weight = Catalog.ingredients[id].how === "shake" ? 0.25 : 1;
+      const hex = parseInt(Catalog.tint(id).slice(1), 16);
       r += (hex >> 16) * weight;
       g += ((hex >> 8) & 255) * weight;
       b += (hex & 255) * weight;
@@ -331,172 +333,78 @@ class KitchenView {
 
   mixture(raw) {
     const parts = Catalog.parts(raw);
-    const specks = KitchenView.SPECKS.map(
-      ([cx, cy], k) => `<circle cx="${cx}" cy="${cy}" r="1.9" fill="${Catalog.tint(parts[k % parts.length])}" stroke="rgba(0,0,0,.2)" stroke-width=".5"/>`,
-    ).join("");
+    const specks = KitchenView.SPECKS.map(([cx, cy], k) => `<circle cx="${cx}" cy="${cy}" r="1.9" fill="${Catalog.tint(parts[k % parts.length])}" stroke="rgba(0,0,0,.2)" stroke-width=".5"/>`).join("");
     return `<path d="${KitchenView.PUDDLE}" fill="${this.blend(parts)}" stroke="rgba(0,0,0,.18)"/><path d="M13 22q6-7 16-6" stroke="#fff" opacity=".5" fill="none"/>${specks}`;
   }
 
   entryIcon(raw) {
-    return Catalog.isMix(raw)
-      ? `<svg class="ic" viewBox="0 0 48 48" stroke-width="2" stroke-linecap="round">${this.mixture(raw)}</svg>`
-      : Icons.draw(raw.replace("~", ""));
+    return Catalog.isMix(raw) ? Icons.svg(this.mixture(raw)) : Icons.draw(raw.replace("~", ""));
   }
 
   renderStations() {
     for (const id in Catalog.stations) {
-      const el = this.query(`[data-from="${id}"]`),
-        f = this.game.flags[id] || "";
-      el.innerHTML = f === "dish" ? Icons.draw(this.game.active.recipe.id, "ck-dish") : this.pile(this.game.cont[id].slice(-9), id);
-      el.className = "ck-cont" + (f === "cooked" ? " cooked" : "") + (this.game.cont[id].length ? " has" : "");
+      const el = this.query(`[data-from="${id}"]`);
+      const flag = this.game.flags[id] || "";
+      el.innerHTML = flag === "dish" ? Icons.dish(this.game.dish.recipe, "ck-dish") : this.pile(this.game.cont[id].slice(-9), id);
+      el.className = "ck-cont" + (flag === "cooked" ? " cooked" : "") + (this.game.cont[id].length ? " has" : "");
       el.style.transform = id === "bol" ? `rotate(${this.game.stirAcc}rad)` : "";
     }
-    this.progress();
   }
 
-  progress() {
-    const s = this.game.cur(),
-      sp =
-        this.game.pointer.drag && this.game.pointer.drag.kind === "ing" && s && s.a === "put" && s.ing === this.game.pointer.drag.id
-          ? s.st
-          : null;
-    for (const id in Catalog.stations) {
-      const p = this.query(`[data-drop="${id}"] .ck-prog`);
-      if (p.parentNode.classList.contains("cooking")) continue;
-      let k = 0;
-      if (id === "planche" && s && s.a === "cut") k = this.game.chops / s.n;
-      else if (id === "bol" && s && s.a === "stir") k = Math.min(1, Math.abs(this.game.stirAcc) / (Math.PI * 2 * s.n));
-      if (id === sp)
-        k = Catalog.ingredients[this.game.pointer.drag.id].pour
-          ? this.game.pointer.drag.fill / CooktouGame.POUR_T
-          : this.game.pointer.drag.shakes / CooktouGame.SHAKES;
-      p.style.width = Math.min(1, k) * 80 + "%";
-    }
-    const c = $("ckCount");
-    if (!c || !s) return;
-    if (s.a === "cut") c.textContent = `${this.game.chops} / ${s.n} coups`;
-    else if (s.a === "stir") c.textContent = `${Math.min(100, Math.round((Math.abs(this.game.stirAcc) / (Math.PI * 2 * s.n)) * 100))} %`;
-    else if (s.a === "put" && Catalog.ingredients[s.ing].shake)
-      c.textContent = `${this.game.pointer.drag && this.game.pointer.drag.id === s.ing ? this.game.pointer.drag.shakes : 0} / ${CooktouGame.SHAKES} secousses`;
+  renderTray() {
+    $("ckTray").innerHTML = this.game.tray.map((item) => (item.recipe ? Icons.dish(item.recipe) : Icons.glass(item.drink.color, 1))).join("");
+    $("ckTray").classList.toggle("has", this.game.tray.length > 0);
+  }
+
+  renderMachine() {
+    const glass = this.game.glass;
+    $("ckGlass").innerHTML = glass ? Icons.glass(glass.drink ? glass.drink.color : "#fff", glass.drink ? glass.fill / CooktouGame.DRINK_T : 0) : "";
+    $("ckGlass").classList.toggle("full", Boolean(glass && glass.fill >= CooktouGame.DRINK_T));
+    this.query(".mc-slot").classList.toggle("pouring", Boolean(glass && glass.drink && glass.fill < CooktouGame.DRINK_T));
   }
 
   render() {
     this.renderClients();
     this.renderTicket();
-    this.renderGuide();
     this.renderStations();
-    this.hintIn = 0;
+    this.renderTray();
+    this.renderMachine();
+    this.renderStock();
+    this.game.guide.renderGuide();
+    this.game.guide.hintIn = 0;
   }
 
-  setMood(m, time) {
-    $("ckChef").dataset.mood = m;
+  setMood(mood, time) {
+    $("ckChef").dataset.mood = mood;
     this.game.mood = time || 0;
   }
 
   setFridge(open) {
     if ($("ckFridge").classList.contains("open") !== open) Sfx.play("fridge");
     $("ckFridge").classList.toggle("open", open);
-    this.hintIn = 0;
-  }
-
-  wrong(el) {
-    if (!el) return;
-    el.classList.remove("wrong");
-    void el.offsetWidth;
-    el.classList.add("wrong");
-    setTimeout(() => el.classList.remove("wrong"), 320);
-  }
-
-  hints() {
-    const g = $("ckGuide"),
-      s = this.game.cur();
-    let marks = [];
-    if (s && !this.game.over) {
-      const open = $("ckFridge").classList.contains("open"),
-        surf = (id) => this.query(`[data-drop="${id}"] .ck-surf`);
-      if (this.game.busy > 0) marks = [[surf(this.game.busySt), "Ça cuit…", 0]];
-      else if (s.a === "put")
-        marks = [
-          Catalog.ingredients[s.ing].cold && !open
-            ? [this.query(".fr-handle"), "① Ouvre le frigo", 1]
-            : [this.query(`[data-ing="${s.ing}"] .ic`), "① Prends", 1],
-          [
-            surf(s.st),
-            Catalog.ingredients[s.ing].pour ? "② Verse ici" : Catalog.ingredients[s.ing].shake ? "② Secoue ici" : "② Pose ici",
-            2,
-          ],
-        ];
-      else if (s.a === "cut")
-        marks = [
-          [this.query(`[data-tool="knife"]`), "① Couteau", 1],
-          [surf("planche"), "② Secoue ici ↕", 2],
-        ];
-      else if (s.a === "stir")
-        marks = [
-          [this.query(`[data-tool="spoon"]`), "① Cuillère", 1],
-          [surf("bol"), "② Remue ici", 2],
-        ];
-      else if (s.a === "heat") marks = [[this.query(`[data-heat="${s.st}"]`), "Clique", 1]];
-      else if (s.a === "move")
-        marks = [
-          [surf(s.from), "① Attrape", 1],
-          [surf(s.to), "② Pose ici", 2],
-        ];
-      else marks = [[surf("assiette"), "① Monte l'assiette au client", 1]];
-    }
-    const a = this.area.getBoundingClientRect(),
-      w = $("ckWorld").getBoundingClientRect(),
-      pts = [];
-    let left = false,
-      right = false,
-      html = "",
-      sig = "";
-    for (const [el, label, n] of marks) {
-      if (!el) continue;
-      const r = el.getBoundingClientRect();
-      if (r.right < a.left + 40) left = true;
-      if (r.left > a.right - 40) right = true;
-      const x = Math.round((r.left - w.left + r.width / 2) / this.scale),
-        y = Math.round((r.top - w.top + Math.min(14, r.height * 0.2)) / this.scale);
-      pts.push([x, y]);
-      html += `<div class="ck-bub b${n}" style="left:${x}px;top:${y}px">${label}</div>`;
-      sig += label + x + "," + y + ";";
-    }
-    if (pts.length === 2 && !this.game.pointer.drag) {
-      const [x1, y1] = pts[0],
-        [x2, y2] = pts[1],
-        dir = x2 > x1 ? 1 : -1,
-        ya = y1 - 34,
-        yb = y2 - 34,
-        boxLeft = Math.min(x1, x2) - KitchenView.ARROW_PAD,
-        boxTop = Math.min(ya, yb) - 46 - KitchenView.ARROW_PAD,
-        width = Math.abs(x2 - x1) + KitchenView.ARROW_PAD * 2,
-        height = Math.abs(yb - ya) + 46 + KitchenView.ARROW_PAD * 2,
-        sx = x1 + dir * 24 - boxLeft,
-        ex = x2 - dir * 24 - boxLeft;
-      html =
-        `<svg class="ck-arrow" style="left:${boxLeft}px;top:${boxTop}px" width="${width}" height="${height}"><defs><marker id="ckHead" viewBox="0 0 10 10" refX="6" refY="5" markerUnits="userSpaceOnUse" markerWidth="22" markerHeight="22" orient="auto"><path class="ck-arrow-head" d="M0 0l10 5-10 5 2.5-5z"/></marker></defs><path class="ck-arrow-line" d="M${sx} ${ya - boxTop} Q ${(x1 + x2) / 2 - boxLeft} ${Math.min(ya, yb) - 46 - boxTop} ${ex} ${yb - boxTop}" marker-end="url(#ckHead)"/></svg>` +
-        html;
-      sig += "arrow";
-    }
-    $("ckLeft").classList.toggle("call", left);
-    $("ckRight").classList.toggle("call", right);
-    if (sig !== this.guideSig) {
-      this.guideSig = sig;
-      g.innerHTML = html;
-    }
+    this.game.guide.hintIn = 0;
   }
 
   ghost(html, on, tool) {
-    const g = $("ckGhost");
-    g.innerHTML = html || "";
-    g.className = "ck-ghost" + (on ? " on" : "") + (tool ? " tool" : "");
+    const ghost = $("ckGhost");
+    ghost.innerHTML = html || "";
+    ghost.className = "ck-ghost" + (on ? " on" : "") + (tool ? " tool" : "");
   }
 
   placeGhost() {
-    const g = $("ckGhost");
-    g.style.left = this.game.pointer.px + "px";
-    g.style.top = this.game.pointer.py + "px";
+    const ghost = $("ckGhost");
+    ghost.style.left = this.game.pointer.px + "px";
+    ghost.style.top = this.game.pointer.py + "px";
+  }
+
+  reset() {
+    this.fit();
+    this.cam = this.camTarget = CooktouGame.CHEF_X - this.viewW / 2;
+    this.clampCam();
+    this.cam = this.camTarget;
+    this.applyCam();
+    this.setMood("", 0);
+    this.setFridge(false);
   }
 
   fit() {
@@ -505,6 +413,12 @@ class KitchenView {
     $("ckWorld").style.height = height / this.scale + "px";
     this.viewW = this.area.clientWidth / this.scale;
     this.clampCam();
+  }
+
+  updateCam(dt) {
+    if (Math.abs(this.camTarget - this.cam) <= 0.5) return;
+    this.cam += (this.camTarget - this.cam) * Math.min(1, dt * KitchenView.CAM_SPEED);
+    this.applyCam();
   }
 
   clampCam() {

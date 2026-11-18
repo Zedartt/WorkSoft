@@ -118,6 +118,19 @@ class SoundEngine {
           q: 1.5,
           vol: 0.16,
         }),
+      crack: () => {
+        this.noise(0.05, { f: 1800, q: 3, vol: 0.28 });
+        this.tone(420, 0.04, { to: 200, vol: 0.12, type: "triangle" });
+      },
+      grate: () => this.noise(0.08, { f: 3800, q: 2.5, vol: 0.14 }),
+      squeeze: () => this.noise(0.12, { f: 900, q: 1.2, vol: 0.1 }),
+      peel: () => this.noise(0.07, { f: 2800, q: 1.8, vol: 0.13 }),
+      roll: () => this.noise(0.14, { f: 300, filter: "lowpass", vol: 0.18 }),
+      flip: () => this.tone(360, 0.08, { to: 720, vol: 0.14, type: "triangle" }),
+      knead: () => {
+        this.noise(0.08, { f: 260, filter: "lowpass", vol: 0.25 });
+        this.tone(110, 0.07, { vol: 0.16, type: "triangle" });
+      },
       ding: () => {
         this.tone(1568, 0.7, {
           vol: 0.22,

@@ -169,6 +169,13 @@
             <path d="M4 21c0-5 4-8 8-8s8 3 8 8" />
           </svg>
         </button>
+        <button class="icon-btn ck-history-btn" id="ckHistory" title="Historique des plats de la session" aria-label="Historique des plats">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 3h12v18l-2-1.5-2 1.5-2-1.5-2 1.5-2-1.5L6 21z" />
+            <path d="M9 8h6M9 12h6M9 16h3" />
+          </svg>
+          <span class="ck-history-count" id="ckHistoryCount"></span>
+        </button>
         <div class="stat">Score <b id="ckScore">0</b></div>
         <div class="stat">Clients perdus <span id="ckLost"></span></div>
       </div>
@@ -196,8 +203,15 @@
             <div id="ckRecord" style="font-size: 14px; color: var(--muted); margin-bottom: 18px"></div>
             <div class="actions">
               <button class="btn primary" id="ckAgain">Rejouer (Entrée)</button>
+              <button class="btn" id="ckOverReceipt">Voir le ticket</button>
               <button class="btn" id="ckMenu">Menu</button>
             </div>
+          </div>
+        </div>
+        <div class="overlay ck-receipt-veil" id="ckReceipt">
+          <div class="ck-receipt">
+            <div class="ck-receipt-paper" id="ckReceiptBody"></div>
+            <div class="actions"><button class="btn primary" id="ckReceiptClose">Fermer (Échap)</button></div>
           </div>
         </div>
       </div>
@@ -308,11 +322,16 @@
     <script src="js/games/incscape/IncscapeGame.js"></script>
     <script src="js/games/cooktou/data/Catalog.js"></script>
     <script src="js/games/cooktou/data/Recipe.js"></script>
-    <script src="js/games/cooktou/data/RecipeBook.js"></script>
+    <script src="js/games/cooktou/data/OfflineRecipes.js"></script>
+    <script src="js/games/cooktou/data/RecipeWriter.js"></script>
+    <script src="js/games/cooktou/data/RecipeSource.js"></script>
     <script src="js/games/cooktou/art/Icons.js"></script>
     <script src="js/games/cooktou/art/Avatar.js"></script>
+    <script src="js/games/cooktou/Order.js"></script>
     <script src="js/games/cooktou/KitchenView.js"></script>
+    <script src="js/games/cooktou/KitchenGuide.js"></script>
     <script src="js/games/cooktou/PointerController.js"></script>
+    <script src="js/games/cooktou/ServiceHistory.js"></script>
     <script src="js/games/cooktou/CooktouGame.js"></script>
     <script src="js/games/wordhunt/WordList.js"></script>
     <script src="js/games/wordhunt/FlyingWord.js"></script>
