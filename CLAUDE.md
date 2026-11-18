@@ -16,7 +16,7 @@ Site de mini-jeux statique (HTML + CSS + JavaScript, sans framework ni étape de
 4. **Programmation orientée objet** : état dans des champs d'instance, réglages dans des champs `static` en MAJUSCULES, pas de variables globales en dehors de `$`, `Store`, `Sfx` et `app`.
 5. **Aucune dépendance externe** hormis `js/vendor/matter.min.js` (Matter.js 0.20.0, licence MIT, l'en-tête de licence doit rester). Pas de CDN, pas de npm à l'exécution.
 6. **Textes de l'interface en français**, tutoiement.
-7. **Classes CSS préfixées par jeu** (`ck-` Cooktou, `plk-` Kaplab, `ink-` Incscape, `wh-` WordHunt, `ww-` WhereWord). Une classe générique a déjà provoqué une collision (`.hint` de Wikopy contre un repère de Cooktou).
+7. **Classes CSS préfixées par jeu** (`ck-` Cooktou, `hl-` Hooplab, `plk-` Kaplab, `ink-` Incscape, `wh-` WordHunt, `ww-` WhereWord). Une classe générique a déjà provoqué une collision (`.hint` de Wikopy contre un repère de Cooktou).
 8. **Thème clair/sombre** : n'utiliser que les variables CSS de `css/base.css` (`--bg`, `--panel`, `--ink`, `--muted`, `--line`, `--accent`, `--bad`…) pour tout ce qui doit changer avec le thème. Le thème est porté par `data-theme` sur `<html>`.
 9. **En-tête identique pour tous les jeux** : `.game-top` (bouton « ← Menu », titre centré) puis `.game-bar` (bande de hauteur fixe pour ce qui est propre au jeu, boutons `.icon-btn`).
 
@@ -35,8 +35,9 @@ js/
     Viewport.js                cale les écrans sur la zone réellement visible (clavier iPhone) via --app-height et --app-top
     SoundEngine.js             sons synthétisés (Web Audio) ; instance globale Sfx
     Game.js                    classe de base des jeux : id, name, tag, art, open(), close()
-    ThemeSwitch.js             bascule de thème et bouton de son
-    Launcher.js                grille du menu, zoom de lancement, fondu, retour au menu, horloge
+    ThemeSwitch.js             bascule de thème et bouton de son (chacun peut piloter plusieurs boutons)
+    MenuSettings.js            panneau « Paramètres » du rouage de l'accueil (son, thème)
+    Launcher.js                accueil façon Wii (pages de 4×4 qui défilent, tuiles qui s'inclinent), zoom de lancement, fondu, retour au menu, horloge
     App.js                     crée les jeux et le Launcher ; instance globale app
   games/
     wikopy/    TextRules.js (nettoyage et comparaison de texte), WikiSource.js (API Wikipédia, réutilisée par WhereWord), WikopyGame.js
@@ -53,6 +54,9 @@ js/
       ServiceHistory.js        historique des plats servis pendant la session, ticket de caisse
       CooktouGame.js           état de la partie, règles, difficulté, boucle
     wordhunt/  WordList.js (mots, comparaison sans accents ni majuscules), FlyingWord.js (trajectoire, effets, traînée), WordHuntGame.js
+    hooplab/   HoopCourt.js (terrain, panier, dessins du décor), HoopBall.js (ballon, rebonds, ombre et reflet), HoopNet.js (filet souple),
+               HoopFx.js (lumières, particules, éclats de verre, feux d'artifice, éclairs, textes),
+               HoopRules.js (points, zones, figures, combo), HoopAim.js (tir en arc), HooplabGame.js
     whereword/ ArticleSource.js (article Wikipédia complet découpé en blocs), HuntText.js (découpage en mots, comptage, choix du mot), WhereWordGame.js
   vendor/matter.min.js
 ```
@@ -67,7 +71,9 @@ Mesurer les zones de jeu avec `clientWidth` / `clientHeight`, jamais `getBoundin
 
 - Écran de lancement : en portrait sur téléphone, les boutons sont empilés et remontés au-dessus de la barre de Safari ; le panneau prend `--app-height` (jamais `100vh`, qui passe sous la barre sur iPhone).
 - Référence mobile : iPhone 16 (393 × 852 en portrait, 852 × 393 en paysage). Tester aussi un grand écran dézoomé (par exemple 2560 × 1300).
-- Les boutons son et thème sont dans `.corner` (coin haut droit), avec un `z-index` (100) supérieur à tout le reste (écran de lancement `#launch` à 50, fondu `#flash` à 60) : sinon ils restent visibles mais ne reçoivent plus les clics. `--corner-w` réserve leur place à droite de `.game-top` et `.menu-top` pour que le titre ne passe jamais dessous. Sous 720 px de large, le bouton de thème n'affiche que son icône.
+- Accueil façon Wii (choix du propriétaire) : tuiles en pages de 4 × 4 (`Launcher.PER_PAGE`, au moins `Launcher.PAGES` pages) qui défilent de gauche à droite (flèches sur les côtés, points, molette, ← →, glissé du doigt) ; les pages cachées sont `inert`. Au survol, une tuile se lève et se tourne légèrement vers la souris (`Launcher.TILT_DEG`, variables `--rx` / `--ry`). Barre du bas : logo à gauche, heure et date au milieu, rouage à droite qui ouvre le panneau Paramètres (son, thème). Sur téléphone, 2 colonnes et la page défile verticalement.
+- Dans les jeux, les boutons son et thème sont dans `.corner` (coin haut droit), masqué sur l'accueil (`body.on-menu`), avec un `z-index` (100) supérieur à tout le reste (écran de lancement `#launch` à 50, fondu `#flash` à 60) : sinon ils restent visibles mais ne reçoivent plus les clics. `--corner-w` réserve leur place à droite de `.game-top` pour que le titre ne passe jamais dessous. Sous 720 px de large, le bouton de thème n'affiche que son icône. Les styles sont portés par les classes `.sound-btn` et `.theme-btn` (partagées avec le panneau Paramètres).
+- Curseur : main bleue « 1 » façon manette (SVG en `data:` dans `--cur-hand`, poing fermé `--cur-grab` pendant un glisser), utilisée partout à la place des curseurs flèche, main et `grab`. Seuls le trait d'Incscape (`crosshair`) et la zone de frappe de Wikopy (`text`) gardent leur curseur. Pour un nouvel élément cliquable, écrire `cursor: var(--cur-hand)`.
 - Deux paliers CSS communs : `max-width: 720px` (écran étroit) et `max-height: 500px` (téléphone en paysage : en-têtes et bandes plus fins, horloge du menu masquée).
 - `.screen` respecte les zones sûres de l'iPhone (`env(safe-area-inset-*)`, `viewport-fit=cover`).
 - Un écran trop petit (fort zoom, fenêtre réduite) ne doit jamais couper un bouton : `.screen` défile verticalement si son contenu dépasse, les zones de jeu gardent une hauteur minimale (`.wh-sky`, `.ww-area`), et les cartes de fin (`.overlay`, `#results`) défilent à l'intérieur au lieu de déborder sur l'en-tête (carte centrée par `margin: auto`, jamais `align-items: center` seul).
@@ -91,7 +97,7 @@ Mesurer les zones de jeu avec `clientWidth` / `clientHeight`, jamais `getBoundin
 1. Créer `js/games/<nom>/<Nom>Game.js` avec `class <Nom>Game extends Game` ; appeler `super({ id, name, tag, art })` (`art` = petit SVG ou HTML affiché sur la tuile et l'écran de lancement).
 2. Ajouter dans `index.html` une `<section id="<id>" class="screen">` contenant `.game-top`, `.game-bar` puis la zone de jeu, et la balise `<script>` avant `App.js`.
 3. Créer `css/<nom>.css` et le lier dans `index.html`.
-4. Ajouter `new <Nom>Game()` dans `App` (la grille a 12 emplacements, `Launcher.SLOTS`).
+4. Ajouter `new <Nom>Game()` dans `App` (il prend la première case libre ; une page de 16 cases s'ajoute toute seule au-delà de 32 jeux).
 5. Jouer les sons via `Sfx.play("nom")` ; en ajouter dans `SoundEngine` (objet `sounds`) si besoin.
 
 ## Les jeux
@@ -161,6 +167,18 @@ Script de contrôle à coller dans la console après avoir lancé Cooktou (doit 
 })();
 ```
 
+### Hooplab
+
+- Bac à sable de basket dessiné dans un canvas. Toutes les mesures sont en unités de terrain : la hauteur du canvas vaut 100 unités (`scale` = pixels par unité), la largeur dépend de l'écran. Physique maison (pas Matter.js) en `SUBSTEPS` sous-pas par image : gravité, rebonds sur le sol, les murs, la planche, le poteau et les deux bords du cercle (`HoopBall.hitPoint`, `hitBox`, `reflect`).
+- Boutons « Panier à gauche / à droite » (`data-hl-side`) : le terrain est recalculé (`HoopCourt.layout`) et le ballon replacé de l'autre côté.
+- Souris : glisser le ballon le tient (il suit le pointeur par un ressort, `HOLD_PULL`, vitesse bornée par `MAX_SPEED`) et le lâcher le lance avec sa vitesse. Un simple clic sur le ballon (moins de `DRAG_PX` de mouvement) lui donne `IMPULSE` vers le haut sans toucher à sa vitesse horizontale ni à sa montée.
+- Tir en arc (`HoopAim`) : seulement après un vrai lancer à la souris, une fois par lancer, ballon en l'air. On appuie ailleurs que sur le ballon et on tire en arrière comme un arc : le temps ralentit (`SLOW_MOTION`) tant que le bouton est tenu, une ligne fine et courte montre la direction ; au relâchement, la vitesse du ballon est remplacée (force selon la longueur tirée, `MAX_PULL`, `POWER`).
+- Panier = le centre du ballon traverse la ligne du cercle vers le bas entre les deux bords. Calcul des points dans `HoopRules.shot()` : type (`SHOTS` : dunk, rebond chanceux, swish, planche, cercle) + bonus de zone (`HoopCourt.ZONES`, mesurée depuis l'endroit du lancer, lignes MI-DISTANCE / LOIN / TRÈS LOIN au sol) + figures : tir pur (lancé sans tir en arc, `PURE_BONUS`), jongle (chaque clic de relance en l'air, `KICK_BONUS`), tir en arc, combo total (lancer + jongle + arc, `TOTAL_BONUS`). Le tout est multiplié selon le combo (`MULTIPLIERS`, ×4 au maximum à partir de 6).
+- Combo : chaque panier marqué moins de `COMBO_TIME` (20 s) après le précédent augmente le combo (barre qui se vide dans la bande, animation CSS `hl-drain`). Un raté ne casse pas le combo, seul le temps écoulé l'arrête. Record = meilleur combo.
+- Effets (`HoopFx`) : texte lumineux, onde de choc, étincelles, projecteurs braqués sur le panier ; swish = rayons dorés et paillettes ; planche = contour de la vitre qui clignote en couleurs ; dunk = vitre qui éclate (`BROKEN_TIME`, la planche ne bloque plus pendant ce temps), flash blanc, secousse. Zones : mi-distance = canons à confettis, loin = feux d'artifice, très loin = grands feux d'artifice, rayons et flash doré. Figures : tir pur = halo blanc, jongle = bulles de lumière, tir en arc = la trajectoire s'allume, combo total = anneaux arc-en-ciel. Combo (`HoopFx.STREAKS`) : DOUBLE PANIER, TRIPLE (flammes, ballon en feu dès 3), QUADRUPLE (éclairs), QUINTUPLE (pluie de météores), MONSTRUEUX à 6 et plus (tout à la fois, feux d'artifice, flash rouge, secousse). Les lumières utilisent le mélange additif (`lighter`) ; les particules sont limitées à `MAX_PARTICLES`.
+- Le filet est une grille de points reliés (Verlet) que le ballon repousse ; il freine le ballon qui le traverse (`NET_DRAG`).
+- Couleurs du décor selon le thème : variables `--hl-*` de `css/hooplab.css`, lues avec `ThemeSwitch.color`. Sons `hoop*` dans `SoundEngine` (rebond, cercle, planche, filet, foule, dunk, vitre, feux d'artifice, arc, tonnerre, montée de combo, bulles).
+
 ### WordHunt
 
 - Des mots tirés de `WordList.WORDS` sont lancés d'un bord du ciel à l'autre en arc (`FlyingWord`). Le joueur tape un mot dans le champ du bas puis appuie sur Entrée : s'il est à l'écran, il éclate et rapporte `POINTS_PER_LETTER` points par lettre. Un mot qui sort de l'autre côté est raté ; `MAX_MISSES` (3) ratés = fin.
@@ -183,7 +201,7 @@ Script de contrôle à coller dans la console après avoir lancé Cooktou (doit 
 
 ## Données mémorisées (localStorage)
 
-`worksoft_theme`, `worksoft_mute`, `wikopy_best`, `incscape_best`, `cooktou_best`, `wordhunt_best`, `whereword_best`, `cooktou_chef`. Toujours protéger l'accès par `try/catch` ou passer par `Store`.
+`worksoft_theme`, `worksoft_mute`, `wikopy_best`, `incscape_best`, `cooktou_best`, `wordhunt_best`, `whereword_best`, `hooplab_best` (meilleur combo), `cooktou_chef`. Toujours protéger l'accès par `try/catch` ou passer par `Store`.
 
 ## Hébergement
 

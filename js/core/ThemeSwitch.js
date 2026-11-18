@@ -8,13 +8,15 @@ class ThemeSwitch {
     return ThemeSwitch.colors.get(name);
   }
 
-  constructor(button) {
-    this.button = button;
+  constructor(buttons) {
+    this.buttons = buttons;
     const saved = Store.read(ThemeSwitch.KEY);
     const preferred = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     this.apply(saved === "dark" || saved === "light" ? saved : preferred);
-    button.addEventListener("mousedown", (event) => event.preventDefault());
-    button.addEventListener("click", () => this.toggle());
+    for (const button of buttons) {
+      button.addEventListener("mousedown", (event) => event.preventDefault());
+      button.addEventListener("click", () => this.toggle());
+    }
   }
 
   get current() {
@@ -25,9 +27,11 @@ class ThemeSwitch {
     document.documentElement.dataset.theme = theme;
     ThemeSwitch.colors.clear();
     const label = theme === "dark" ? "Mode clair" : "Mode sombre";
-    this.button.querySelector(".theme-icon").textContent = theme === "dark" ? "☀" : "☾";
-    this.button.querySelector(".theme-label").textContent = label;
-    this.button.setAttribute("aria-label", label);
+    for (const button of this.buttons) {
+      button.querySelector(".theme-icon").textContent = theme === "dark" ? "☀" : "☾";
+      button.querySelector(".theme-label").textContent = label;
+      button.setAttribute("aria-label", label);
+    }
   }
 
   toggle() {
@@ -39,19 +43,23 @@ class ThemeSwitch {
 }
 
 class SoundSwitch {
-  constructor(button) {
-    this.button = button;
+  constructor(buttons) {
+    this.buttons = buttons;
     this.refresh();
-    button.addEventListener("mousedown", (event) => event.preventDefault());
-    button.addEventListener("click", () => {
-      Sfx.toggle();
-      this.refresh();
-      Sfx.play("click");
-    });
+    for (const button of buttons) {
+      button.addEventListener("mousedown", (event) => event.preventDefault());
+      button.addEventListener("click", () => {
+        Sfx.toggle();
+        this.refresh();
+        Sfx.play("click");
+      });
+    }
   }
 
   refresh() {
-    this.button.classList.toggle("off", Sfx.muted());
-    this.button.title = Sfx.muted() ? "Activer le son" : "Couper le son";
+    for (const button of this.buttons) {
+      button.classList.toggle("off", Sfx.muted());
+      button.title = Sfx.muted() ? "Activer le son" : "Couper le son";
+    }
   }
 }

@@ -128,7 +128,7 @@
   content: attr(data-t);
 }
 .ww-w {
-  cursor: pointer;
+  cursor: var(--cur-hand);
   border-radius: 4px;
   transition: background 0.15s;
 }

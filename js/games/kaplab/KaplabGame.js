@@ -278,7 +278,7 @@ class KaplabGame extends Game {
       }
       this.ctx.restore();
     }
-    this.canvas.style.cursor = this.mc.body ? "grabbing" : hover ? "grab" : "default";
+    this.canvas.style.cursor = this.mc.body ? "var(--cur-grab)" : "var(--cur-hand)";
   }
 
   frame(now) {

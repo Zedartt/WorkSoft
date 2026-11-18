@@ -198,6 +198,81 @@ class SoundEngine {
           type: "sawtooth",
           vol: 0.09,
         }),
+      hoopBounce: (power = 1) => {
+        this.tone(95, 0.2, { to: 52, vol: 0.38 * power });
+        this.tone(230, 0.12, { to: 190, type: "triangle", vol: 0.07 * power });
+        this.noise(0.07, { f: 380, filter: "lowpass", vol: 0.16 * power });
+      },
+      hoopRim: (power = 1) => {
+        [
+          [520, 0.55],
+          [1310, 0.4],
+          [2170, 0.28],
+          [3460, 0.16],
+        ].forEach(([f, d]) => this.tone(f * (0.98 + Math.random() * 0.04), d, { vol: 0.09 * power }));
+        this.noise(0.04, { f: 5000, filter: "highpass", vol: 0.08 * power });
+      },
+      hoopBoard: (power = 1) => {
+        this.tone(150, 0.16, { to: 85, type: "triangle", vol: 0.3 * power });
+        this.noise(0.08, { f: 900, vol: 0.18 * power });
+      },
+      hoopTap: () => {
+        this.tone(300, 0.14, { to: 760, type: "triangle", vol: 0.12 });
+        this.noise(0.12, { f: 1800, q: 0.7, vol: 0.05 });
+      },
+      hoopSwish: (power = 1) => {
+        this.noise(0.32, { f: 2900, q: 0.6, vol: 0.2 * power });
+        this.noise(0.24, { f: 1300, q: 0.9, vol: 0.12 * power, at: 0.05 });
+      },
+      hoopCheer: (power = 1) => {
+        this.noise(1.2 + power, { f: 950, q: 0.45, vol: 0.2 * power, at: 0.08 });
+        this.noise(0.9 + power, { f: 1900, q: 0.7, vol: 0.09 * power, at: 0.15 });
+        for (let i = 0; i < 6; i++)
+          this.tone(320 + Math.random() * 260, 0.5 + Math.random() * 0.5, { to: 520 + Math.random() * 300, type: "sawtooth", vol: 0.012 * power, at: 0.1 + Math.random() * 0.4 });
+        if (power > 0.75) this.arp([523, 659, 784, 1047], 0.1, { vol: 0.08 });
+      },
+      hoopLights: () => this.arp([1568, 2093, 1568, 2093], 0.07, { vol: 0.05, type: "square", d: 0.06 }),
+      hoopDunk: () => {
+        this.tone(80, 0.7, { to: 32, vol: 0.55 });
+        this.noise(0.5, { f: 260, filter: "lowpass", vol: 0.4 });
+      },
+      hoopGlass: () => {
+        this.noise(0.6, { f: 4500, filter: "highpass", vol: 0.22 });
+        for (let i = 0; i < 14; i++) this.tone(2200 + Math.random() * 4200, 0.08 + Math.random() * 0.2, { vol: 0.05, at: Math.random() * 0.45 });
+      },
+      hoopDraw: () => {
+        this.tone(140, 0.5, { to: 230, type: "triangle", vol: 0.06 });
+        this.noise(0.4, { f: 700, q: 2, vol: 0.03 });
+      },
+      hoopArc: (power = 1) => {
+        this.tone(380 + power * 200, 0.22, { to: 110, type: "sawtooth", vol: 0.08 });
+        this.tone(190, 0.3, { to: 150, vol: 0.12 });
+        this.noise(0.25, { f: 2400, q: 0.8, vol: 0.08 + power * 0.06 });
+      },
+      hoopBubbles: () => {
+        for (let i = 0; i < 6; i++) this.tone(600 + Math.random() * 900, 0.08, { to: 1400 + Math.random() * 800, vol: 0.05, at: i * 0.06 });
+      },
+      hoopThunder: () => {
+        this.noise(0.12, { f: 3500, filter: "highpass", vol: 0.18 });
+        this.noise(1.1, { f: 180, filter: "lowpass", vol: 0.35, at: 0.05 });
+        this.tone(55, 0.9, { to: 30, vol: 0.25, at: 0.05 });
+      },
+      hoopStreak: (count = 2) => {
+        const level = Math.min(count, 6);
+        const notes = [392, 494, 587, 698, 784, 988, 1175].slice(0, level + 1);
+        this.arp(notes, 0.075, { vol: 0.09, type: "square", d: 0.12 });
+        if (level >= 6) {
+          [130, 196, 262].forEach((f) => this.tone(f, 1.4, { type: "sawtooth", vol: 0.07, at: 0.5 }));
+          this.tone(70, 1, { to: 35, vol: 0.4, at: 0.5 });
+        }
+      },
+      hoopFire: () => this.noise(0.8, { f: 420, q: 0.5, vol: 0.22 }),
+      hoopLaunch: () => this.noise(0.45, { f: 1600, q: 1.2, vol: 0.06 }),
+      hoopFirework: () => {
+        this.tone(110, 0.35, { to: 45, vol: 0.3 });
+        this.noise(0.3, { f: 600, filter: "lowpass", vol: 0.25 });
+        for (let i = 0; i < 8; i++) this.noise(0.03, { f: 5200, filter: "highpass", vol: 0.07, at: 0.15 + Math.random() * 0.5 });
+      },
     };
   }
 

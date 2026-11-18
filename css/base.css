@@ -80,7 +80,7 @@
   display: flex;
   gap: 8px;
 }
-#themeBtn {
+.theme-btn {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -93,11 +93,11 @@
   font-weight: 600;
   font-size: 14px;
 }
-#themeBtn:hover,
-#soundBtn:hover {
+.theme-btn:hover,
+.sound-btn:hover {
   border-color: var(--accent);
 }
-#soundBtn {
+.sound-btn {
   width: 38px;
   height: 38px;
   padding: 0;
@@ -108,7 +108,7 @@
   display: grid;
   place-items: center;
 }
-#soundBtn svg {
+.sound-btn svg {
   width: 20px;
   height: 20px;
   fill: none;
@@ -117,14 +117,14 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-#soundBtn .x,
-#soundBtn.off .w {
+.sound-btn .x,
+.sound-btn.off .w {
   display: none;
 }
-#soundBtn.off .x {
+.sound-btn.off .x {
   display: inline;
 }
-#soundBtn.off {
+.sound-btn.off {
   color: var(--muted);
 }
 body,
@@ -133,7 +133,7 @@ body,
 .back,
 .btn,
 .menu-bar,
-#themeBtn {
+.theme-btn {
   transition:
     background-color 0.25s,
     color 0.25s,
@@ -149,6 +149,15 @@ body {
 }
 :root {
   --corner-w: 230px;
+  --cur-hand: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='40' viewBox='0 0 36 48'%3E%3Cg transform='rotate(-12 18 24)' stroke-linejoin='round'%3E%3Cpath id='h' d='M11 10a3 3 0 0 1 6 0V17.5a2.6 2.6 0 0 1 5.2.3a2.4 2.4 0 0 1 4.6.7a2.2 2.2 0 0 1 4.2 1V28c0 5-2.5 8-5 9.5V42H14v-4c-2-1.5-4-4-5.5-7L4.6 24.6a2.3 2.3 0 0 1 3.8-2.5L11 25.5Z'/%3E%3Cuse href='%23h' fill='%23fff' stroke='%23111' stroke-width='2.2'/%3E%3Cpath d='M22.2 18.5v3.5M26.8 19.2v3.3M17 17.5v4' stroke='%23111' stroke-width='1.2' stroke-linecap='round'/%3E%3Ctext x='21.5' y='35' font-family='Arial' font-weight='900' font-size='9.5' text-anchor='middle' fill='%231e88e5'%3E1%3C/text%3E%3C/g%3E%3C/svg%3E") 9 6, auto;
+  --cur-grab: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='40' viewBox='0 0 36 48'%3E%3Cg transform='rotate(-12 18 24)' stroke-linejoin='round'%3E%3Cpath id='h' d='M11 25.5V17.7a2.6 2.6 0 0 1 5.6-.2a2.6 2.6 0 0 1 5.4 0a2.4 2.4 0 0 1 4.8.8a2.2 2.2 0 0 1 4.2 1.2V28c0 5-2.5 8-5 9.5V42H14v-4c-2-1.5-4-4-5.5-7L4.6 24.6a2.3 2.3 0 0 1 3.8-2.5L11 25.5Z'/%3E%3Cuse href='%23h' fill='%23fff' stroke='%23111' stroke-width='2.2'/%3E%3Cpath d='M16.6 18v3.5M22 18v3.5M26.8 18.8v3.2' stroke='%23111' stroke-width='1.2' stroke-linecap='round'/%3E%3Ctext x='21.5' y='35' font-family='Arial' font-weight='900' font-size='9.5' text-anchor='middle' fill='%231e88e5'%3E1%3C/text%3E%3C/g%3E%3C/svg%3E") 12 16, grabbing;
+}
+html,
+button,
+a,
+label,
+select {
+  cursor: var(--cur-hand);
 }
 body {
   background: var(--bg);
@@ -168,7 +177,6 @@ body {
 button {
   font: inherit;
   color: inherit;
-  cursor: pointer;
 }
 .screen {
   position: fixed;
@@ -218,7 +226,7 @@ button {
     right: calc(12px + env(safe-area-inset-right));
     gap: 6px;
   }
-  #themeBtn {
+  .theme-btn {
     width: 38px;
     padding: 0;
     justify-content: center;
@@ -232,11 +240,11 @@ button {
   .corner {
     top: calc(8px + env(safe-area-inset-top));
   }
-  #themeBtn,
-  #soundBtn {
+  .theme-btn,
+  .sound-btn {
     height: 32px;
   }
-  #soundBtn {
+  .sound-btn {
     width: 32px;
   }
 }

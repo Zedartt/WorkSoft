@@ -17,10 +17,10 @@
   min-height: 0;
   position: relative;
   overflow: hidden;
-  cursor: grab;
+  cursor: var(--cur-hand);
 }
 .ck-area.panning .ck-view {
-  cursor: grabbing;
+  cursor: var(--cur-grab);
 }
 .ic {
   width: 40px;
@@ -294,7 +294,7 @@
   transition:
     transform 0.6s cubic-bezier(0.3, 0.7, 0.2, 1),
     box-shadow 0.6s;
-  cursor: pointer;
+  cursor: var(--cur-hand);
   z-index: 2;
   backface-visibility: visible;
   color: #7d8a99;
@@ -376,7 +376,7 @@
     0 12px 24px var(--shadow),
     inset 0 0 20px rgba(120, 70, 20, 0.25);
   z-index: 2;
-  cursor: default;
+  cursor: var(--cur-hand);
 }
 .ck-tabs {
   flex: none;
@@ -428,7 +428,7 @@
   justify-content: flex-end;
   gap: 1px;
   padding: 2px 2px 3px;
-  cursor: grab;
+  cursor: var(--cur-hand);
   min-height: 0;
 }
 .fr-in .ck-item {
@@ -458,7 +458,7 @@
   transform: translateY(-4px) scale(1.12);
 }
 .ck-item.filler {
-  cursor: default;
+  cursor: var(--cur-hand);
 }
 .held {
   opacity: 0.3;
@@ -472,7 +472,7 @@
   align-items: center;
   justify-content: flex-end;
   gap: 5px;
-  cursor: default;
+  cursor: var(--cur-hand);
   z-index: 2;
 }
 .ck-lab {
@@ -511,7 +511,7 @@
   filter: none;
 }
 .ck-cont.has {
-  cursor: grab;
+  cursor: var(--cur-hand);
 }
 .ck-cont .ck-dish {
   left: 50%;
@@ -634,7 +634,7 @@
   bottom: 34px;
   width: 30px;
   height: 104px;
-  cursor: grab;
+  cursor: var(--cur-hand);
   filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.3));
 }
 .tl {
@@ -708,7 +708,7 @@
   flex-direction: column;
   box-shadow: 0 12px 24px var(--shadow);
   z-index: 2;
-  cursor: default;
+  cursor: var(--cur-hand);
 }
 .ov-top {
   flex: none;
@@ -1475,7 +1475,7 @@ span.g-txt:only-of-type {
   filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.3));
 }
 .ck-tray.has {
-  cursor: grab;
+  cursor: var(--cur-hand);
 }
 .ck-casserole.cooking .ck-surf,
 .ck-friteuse.cooking .ck-surf {
@@ -1503,7 +1503,7 @@ span.g-txt:only-of-type {
   flex-direction: column;
   box-shadow: 0 12px 24px var(--shadow);
   z-index: 2;
-  cursor: default;
+  cursor: var(--cur-hand);
 }
 .mc-top {
   flex: none;
@@ -1584,7 +1584,7 @@ span.g-txt:only-of-type {
   height: 70px;
 }
 .mc-glass.full {
-  cursor: grab;
+  cursor: var(--cur-hand);
 }
 .mc-stack {
   flex: none;
@@ -1592,7 +1592,7 @@ span.g-txt:only-of-type {
   justify-content: center;
   align-items: flex-end;
   padding: 6px 0 4px;
-  cursor: grab;
+  cursor: var(--cur-hand);
   position: relative;
 }
 .mc-stack .ic {

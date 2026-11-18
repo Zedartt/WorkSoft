@@ -1,0 +1,122 @@
+:root {
+  --hl-wall-a: #dfe9f4;
+  --hl-wall-b: #b9c9dc;
+  --hl-band: #23406b;
+  --hl-band-light: #6fa8e8;
+  --hl-lamp: rgba(255, 252, 235, 0.75);
+  --hl-floor-a: #e2a866;
+  --hl-floor-b: #b97436;
+  --hl-paint: rgba(47, 155, 224, 0.22);
+}
+:root[data-theme="dark"] {
+  --hl-wall-a: #070b14;
+  --hl-wall-b: #18233a;
+  --hl-band: #0d1a33;
+  --hl-band-light: #2f6fb8;
+  --hl-lamp: rgba(255, 244, 210, 0.45);
+  --hl-floor-a: #9a6634;
+  --hl-floor-b: #4a2c14;
+  --hl-paint: rgba(76, 176, 240, 0.2);
+}
+#hooplab {
+  background: var(--bg);
+}
+.hl-area {
+  flex: 1;
+  min-height: 260px;
+  position: relative;
+  overflow: hidden;
+}
+.hl-area::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 60px rgba(255, 90, 20, 0.55);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.hl-area.hl-fire::after {
+  opacity: 1;
+}
+#hlCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: var(--cur-hand);
+}
+.hl-sides {
+  display: flex;
+  flex: none;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--panel);
+}
+.hl-side {
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.hl-side + .hl-side {
+  border-left: 2px solid var(--line);
+}
+.hl-side:hover {
+  color: var(--ink);
+}
+.hl-side.on {
+  background: var(--accent);
+  color: #fff;
+}
+.hl-timer {
+  width: 54px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+.hl-timer i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left;
+  transform: scaleX(0);
+}
+.hl-timer i.run {
+  animation: hl-drain linear forwards;
+}
+#hooplab.hl-paused .hl-timer i {
+  animation-play-state: paused;
+}
+@keyframes hl-drain {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+@media (max-width: 1300px) {
+  .hl-help {
+    display: none;
+  }
+}
+@media (max-width: 720px) {
+  .hl-long {
+    display: none;
+  }
+  .hl-side {
+    padding: 0 9px;
+    font-size: 12px;
+  }
+  #hooplab .game-bar .stat:last-of-type {
+    display: none;
+  }
+}

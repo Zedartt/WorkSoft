@@ -13,27 +13,58 @@
     <link rel="stylesheet" href="css/cooktou.css" />
     <link rel="stylesheet" href="css/wordhunt.css" />
     <link rel="stylesheet" href="css/whereword.css" />
+    <link rel="stylesheet" href="css/hooplab.css" />
   </head>
   <body>
     <div class="corner">
-      <button id="soundBtn" aria-label="Son">
+      <button id="soundBtn" class="sound-btn" aria-label="Son">
         <svg viewBox="0 0 24 24">
           <path d="M4 9v6h4l5 4V5L8 9z" />
           <path class="w" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
           <path class="x" d="M16 9l6 6M22 9l-6 6" />
         </svg>
       </button>
-      <button id="themeBtn" title="Changer de thème"><span class="theme-icon"></span><span class="theme-label"></span></button>
+      <button id="themeBtn" class="theme-btn" title="Changer de thème"><span class="theme-icon"></span><span class="theme-label"></span></button>
     </div>
 
     <section id="menu" class="screen active">
-      <div class="menu-top">
-        <div class="logo">Work<span>soft</span></div>
+      <div class="channels">
+        <div class="pages" id="pages"><div class="pages-track" id="grid"></div></div>
+        <button class="pager prev" id="pagePrev" aria-label="Page précédente"><svg viewBox="0 0 24 24"><path d="M15 4l-8 8 8 8" /></svg></button>
+        <button class="pager next" id="pageNext" aria-label="Page suivante"><svg viewBox="0 0 24 24"><path d="M9 4l8 8-8 8" /></svg></button>
       </div>
-      <div class="grid" id="grid"></div>
+      <div class="page-dots" id="pageDots"></div>
       <div class="menu-bar">
-        <div id="clock">--:--</div>
-        <div id="date"></div>
+        <div class="menu-bubble logo">Work<span>soft</span></div>
+        <div class="menu-time">
+          <div id="clock">--:--</div>
+          <div id="date"></div>
+        </div>
+        <div class="menu-gear">
+          <button class="menu-bubble" id="settingsBtn" aria-label="Paramètres" aria-expanded="false">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2.5l1.6 2.3 2.7-.8.6 2.8 2.8.6-.8 2.7 2.3 1.6-2.3 1.6.8 2.7-2.8.6-.6 2.8-2.7-.8L12 21.5l-1.6-2.3-2.7.8-.6-2.8-2.8-.6.8-2.7L2.8 12l2.3-1.6-.8-2.7 2.8-.6.6-2.8 2.7.8z" />
+              <circle cx="12" cy="12" r="3.4" />
+            </svg>
+          </button>
+          <div class="menu-settings" id="settings" hidden>
+            <h3>Paramètres</h3>
+            <div class="menu-setting">
+              <span>Son</span>
+              <button id="menuSoundBtn" class="sound-btn" aria-label="Son">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 9v6h4l5 4V5L8 9z" />
+                  <path class="w" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
+                  <path class="x" d="M16 9l6 6M22 9l-6 6" />
+                </svg>
+              </button>
+            </div>
+            <div class="menu-setting">
+              <span>Thème</span>
+              <button id="menuThemeBtn" class="theme-btn"><span class="theme-icon"></span><span class="theme-label"></span></button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -307,12 +338,35 @@
       </div>
     </section>
 
+    <section id="hooplab" class="screen">
+      <div class="game-top">
+        <button class="back">← Menu</button>
+        <h1 class="game-title">Hooplab</h1>
+        <div></div>
+      </div>
+      <div class="game-bar">
+        <div class="hl-sides" role="group" aria-label="Côté du panier">
+          <button class="hl-side" data-hl-side="left">◀ <span class="hl-long">Panier à </span>gauche</button>
+          <button class="hl-side" data-hl-side="right"><span class="hl-long">Panier à </span>droite ▶</button>
+        </div>
+        <button class="icon-btn" id="hlReset" title="Replacer le ballon" aria-label="Replacer le ballon">
+          <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v5h5" /></svg>
+        </button>
+        <div class="stat">Points <b id="hlScore">0</b></div>
+        <div class="stat">Combo <b id="hlCombo">0</b><span class="hl-timer" title="Temps pour marquer le panier suivant"><i id="hlTimer"></i></span></div>
+        <div class="stat">Record <b id="hlBest">0</b></div>
+        <span class="hl-help">Lance le ballon · en l'air : clique dessus pour le relever, ou tire en arc ailleurs (une fois)</span>
+      </div>
+      <div class="hl-area" id="hlArea"><canvas id="hlCanvas"></canvas></div>
+    </section>
+
     <script src="js/vendor/matter.min.js"></script>
     <script src="js/core/Dom.js"></script>
     <script src="js/core/Viewport.js"></script>
     <script src="js/core/SoundEngine.js"></script>
     <script src="js/core/Game.js"></script>
     <script src="js/core/ThemeSwitch.js"></script>
+    <script src="js/core/MenuSettings.js"></script>
     <script src="js/core/Launcher.js"></script>
     <script src="js/games/wikopy/TextRules.js"></script>
     <script src="js/games/wikopy/WikiSource.js"></script>
@@ -339,6 +393,13 @@
     <script src="js/games/whereword/ArticleSource.js"></script>
     <script src="js/games/whereword/HuntText.js"></script>
     <script src="js/games/whereword/WhereWordGame.js"></script>
+    <script src="js/games/hooplab/HoopCourt.js"></script>
+    <script src="js/games/hooplab/HoopBall.js"></script>
+    <script src="js/games/hooplab/HoopNet.js"></script>
+    <script src="js/games/hooplab/HoopFx.js"></script>
+    <script src="js/games/hooplab/HoopRules.js"></script>
+    <script src="js/games/hooplab/HoopAim.js"></script>
+    <script src="js/games/hooplab/HooplabGame.js"></script>
     <script src="js/core/App.js"></script>
   </body>
 </html>

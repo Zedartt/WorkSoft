@@ -13,7 +13,7 @@
   height: 100%;
   display: block;
   touch-action: none;
-  cursor: grab;
+  cursor: var(--cur-hand);
 }
 .plk-grav {
   flex: none;
