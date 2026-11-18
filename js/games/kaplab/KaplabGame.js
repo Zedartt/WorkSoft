@@ -11,6 +11,23 @@ class KaplabGame extends Game {
       name: "Kaplab",
       tag: "Des planchettes en bois, de la gravité, et tu construis ce que tu veux",
       art: '<svg viewBox="0 0 120 70" style="height:1em"><g fill="#e2b87c" stroke="#a9793f" stroke-width="2"><rect x="10" y="56" width="100" height="10"/><rect x="18" y="14" width="10" height="42"/><rect x="92" y="14" width="10" height="42"/><rect x="8" y="4" width="104" height="10"/></g></svg>',
+      help: {
+        goal: "Un bac à sable de planchettes en bois soumises à la gravité : construis ce que tu veux.",
+        controls: [
+          ["Glisser", "Attrape et déplace une planchette"],
+          ["Molette ou ← →", "Tourne la planchette tenue"],
+          ["Boutons ⟲ ⟳", "Tournent la planchette tant qu'ils sont appuyés"],
+          ["G ou « Gravité en main »", "La planchette tenue pend au lieu de rester droite"],
+          ["+", "Ajoute une planchette"],
+          ["↻", "Recommence la démo"],
+          ["Poubelle", "Enlève toutes les planchettes"],
+        ],
+        rules: [
+          "Au départ, une petite construction se fait casser par une planchette qui tombe.",
+          "Les planchettes s'empilent, glissent et tombent comme du vrai bois.",
+          "Il n'y a ni score ni fin : c'est un jeu de construction libre.",
+        ],
+      },
     });
     this.canvas = $("plkCanvas");
     this.ctx = this.canvas.getContext("2d");

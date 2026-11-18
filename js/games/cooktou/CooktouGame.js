@@ -14,6 +14,29 @@ class CooktouGame extends Game {
       name: "Cooktou",
       tag: "Prends les commandes et cuisine de vraies recettes du monde entier, étape par étape",
       art: '<svg viewBox="0 0 90 60" style="height:1em"><circle cx="32" cy="30" r="24" fill="#4a515b" stroke="#14171c" stroke-width="4"/><rect x="54" y="25" width="34" height="10" rx="5" fill="#3b2a20"/><ellipse cx="32" cy="30" rx="15" ry="13" fill="#fff"/><circle cx="34" cy="31" r="6" fill="#ffc83d"/></svg>',
+      help: {
+        goal: "Tu tiens une cuisine : prépare les menus des clients en suivant de vraies recettes du monde, étape par étape.",
+        controls: [
+          ["Clic sur un client", "Prend sa commande"],
+          ["Glisser un ingrédient", "Le pose sur un poste : planche, saladier, mixeur, poêle, casserole, friteuse, four, assiette"],
+          ["Gestes", "Verser : tenir au-dessus · secouer : haut-bas · œuf : taper deux fois · râper : gauche-droite · agrume : faire des ronds"],
+          ["Outils", "Couteau, économe et rouleau sur la planche · cuillère dans le saladier · spatule dans la poêle"],
+          ["Clic sur la planche", "Façonner : pétrir, rouler, former des boulettes"],
+          ["Boutons des feux", "Lancent la cuisson"],
+          ["Machine à boissons", "Pose un verre sous le bec, clique la bonne boisson, attends qu'il soit plein, pose-le sur le plateau"],
+          ["Glisser le plateau", "Sur le client pour le servir quand tout est prêt"],
+          ["Molette, ← → ou ◀ ▶", "Fait défiler la cuisine"],
+          ["Frigo et placards", "Clique la porte ou les onglets pour les ouvrir"],
+          ["Bouton ticket", "Historique des plats de la session et liens vers les vraies recettes"],
+        ],
+        rules: [
+          "Une seule commande à la fois ; le bandeau du bas indique l'étape en cours.",
+          "Un mauvais geste fait perdre de la patience au client.",
+          "Chaque assiette finie se pose sur le plateau, avec les boissons.",
+          "Plus tu sers vite, plus tu gagnes de points.",
+          "3 clients perdus et c'est fini ; les menus grandissent au fil de la partie.",
+        ],
+      },
     });
     this.source = new RecipeSource();
     this.recent = [];

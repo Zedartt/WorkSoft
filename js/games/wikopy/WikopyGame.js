@@ -5,6 +5,21 @@ class WikopyGame extends Game {
       name: "Wikopy-past",
       tag: "Recopie Wikipédia le plus vite possible",
       art: "W<i></i>",
+      help: {
+        goal: "Recopie le début d'un article Wikipédia tiré au hasard, le plus vite et le plus juste possible.",
+        controls: [
+          ["Clavier", "Tape le texte affiché"],
+          ["Espace", "Valide le mot et passe au suivant (seulement s'il est exact)"],
+          ["Échap ou ↻", "Change de page"],
+          ["Entrée", "Nouvelle page une fois le texte fini"],
+        ],
+        rules: [
+          "Le chrono démarre à la première lettre tapée.",
+          "Tu ne passes au mot suivant que quand le mot en cours est exact.",
+          "Majuscules et accents sont facultatifs : « e » vaut aussi « é » ou « É ».",
+          "À la fin : mots par minute, précision, erreurs et temps.",
+        ],
+      },
     });
     this.input = $("hidden");
     this.viewEl = $("text");
@@ -20,6 +35,8 @@ class WikopyGame extends Game {
     this.lastLen = 0;
     this.composing = false;
     this.active = false;
+    this.paused = false;
+    this.pausedAt = 0;
     this.loadToken = 0;
     this.input.addEventListener("compositionstart", () => {
       this.composing = true;
@@ -48,12 +65,12 @@ class WikopyGame extends Game {
       if (this.active && document.activeElement === this.input) this.render();
     });
     $("stage").addEventListener("mousedown", (e) => {
-      if (!this.active || this.ended || e.target.closest("#results")) return;
+      if (!this.active || this.paused || this.ended || e.target.closest("#results")) return;
       e.preventDefault();
       this.input.focus();
     });
     document.addEventListener("keydown", (e) => {
-      if (!this.active) return;
+      if (!this.active || this.paused) return;
       if (e.key === "Escape") {
         e.preventDefault();
         this.load();
@@ -282,8 +299,32 @@ class WikopyGame extends Game {
     this.load();
   }
 
+  pause() {
+    if (!this.active) return false;
+    this.paused = true;
+    if (this.started && !this.ended) {
+      this.pausedAt = performance.now();
+      clearInterval(this.timer);
+    }
+    return true;
+  }
+
+  resume() {
+    this.paused = false;
+    if (this.pausedAt) {
+      this.started += performance.now() - this.pausedAt;
+      this.pausedAt = 0;
+      this.timer = setInterval(() => this.updateLive(), 100);
+    }
+    if (this.page && !this.ended) this.input.focus();
+  }
+
   close() {
     this.active = false;
+    this.paused = false;
+    this.pausedAt = 0;
+    this.paused = false;
+    this.pausedAt = 0;
     this.loadToken++;
     clearInterval(this.timer);
     this.input.blur();

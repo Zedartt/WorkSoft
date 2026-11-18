@@ -30,6 +30,99 @@
   color: var(--ink);
   flex: none;
 }
+.top-left {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.info-btn {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  background: var(--panel);
+  color: var(--accent);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1;
+}
+.info-btn:hover,
+.info-btn:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+.help-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: none;
+  padding: 20px;
+  background: var(--veil);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.help-veil.show {
+  display: flex;
+  animation: fade 0.25s ease;
+}
+.card.help-card {
+  margin: auto;
+  text-align: left;
+}
+.help-card h2 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+.help-goal {
+  margin: 0 0 14px;
+  font-size: 17px;
+  line-height: 1.45;
+  text-align: center;
+}
+.help-card h3 {
+  margin: 16px 0 8px;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.help-keys {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.6fr);
+  gap: 6px 14px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.help-keys dt {
+  font-weight: 700;
+}
+.help-keys dd {
+  margin: 0;
+  color: var(--muted);
+}
+.help-rules {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.help-rules li + li {
+  margin-top: 4px;
+}
+.help-card .actions {
+  justify-content: center;
+  margin-top: 20px;
+}
+.screen.game-paused * {
+  animation-play-state: paused !important;
+}
 .back {
   justify-self: start;
   border: 2px solid var(--line);
@@ -196,6 +289,22 @@ kbd {
   .back {
     padding: 0 12px;
   }
+  .top-left {
+    gap: 6px;
+  }
+  .help-veil {
+    padding: 8px;
+  }
+  .card.help-card {
+    padding: 18px;
+  }
+  .help-keys {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .help-keys dd {
+    margin-bottom: 6px;
+  }
   .game-bar {
     justify-content: flex-start;
     overflow-x: auto;
@@ -217,6 +326,11 @@ kbd {
   }
   .back {
     height: 32px;
+  }
+  .info-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 17px;
   }
   .game-bar {
     height: 40px;

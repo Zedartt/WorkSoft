@@ -80,6 +80,12 @@
       </div>
     </div>
     <div id="flash"></div>
+    <div class="help-veil" id="help" role="dialog" aria-modal="true" aria-label="Comment jouer">
+      <div class="card help-card">
+        <div id="helpBody"></div>
+        <div class="actions"><button class="btn primary" id="helpClose">J'ai compris</button></div>
+      </div>
+    </div>
 
     <section id="wikopy" class="screen">
       <div class="game-top">
@@ -355,7 +361,7 @@
         <div class="stat">Points <b id="hlScore">0</b></div>
         <div class="stat">Combo <b id="hlCombo">0</b><span class="hl-timer" title="Temps pour marquer le panier suivant"><i id="hlTimer"></i></span></div>
         <div class="stat">Record <b id="hlBest">0</b></div>
-        <span class="hl-help">Lance le ballon · en l'air : clique dessus pour le relever, ou tire en arc ailleurs (une fois)</span>
+        <span class="hl-help">Glisse le ballon pour le lancer · clic droit n'importe où : rebond (1 fois en l'air) · en l'air, tire en arc ailleurs (1 fois)</span>
       </div>
       <div class="hl-area" id="hlArea"><canvas id="hlCanvas"></canvas></div>
     </section>
@@ -367,6 +373,7 @@
     <script src="js/core/Game.js"></script>
     <script src="js/core/ThemeSwitch.js"></script>
     <script src="js/core/MenuSettings.js"></script>
+    <script src="js/core/HelpPanel.js"></script>
     <script src="js/core/Launcher.js"></script>
     <script src="js/games/wikopy/TextRules.js"></script>
     <script src="js/games/wikopy/WikiSource.js"></script>

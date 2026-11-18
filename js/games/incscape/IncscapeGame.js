@@ -6,6 +6,20 @@ class IncscapeGame extends Game {
       name: "Incscape",
       tag: "Entoure les bonhommes d'encre avant qu'ils ne s'enfuient de la feuille",
       art: '<svg viewBox="0 0 80 80" style="height:1em" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><circle cx="40" cy="40" r="34" stroke-dasharray="7 9" stroke="#2f9be0"/><circle cx="40" cy="26" r="6" fill="currentColor" stroke="none"/><path d="M40 32v16M40 48l-8 12M40 48l8 12M40 37l-10-7M40 37l10-7"/></svg>',
+      help: {
+        goal: "Des bonhommes se promènent sur la feuille : entoure-les d'un trait d'encre pour les capturer avant qu'ils ne s'échappent.",
+        controls: [
+          ["Glisser", "Trace un trait d'encre"],
+          ["Relâcher", "Ferme la forme : chaque bonhomme à l'intérieur est capturé"],
+          ["Entrée", "Rejoue à la fin"],
+        ],
+        rules: [
+          "Le trait se referme tout seul si tu le finis près de son début ; une boucle faite en recoupant ton trait marche aussi.",
+          "Chaque trait a une réserve d'encre limitée.",
+          "Un bonhomme qui sort de la feuille s'échappe : 5 échappés et c'est fini.",
+          "Le jeu devient de plus en plus difficile.",
+        ],
+      },
     });
     this.canvas = $("inkCanvas");
     this.ctx = this.canvas.getContext("2d");

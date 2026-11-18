@@ -13,6 +13,21 @@ class WhereWordGame extends Game {
       name: "WhereWord",
       tag: "Trouve le mot caché dans une page Wikipédia avant la fin de la minute",
       art: '<svg viewBox="0 0 80 60" style="height:1em" fill="none" stroke-linecap="round"><g stroke="currentColor" stroke-width="4" opacity=".35"><path d="M6 12h46M6 24h30M6 36h42M6 48h24"/></g><rect x="38" y="17" width="26" height="14" rx="4" fill="#ffc83d" opacity=".9"/><circle cx="51" cy="24" r="13" stroke="#2f9be0" stroke-width="5"/><path d="M61 34l13 13" stroke="#2f9be0" stroke-width="7"/></svg>',
+      help: {
+        goal: "Trouve le mot demandé dans un vrai article Wikipédia, le plus vite possible.",
+        controls: [
+          ["Clic", "Sur le mot demandé (n'importe laquelle de ses apparitions)"],
+          ["Molette", "Fait défiler l'article"],
+          ["Entrée", "Rejoue à la fin"],
+        ],
+        rules: [
+          "60 secondes par page ; trouver le mot fait passer à la page suivante.",
+          "100 points dans les 5 premières secondes, puis de moins en moins jusqu'à 10.",
+          "Le nombre d'apparitions du mot est donné comme indice.",
+          "Un mauvais clic ne coûte rien.",
+          "La recherche du navigateur (Ctrl+F) est bloquée.",
+        ],
+      },
     });
     this.source = new ArticleSource();
     this.page = $("wwPage");

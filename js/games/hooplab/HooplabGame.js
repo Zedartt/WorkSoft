@@ -5,7 +5,9 @@ class HooplabGame extends Game {
   static HOLD_PULL = 22;
   static MAX_SPEED = 260;
   static DRAG_PX = 6;
-  static GRAB_SLACK = 1.8;
+  static KICK_BUTTON = 2;
+  static GRAB_SLACK = 2.5;
+  static GRAB_TRAIL = 4;
   static CEILING = -70;
   static BOUNCE = { floor: 0.72, rim: 0.5, board: 0.62, wall: 0.6 };
   static ROLLING = 1.2;
@@ -22,6 +24,24 @@ class HooplabGame extends Game {
       name: "Hooplab",
       tag: "Lance le ballon où tu veux et marque des paniers spectaculaires",
       art: '<svg viewBox="3 2 60 57" style="height:1em"><rect x="56" y="4" width="5" height="34" rx="1.5" fill="#cfd8e3" stroke="#8c99a8" stroke-width="1.5"/><path d="M36 22h20" stroke="#e8492b" stroke-width="3.5" stroke-linecap="round"/><path d="M37 23l4 12h10l4-12M41 23l5 12 5-12" fill="none" stroke="#9aa6b5" stroke-width="1.4"/><circle cx="18" cy="44" r="13" fill="#f0741f" stroke="#7a2e08" stroke-width="2"/><path d="M5 44h26M18 31v26M9 34q7 10 0 20M27 34q-7 10 0 20" fill="none" stroke="#7a2e08" stroke-width="1.6"/></svg>',
+      help: {
+        goal: "Un terrain de basket en bac à sable : lance le ballon et marque les paniers les plus spectaculaires.",
+        controls: [
+          ["Glisser le ballon", "L'attrape ; relâche pour le lancer avec l'élan de ton geste"],
+          ["Clic droit n'importe où", "Fait rebondir le ballon vers le haut ; une fois, puis il doit toucher le sol"],
+          ["En l'air : appuyer ailleurs et tirer en arrière", "Tir en arc au ralenti, une fois par lancer ; la petite ligne montre la direction"],
+          ["Traverser le cercle en tenant le ballon", "Dunk"],
+          ["Boutons gauche / droite", "Changent le côté du panier"],
+          ["↻", "Replace le ballon"],
+        ],
+        rules: [
+          "Swish 3, dunk 3, planche 2, cercle 2, après un rebond au sol 1.",
+          "Bonus selon l'endroit du lancer : mi-distance +1, loin +3, très loin +6 (lignes au sol).",
+          "Tir pur (sans tir en arc) +2 ; chaque rebond au clic droit +2 ; lancer + rebond + tir en arc = combo total +3.",
+          "Marque le panier suivant en moins de 20 s pour faire monter le combo : Double, Triple… jusqu'à MONSTRUEUX, points multipliés jusqu'à ×4.",
+          "Le record est ton meilleur combo.",
+        ],
+      },
     });
     this.canvas = $("hlCanvas");
     this.ctx = this.canvas.getContext("2d");
@@ -33,6 +53,7 @@ class HooplabGame extends Game {
     this.aim = new HoopAim();
     this.side = "right";
     this.pointer = null;
+    this.kickReady = true;
     this.timeScale = 1;
     this.pathClock = 0;
     this.held = false;
@@ -54,6 +75,9 @@ class HooplabGame extends Game {
     this.canvas.addEventListener("pointerup", (event) => this.up(event));
     this.canvas.addEventListener("pointercancel", () => this.drop());
     this.canvas.addEventListener("contextmenu", (event) => event.preventDefault());
+    this.canvas.addEventListener("mousedown", (event) => {
+      if (event.button === HooplabGame.KICK_BUTTON) this.kick();
+    });
     document.querySelectorAll("[data-hl-side]").forEach((button) => button.addEventListener("click", () => this.setSide(button.dataset.hlSide)));
     $("hlReset").addEventListener("click", () => this.resetBall());
     window.addEventListener("resize", () => {
@@ -78,9 +102,16 @@ class HooplabGame extends Game {
     return { x: event.offsetX / this.scale, y: event.offsetY / this.scale, px: event.offsetX, py: event.offsetY };
   }
 
+  nearBall(at) {
+    const reach = HoopBall.RADIUS * HooplabGame.GRAB_SLACK;
+    const spots = [this.ball, ...this.ball.trail.slice(0, HooplabGame.GRAB_TRAIL)];
+    return spots.some((spot) => Math.hypot(at.x - spot.x, at.y - spot.y) <= reach);
+  }
+
   down(event) {
+    if (event.button === HooplabGame.KICK_BUTTON) return;
     const at = this.world(event);
-    const onBall = Math.hypot(at.x - this.ball.x, at.y - this.ball.y) <= HoopBall.RADIUS * HooplabGame.GRAB_SLACK;
+    const onBall = this.nearBall(at);
     if (!onBall && !this.canArc()) return;
     this.canvas.setPointerCapture(event.pointerId);
     if (onBall) {
@@ -116,7 +147,7 @@ class HooplabGame extends Game {
     if (this.held) {
       this.flight = this.newFlight(this.ball.x, true);
       Sfx.play("whoosh");
-    } else this.kick();
+    }
     this.drop();
   }
 
@@ -139,6 +170,8 @@ class HooplabGame extends Game {
   }
 
   kick() {
+    if (!this.kickReady || this.held) return;
+    this.kickReady = false;
     const ball = this.ball;
     ball.vy = Math.min(ball.vy, 0) - HooplabGame.IMPULSE;
     if (this.flight.scored || !this.airborne()) this.flight = this.newFlight(ball.x, false, 1);
@@ -228,6 +261,7 @@ class HooplabGame extends Game {
     this.sound("hoopBoard", ball.hitBox(court.pole, bounce.board), 6);
     if (ball.y + HoopBall.RADIUS > HoopCourt.FLOOR_Y) {
       ball.y = HoopCourt.FLOOR_Y - HoopBall.RADIUS;
+      this.kickReady = true;
       const impact = ball.reflect(0, -1, bounce.floor);
       if (Math.abs(ball.vy) < 6) ball.vy = 0;
       ball.vx *= 1 - HooplabGame.ROLLING * h;

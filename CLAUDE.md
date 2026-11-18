@@ -34,7 +34,8 @@ js/
     Dom.js                     $(id) et Store (lecture/écriture localStorage protégée)
     Viewport.js                cale les écrans sur la zone réellement visible (clavier iPhone) via --app-height et --app-top
     SoundEngine.js             sons synthétisés (Web Audio) ; instance globale Sfx
-    Game.js                    classe de base des jeux : id, name, tag, art, open(), close()
+    Game.js                    classe de base des jeux : id, name, tag, art, help, open(), close(), pause(), resume()
+    HelpPanel.js               bouton « i » de chaque jeu et fiche « Comment jouer » (le jeu est en pause tant qu'elle est ouverte)
     ThemeSwitch.js             bascule de thème et bouton de son (chacun peut piloter plusieurs boutons)
     MenuSettings.js            panneau « Paramètres » du rouage de l'accueil (son, thème)
     Launcher.js                accueil façon Wii (pages de 4×4 qui défilent, tuiles qui s'inclinent), zoom de lancement, fondu, retour au menu, horloge
@@ -94,11 +95,15 @@ Mesurer les zones de jeu avec `clientWidth` / `clientHeight`, jamais `getBoundin
 
 ### Ajouter un jeu
 
-1. Créer `js/games/<nom>/<Nom>Game.js` avec `class <Nom>Game extends Game` ; appeler `super({ id, name, tag, art })` (`art` = petit SVG ou HTML affiché sur la tuile et l'écran de lancement).
+1. Créer `js/games/<nom>/<Nom>Game.js` avec `class <Nom>Game extends Game` ; appeler `super({ id, name, tag, art, help })` (`art` = petit SVG ou HTML affiché sur la tuile et l'écran de lancement ; `help` = fiche du bouton « i » : `goal` (but du jeu), `controls` (liste de paires [commande, effet]), `rules` (liste de phrases)). Si la boucle n'utilise pas `this.raf`, `this.last` et `this.frame(time)`, redéfinir `pause()` (renvoie `true` si le jeu tournait) et `resume()` (voir `WikopyGame`, qui décale son chrono).
 2. Ajouter dans `index.html` une `<section id="<id>" class="screen">` contenant `.game-top`, `.game-bar` puis la zone de jeu, et la balise `<script>` avant `App.js`.
 3. Créer `css/<nom>.css` et le lier dans `index.html`.
 4. Ajouter `new <Nom>Game()` dans `App` (il prend la première case libre ; une page de 16 cases s'ajoute toute seule au-delà de 32 jeux).
 5. Jouer les sons via `Sfx.play("nom")` ; en ajouter dans `SoundEngine` (objet `sounds`) si besoin.
+
+## Aide « i »
+
+`HelpPanel` ajoute un bouton « i » juste à droite de « ← Menu » dans l'en-tête de chaque jeu (même place partout) et ouvre la fiche « Comment jouer » écrite dans le champ `help` du jeu. Pendant que la fiche est ouverte : le jeu est en pause (`game.pause()` / `game.resume()`), toutes ses animations CSS sont figées (classe `.game-paused` sur la section), Échap ou Entrée ferment la fiche sans atteindre le jeu (écouteur en capture sur `window`). Quand une commande ou une règle change dans un jeu, mettre sa fiche à jour.
 
 ## Les jeux
 
@@ -171,9 +176,9 @@ Script de contrôle à coller dans la console après avoir lancé Cooktou (doit 
 
 - Bac à sable de basket dessiné dans un canvas. Toutes les mesures sont en unités de terrain : la hauteur du canvas vaut 100 unités (`scale` = pixels par unité), la largeur dépend de l'écran. Physique maison (pas Matter.js) en `SUBSTEPS` sous-pas par image : gravité, rebonds sur le sol, les murs, la planche, le poteau et les deux bords du cercle (`HoopBall.hitPoint`, `hitBox`, `reflect`).
 - Boutons « Panier à gauche / à droite » (`data-hl-side`) : le terrain est recalculé (`HoopCourt.layout`) et le ballon replacé de l'autre côté.
-- Souris : glisser le ballon le tient (il suit le pointeur par un ressort, `HOLD_PULL`, vitesse bornée par `MAX_SPEED`) et le lâcher le lance avec sa vitesse. Un simple clic sur le ballon (moins de `DRAG_PX` de mouvement) lui donne `IMPULSE` vers le haut sans toucher à sa vitesse horizontale ni à sa montée.
+- Souris : on attrape le ballon jusqu'à `GRAB_SLACK` fois son rayon autour de lui, ou de l'une de ses `GRAB_TRAIL` dernières positions (ballon rapide). Glisser le ballon le tient (il suit le pointeur par un ressort, `HOLD_PULL`, vitesse bornée par `MAX_SPEED`) et le lâcher le lance avec sa vitesse. Un clic gauche sur le ballon sans le bouger (moins de `DRAG_PX`) ne fait rien. Le clic droit, n'importe où sur le terrain (`KICK_BUTTON`), fait rebondir le ballon : `IMPULSE` vers le haut sans toucher à sa vitesse horizontale ni à sa montée ; une seule fois, puis il faut que le ballon touche le sol pour pouvoir recommencer (`kickReady`).
 - Tir en arc (`HoopAim`) : seulement après un vrai lancer à la souris, une fois par lancer, ballon en l'air. On appuie ailleurs que sur le ballon et on tire en arrière comme un arc : le temps ralentit (`SLOW_MOTION`) tant que le bouton est tenu, une ligne fine et courte montre la direction ; au relâchement, la vitesse du ballon est remplacée (force selon la longueur tirée, `MAX_PULL`, `POWER`).
-- Panier = le centre du ballon traverse la ligne du cercle vers le bas entre les deux bords. Calcul des points dans `HoopRules.shot()` : type (`SHOTS` : dunk, rebond chanceux, swish, planche, cercle) + bonus de zone (`HoopCourt.ZONES`, mesurée depuis l'endroit du lancer, lignes MI-DISTANCE / LOIN / TRÈS LOIN au sol) + figures : tir pur (lancé sans tir en arc, `PURE_BONUS`), jongle (chaque clic de relance en l'air, `KICK_BONUS`), tir en arc, combo total (lancer + jongle + arc, `TOTAL_BONUS`). Le tout est multiplié selon le combo (`MULTIPLIERS`, ×4 au maximum à partir de 6).
+- Panier = le centre du ballon traverse la ligne du cercle vers le bas entre les deux bords. Calcul des points dans `HoopRules.shot()` : type (`SHOTS` : dunk, rebond chanceux, swish, planche, cercle) + bonus de zone (`HoopCourt.ZONES`, mesurée depuis l'endroit du lancer, lignes MI-DISTANCE / LOIN / TRÈS LOIN au sol) + figures : tir pur (lancé sans tir en arc, `PURE_BONUS`), jongle (chaque rebond au clic droit, `KICK_BONUS`), tir en arc, combo total (lancer + jongle + arc, `TOTAL_BONUS`). Le tout est multiplié selon le combo (`MULTIPLIERS`, ×4 au maximum à partir de 6).
 - Combo : chaque panier marqué moins de `COMBO_TIME` (20 s) après le précédent augmente le combo (barre qui se vide dans la bande, animation CSS `hl-drain`). Un raté ne casse pas le combo, seul le temps écoulé l'arrête. Record = meilleur combo.
 - Effets (`HoopFx`) : texte lumineux, onde de choc, étincelles, projecteurs braqués sur le panier ; swish = rayons dorés et paillettes ; planche = contour de la vitre qui clignote en couleurs ; dunk = vitre qui éclate (`BROKEN_TIME`, la planche ne bloque plus pendant ce temps), flash blanc, secousse. Zones : mi-distance = canons à confettis, loin = feux d'artifice, très loin = grands feux d'artifice, rayons et flash doré. Figures : tir pur = halo blanc, jongle = bulles de lumière, tir en arc = la trajectoire s'allume, combo total = anneaux arc-en-ciel. Combo (`HoopFx.STREAKS`) : DOUBLE PANIER, TRIPLE (flammes, ballon en feu dès 3), QUADRUPLE (éclairs), QUINTUPLE (pluie de météores), MONSTRUEUX à 6 et plus (tout à la fois, feux d'artifice, flash rouge, secousse). Les lumières utilisent le mélange additif (`lighter`) ; les particules sont limitées à `MAX_PARTICLES`.
 - Le filet est une grille de points reliés (Verlet) que le ballon repousse ; il freine le ballon qui le traverse (`NET_DRAG`).
