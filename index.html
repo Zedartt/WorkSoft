@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="css/wordhunt.css" />
     <link rel="stylesheet" href="css/whereword.css" />
     <link rel="stylesheet" href="css/hooplab.css" />
+    <link rel="stylesheet" href="css/horsering.css" />
   </head>
   <body>
     <div class="corner">
@@ -366,6 +367,88 @@
       <div class="hl-area" id="hlArea"><canvas id="hlCanvas"></canvas></div>
     </section>
 
+    <section id="horsering" class="screen">
+      <div class="game-top">
+        <button class="back">← Menu</button>
+        <h1 class="game-title">Horsering</h1>
+        <div></div>
+      </div>
+      <div class="game-bar">
+        <div class="stat hr-who"><b id="hrName">-</b><span class="hr-rare" id="hrRare" hidden>Licorne rare</span></div>
+        <div class="stat">Points <b id="hrPoints">0</b></div>
+        <div class="stat">Chevaux <b id="hrTotal">0</b></div>
+        <button class="icon-btn" id="hrNext" title="Faire venir un autre cheval" aria-label="Faire venir un autre cheval">
+          <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.6-5.9M4 4v5h5" /></svg>
+        </button>
+      </div>
+      <div class="hr-area" id="hrArea">
+        <svg class="hr-ranch" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+          <rect class="hr-sky" width="1200" height="600" />
+          <circle class="hr-sun" cx="980" cy="110" r="60" />
+          <g class="hr-stars"><circle cx="120" cy="60" r="2" /><circle cx="340" cy="120" r="1.5" /><circle cx="560" cy="50" r="2" /><circle cx="760" cy="140" r="1.5" /><circle cx="1100" cy="70" r="2" /><circle cx="860" cy="40" r="1.5" /></g>
+          <path class="hr-hill-far" d="M0 330Q200 250 420 310T860 290T1200 300V600H0Z" />
+          <path class="hr-hill-near" d="M0 380Q300 330 600 370T1200 360V600H0Z" />
+          <g class="hr-barn">
+            <path d="M40 420V250L150 180L260 250V420Z" />
+            <path class="hr-barn-roof" d="M24 258L150 168L276 258L262 266L150 188L38 266Z" />
+            <path class="hr-barn-door" d="M110 420V320H190V420Z" />
+            <path class="hr-barn-trim" d="M110 320L190 420M190 320L110 420M110 320H190V420H110Z" />
+            <path class="hr-barn-trim" d="M128 240H172V280H128Z" />
+          </g>
+          <g class="hr-hay"><rect x="880" y="380" width="120" height="60" rx="10" /><rect x="940" y="330" width="110" height="56" rx="10" /><path class="hr-hay-line" d="M900 395H980M900 420H990M955 345H1035M955 370H1030" /></g>
+          <rect class="hr-ground" y="420" width="1200" height="180" />
+          <g class="hr-fence"><path d="M0 400H1200M0 440H1200" /><path d="M60 380V470M300 380V470M540 380V470M780 380V470M1020 380V470" /></g>
+        </svg>
+        <aside class="hr-rider">
+          <div class="hr-cowgirl" id="hrCowgirl"></div>
+          <p class="hr-bubble" id="hrBubble"><b class="hr-speaker" id="hrSpeaker"></b><span id="hrSay"></span></p>
+        </aside>
+        <div class="hr-pen">
+          <div class="hr-guide" id="hrGuide">
+            <button class="hr-guide-tool" type="button" title="Prendre cet outil" aria-label="Prendre cet outil"></button>
+            <span class="hr-guide-steps"></span>
+            <span class="hr-guide-text"></span>
+          </div>
+          <div class="hr-stage" id="hrStage"></div>
+          <div class="hr-lift" id="hrLift">
+            <div class="hr-lift-card">
+              <h3 id="hrLiftTitle"></h3>
+              <div class="hr-hoof-wrap"><div class="hr-hoof-stage" id="hrHoofStage"></div></div>
+              <button class="btn" id="hrLiftClose">Reposer le pied</button>
+            </div>
+          </div>
+        </div>
+        <aside class="hr-care">
+          <h3>Soins</h3>
+          <ol class="hr-tasks" id="hrTasks"></ol>
+        </aside>
+        <div class="hr-kit">
+          <div class="hr-tabs" id="hrTabs"></div>
+          <div class="hr-tools" id="hrTools"></div>
+        </div>
+        <div class="hr-small" id="hrSmall">
+          <div class="card">
+            <h2>Horsering</h2>
+            <p class="hr-small-text">Il faut plus de place pour soigner les chevaux : tourne ton téléphone à l'horizontale ou dézoome la page.</p>
+            <div class="actions"><button class="btn primary" id="hrSmallMenu">Retour au menu</button></div>
+          </div>
+        </div>
+        <div class="hr-cursor" id="hrCursor"><i class="hr-cursor-shadow"></i><div class="hr-cursor-tool" id="hrCursorTool"></div></div>
+        <div class="overlay" id="hrCard">
+          <div class="card">
+            <h2>Soigné à 100 %</h2>
+            <div class="hr-card-name" id="hrCardName"></div>
+            <div class="big" id="hrCardPoints">+0</div>
+            <p class="big-label">points en <b id="hrCardTime"></b></p>
+            <div class="actions">
+              <button class="btn" id="hrStay">Rester encore un peu</button>
+              <button class="btn primary" id="hrAgain">Cheval suivant</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <script src="js/vendor/matter.min.js"></script>
     <script src="js/core/Dom.js"></script>
     <script src="js/core/Viewport.js"></script>
@@ -407,6 +490,19 @@
     <script src="js/games/hooplab/HoopRules.js"></script>
     <script src="js/games/hooplab/HoopAim.js"></script>
     <script src="js/games/hooplab/HooplabGame.js"></script>
+    <script src="js/games/horsering/art/HorseArt.js"></script>
+    <script src="js/games/horsering/art/HoofArt.js"></script>
+    <script src="js/games/horsering/art/SpotArt.js"></script>
+    <script src="js/games/horsering/art/Cowgirl.js"></script>
+    <script src="js/games/horsering/data/HorseModels.js"></script>
+    <script src="js/games/horsering/data/HorseTools.js"></script>
+    <script src="js/games/horsering/data/CareTasks.js"></script>
+    <script src="js/games/horsering/CareSurface.js"></script>
+    <script src="js/games/horsering/GroomPointer.js"></script>
+    <script src="js/games/horsering/CareBook.js"></script>
+    <script src="js/games/horsering/CareGuide.js"></script>
+    <script src="js/games/horsering/RanchKit.js"></script>
+    <script src="js/games/horsering/HorseringGame.js"></script>
     <script src="js/core/App.js"></script>
   </body>
 </html>

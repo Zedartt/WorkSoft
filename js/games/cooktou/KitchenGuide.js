@@ -76,31 +76,31 @@ class KitchenGuide {
 
   takeMark(id) {
     const def = Catalog.ingredients[id];
-    if (def.at === "frigo" && !$("ckFridge").classList.contains("open")) return [this.view.query(".fr-handle"), "① Ouvre le frigo", 1];
-    if (def.at !== "frigo" && this.view.placard !== def.at) return [this.view.query(`[data-placard="${def.at}"]`), "① Ouvre ce placard", 1];
-    return [this.view.query(`[data-ing="${id}"] .ic`), "① Prends", 1];
+    if (def.at === "frigo" && !$("ckFridge").classList.contains("open")) return [this.view.query(".fr-handle"), "Ouvre le frigo", 1];
+    if (def.at !== "frigo" && this.view.placard !== def.at) return [this.view.query(`[data-placard="${def.at}"]`), "Ouvre ce placard", 1];
+    return [this.view.query(`[data-ing="${id}"] .ic`), "Prends", 1];
   }
 
   drinkMarks(drink) {
     const glass = this.game.glass;
     const slot = this.view.query(".mc-slot");
-    if (!glass) return [[this.view.query(".mc-stack"), "① Prends un verre", 1], [slot, "② Pose-le ici", 2]];
+    if (!glass) return [[this.view.query(".mc-stack"), "Prends un verre", 1], [slot, "Pose-le ici", 2]];
     if (!glass.drink) return [[this.view.query(`[data-drink="${drink.id}"]`), "Clique", 1]];
     if (glass.fill < CooktouGame.DRINK_T) return [[slot, "Ça coule…", 0]];
-    return [[slot, "① Attrape le verre", 1], [this.surf("plateau"), "② Pose sur le plateau", 2]];
+    return [[slot, "Attrape le verre", 1], [this.surf("plateau"), "Pose sur le plateau", 2]];
   }
 
   marks(task) {
     if (!task || this.game.over) return [];
     if (this.game.busy > 0) return [[this.surf(this.game.busySt), "Ça cuit…", 0]];
     if (task.a === "put") return [this.takeMark(task.ing), [this.surf(task.st), Catalog.gestureOf(task).mark, 2]];
-    if (task.tool) return [[this.view.query(`[data-tool="${task.tool}"]`), "① " + Catalog.tools[task.tool].n, 1], [this.surf(Catalog.tools[task.tool].st), Catalog.tools[task.tool].mark, 2]];
+    if (task.tool) return [[this.view.query(`[data-tool="${task.tool}"]`), "" + Catalog.tools[task.tool].n, 1], [this.surf(Catalog.tools[task.tool].st), Catalog.tools[task.tool].mark, 2]];
     if (task.a === "shape") return [[this.surf("planche"), "Clique ici ✋", 1]];
     if (task.a === "heat") return [[this.view.query(`[data-heat="${task.st}"]`), "Clique", 1]];
-    if (task.a === "move") return [[this.surf(task.from), "① Attrape", 1], [this.surf(task.to), "② Pose ici", 2]];
-    if (task.a === "serve") return [[this.surf("assiette"), "① Attrape l'assiette", 1], [this.surf("plateau"), "② Pose sur le plateau", 2]];
+    if (task.a === "move") return [[this.surf(task.from), "Attrape", 1], [this.surf(task.to), "Pose ici", 2]];
+    if (task.a === "serve") return [[this.surf("assiette"), "Attrape l'assiette", 1], [this.surf("plateau"), "Pose sur le plateau", 2]];
     if (task.a === "drink") return this.drinkMarks(task.drink);
-    return [[this.surf("plateau"), "① Monte le plateau au client", 1]];
+    return [[this.surf("plateau"), "Monte le plateau au client", 1]];
   }
 
   tick(dt) {

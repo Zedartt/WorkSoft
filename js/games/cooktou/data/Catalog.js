@@ -34,12 +34,12 @@ class Catalog {
     sesame: "Sesame Seed",
   };
   static gestures = {
-    drop: { mark: "② Pose ici", how: "Attrape l'ingrédient et fais-le glisser jusqu'au poste." },
-    pour: { mark: "② Verse ici", how: "Attrape-le, tiens-le au-dessus du poste et laisse couler jusqu'au bout." },
-    shake: { axis: "y", n: 4, sound: "shake", unit: "secousses", mark: "② Secoue ici", how: "Attrape-le et secoue-le de haut en bas au-dessus du poste." },
-    crack: { axis: "y", n: 2, sound: "crack", unit: "coups", mark: "② Casse ici", how: "Tape l'œuf deux fois vers le bas au-dessus du poste pour le casser." },
-    grate: { axis: "x", n: 6, sound: "grate", unit: "passages", mark: "② Râpe ici", how: "Frotte de gauche à droite au-dessus du poste pour râper." },
-    squeeze: { rub: 900, sound: "squeeze", unit: "%", mark: "② Presse ici", how: "Fais des ronds au-dessus du poste pour presser le jus." },
+    drop: { mark: "Pose ici", how: "Attrape l'ingrédient et fais-le glisser jusqu'au poste." },
+    pour: { mark: "Verse ici", how: "Attrape-le, tiens-le au-dessus du poste et laisse couler jusqu'au bout." },
+    shake: { axis: "y", n: 4, sound: "shake", unit: "secousses", mark: "Secoue ici", how: "Attrape-le et secoue-le de haut en bas au-dessus du poste." },
+    crack: { axis: "y", n: 2, sound: "crack", unit: "coups", mark: "Casse ici", how: "Tape l'œuf deux fois vers le bas au-dessus du poste pour le casser." },
+    grate: { axis: "x", n: 6, sound: "grate", unit: "passages", mark: "Râpe ici", how: "Frotte de gauche à droite au-dessus du poste pour râper." },
+    squeeze: { rub: 900, sound: "squeeze", unit: "%", mark: "Presse ici", how: "Fais des ronds au-dessus du poste pour presser le jus." },
   };
   static ingredients = {
     oeufs: { n: "Œufs", at: "frigo", color: "#f5c64a", how: "crack", en: "eggs?|egg yolks?|egg whites?" },
@@ -197,11 +197,11 @@ class Catalog {
     four: { n: "Four", le: "le four", button: "▶ Lancer", run: "Enfourne et fais cuire", sound: "hum" },
   };
   static tools = {
-    knife: { n: "Couteau", st: "planche", axis: "y", sound: "chop", mark: "② Coupe ici ↕", how: "Garde le couteau en main et tape de haut en bas sur la planche." },
-    peeler: { n: "Économe", st: "planche", axis: "y", sound: "peel", mark: "② Épluche ici ↕", how: "Garde l'économe en main et glisse-le de haut en bas sur la planche." },
-    roller: { n: "Rouleau", st: "planche", axis: "x", sound: "roll", mark: "② Étale ici ↔", how: "Garde le rouleau en main et fais des allers-retours de gauche à droite sur la planche." },
-    spoon: { n: "Cuillère", st: "bol", mark: "② Remue ici", how: "Garde la cuillère en main et remue vite dans le saladier, dans n'importe quel sens." },
-    spatula: { n: "Spatule", st: "plaque", axis: "y", up: true, sound: "flip", mark: "② Retourne ici ↑", how: "Garde la spatule en main et donne des petits coups vers le haut au-dessus de la poêle." },
+    knife: { n: "Couteau", st: "planche", axis: "y", sound: "chop", mark: "Coupe ici ↕", how: "Garde le couteau en main et tape de haut en bas sur la planche." },
+    peeler: { n: "Économe", st: "planche", axis: "y", sound: "peel", mark: "Épluche ici ↕", how: "Garde l'économe en main et glisse-le de haut en bas sur la planche." },
+    roller: { n: "Rouleau", st: "planche", axis: "x", sound: "roll", mark: "Étale ici ↔", how: "Garde le rouleau en main et fais des allers-retours de gauche à droite sur la planche." },
+    spoon: { n: "Cuillère", st: "bol", mark: "Remue ici", how: "Garde la cuillère en main et remue vite dans le saladier, dans n'importe quel sens." },
+    spatula: { n: "Spatule", st: "plaque", axis: "y", up: true, sound: "flip", mark: "Retourne ici ↑", how: "Garde la spatule en main et donne des petits coups vers le haut au-dessus de la poêle." },
   };
   static patterns = Object.entries(Catalog.ingredients).map(([id, def]) => [id, new RegExp(`\\b(${def.en})\\b`, "g")]);
 

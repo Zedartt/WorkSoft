@@ -273,7 +273,46 @@ class SoundEngine {
         this.noise(0.3, { f: 600, filter: "lowpass", vol: 0.25 });
         for (let i = 0; i < 8; i++) this.noise(0.03, { f: 5200, filter: "highpass", vol: 0.07, at: 0.15 + Math.random() * 0.5 });
       },
+      horseCurry: () => this.noise(0.09, { f: 700, q: 1.5, vol: 0.12 }),
+      horseBrush: () => this.noise(0.07, { f: 3200, q: 1.2, vol: 0.12 }),
+      horseSoft: () => this.noise(0.12, { f: 1800, q: 0.8, vol: 0.06 }),
+      horseComb: () => this.noise(0.06, { f: 4800, q: 3, vol: 0.08 }),
+      horseSpray: () => this.noise(0.18, { f: 6000, filter: "highpass", vol: 0.08 }),
+      horseLather: () => this.tone(500 + Math.random() * 500, 0.05, { to: 1400, vol: 0.05 }),
+      horseScrape: () => this.noise(0.08, { f: 2200, q: 4, vol: 0.12 }),
+      horseHammer: () => {
+        this.tone(1900, 0.12, { vol: 0.12, type: "triangle" });
+        this.noise(0.03, { f: 3000, q: 2, vol: 0.2 });
+      },
+      horsePet: () => this.noise(0.15, { f: 500, filter: "lowpass", vol: 0.08 }),
+      horseCrunch: () => {
+        for (let i = 0; i < 4; i++) this.noise(0.05, { f: 1500 + Math.random() * 1500, q: 2, vol: 0.18, at: i * 0.13 });
+      },
+      horseMunch: () => {
+        for (let i = 0; i < 4; i++) this.noise(0.08, { f: 900, q: 1, vol: 0.1, at: i * 0.18 });
+      },
+      horseDrink: () => {
+        for (let i = 0; i < 5; i++) this.tone(220 + Math.random() * 60, 0.09, { to: 140, vol: 0.14, at: i * 0.22 });
+      },
+      horseStep: () => this.tone(880, 0.1, { to: 1320, vol: 0.08, type: "triangle" }),
+      horseNeigh: () => {
+        for (let i = 0; i < 14; i++) this.tone(980 - i * 38 + (i % 2 ? 70 : -70), 0.07, { vol: 0.07, type: "triangle", at: i * 0.055 });
+        this.noise(0.25, { f: 400, filter: "lowpass", vol: 0.18, at: 0.8 });
+      },
+      horseSnort: () => this.noise(0.3, { f: 500, q: 0.7, vol: 0.16 }),
+      horseHoof: () => {
+        this.knockAt(0);
+        this.knockAt(0.12);
+      },
+      horseWalk: () => {
+        for (let i = 0; i < 6; i++) this.knockAt(i * 0.17);
+      },
     };
+  }
+
+  knockAt(at) {
+    this.noise(0.04, { f: 1100, q: 3, vol: 0.22, at });
+    this.tone(240, 0.05, { vol: 0.16, type: "triangle", at });
   }
 
   arm() {

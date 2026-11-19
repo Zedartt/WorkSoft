@@ -16,7 +16,7 @@ Site de mini-jeux statique (HTML + CSS + JavaScript, sans framework ni étape de
 4. **Programmation orientée objet** : état dans des champs d'instance, réglages dans des champs `static` en MAJUSCULES, pas de variables globales en dehors de `$`, `Store`, `Sfx` et `app`.
 5. **Aucune dépendance externe** hormis `js/vendor/matter.min.js` (Matter.js 0.20.0, licence MIT, l'en-tête de licence doit rester). Pas de CDN, pas de npm à l'exécution.
 6. **Textes de l'interface en français**, tutoiement.
-7. **Classes CSS préfixées par jeu** (`ck-` Cooktou, `hl-` Hooplab, `plk-` Kaplab, `ink-` Incscape, `wh-` WordHunt, `ww-` WhereWord). Une classe générique a déjà provoqué une collision (`.hint` de Wikopy contre un repère de Cooktou).
+7. **Classes CSS préfixées par jeu** (`ck-` Cooktou, `hl-` Hooplab, `plk-` Kaplab, `ink-` Incscape, `wh-` WordHunt, `ww-` WhereWord, `hr-` Horsering). Une classe générique a déjà provoqué une collision (`.hint` de Wikopy contre un repère de Cooktou).
 8. **Thème clair/sombre** : n'utiliser que les variables CSS de `css/base.css` (`--bg`, `--panel`, `--ink`, `--muted`, `--line`, `--accent`, `--bad`…) pour tout ce qui doit changer avec le thème. Le thème est porté par `data-theme` sur `<html>`.
 9. **En-tête identique pour tous les jeux** : `.game-top` (bouton « ← Menu », titre centré) puis `.game-bar` (bande de hauteur fixe pour ce qui est propre au jeu, boutons `.icon-btn`).
 
@@ -28,7 +28,7 @@ css/
   base.css                     variables, thèmes, boutons de thème et de son, animations communes
   components.css               en-tête de jeu, bande de jeu, boutons, carte de résultat, pastilles
   menu.css                     grille des chaînes, horloge, écran de lancement, fondu
-  wikopy.css  kaplab.css  incscape.css  cooktou.css  wordhunt.css  whereword.css
+  wikopy.css  kaplab.css  incscape.css  cooktou.css  wordhunt.css  whereword.css  hooplab.css  horsering.css
 js/
   core/
     Dom.js                     $(id) et Store (lecture/écriture localStorage protégée)
@@ -50,7 +50,7 @@ js/
       art/     Icons.js (dessins SVG 48×48, outils, verre, photos), Avatar.js (cuisiniers et clients)
       Order.js                 menu d'un client (entrée, plat(s), dessert, boisson), points
       KitchenView.js           construction de la cuisine, placards, affichage des postes, plateau, machine, caméra
-      KitchenGuide.js          bandeau d'aide, bulles ①/②, flèche, barres de progression
+      KitchenGuide.js          bandeau d'aide, bulles bleue (prendre) et verte (poser), flèche, barres de progression
       PointerController.js     glisser-déposer et tous les gestes (verser, secouer, casser, râper, presser, couper, éplucher, étaler, retourner, façonner)
       ServiceHistory.js        historique des plats servis pendant la session, ticket de caisse
       CooktouGame.js           état de la partie, règles, difficulté, boucle
@@ -58,6 +58,17 @@ js/
     hooplab/   HoopCourt.js (terrain, panier, dessins du décor), HoopBall.js (ballon, rebonds, ombre et reflet), HoopNet.js (filet souple),
                HoopFx.js (lumières, particules, éclats de verre, feux d'artifice, éclairs, textes),
                HoopRules.js (points, zones, figures, combo), HoopAim.js (tir en arc), HooplabGame.js
+    horsering/
+      data/    HorseModels.js (tirage au hasard du nom, de la robe, des crins, des marques ; licorne rare), HorseTools.js (onglets et outils, dessins 64×64),
+               CareTasks.js (problèmes possibles, placement aléatoire des taches, étapes outil + geste, tirage selon le nombre de chevaux soignés)
+      art/     HorseArt.js (cheval de profil, viewBox 600×440), HoofArt.js (dessous du sabot, 300×340), SpotArt.js (boue, mousse, nœuds, mouches…),
+               Cowgirl.js (Carla, la cow-girl au blason « C », couleurs dans Cowgirl.LOOK)
+      CareSurface.js           une zone soignable (cheval ou sabot) : coordonnées, taches, particules, cercles d'aide
+      GroomPointer.js          pointeur : clic, appui long, ronds, coups vers la droite / le bas / le haut, curseur outil
+      CareBook.js              liste des soins (icône de l'outil en cours, barre de progression)
+      CareGuide.js             guide : outils du soin en haut, outil à prendre entouré de bleu, bulle verte sur le cheval
+      RanchKit.js              boîte à outils à onglets
+      HorseringGame.js         règles, repas, câlins, sabot soulevé, arrivée/départ des chevaux, fin
     whereword/ ArticleSource.js (article Wikipédia complet découpé en blocs), HuntText.js (découpage en mots, comptage, choix du mot), WhereWordGame.js
   vendor/matter.min.js
 ```
@@ -184,6 +195,20 @@ Script de contrôle à coller dans la console après avoir lancé Cooktou (doit 
 - Le filet est une grille de points reliés (Verlet) que le ballon repousse ; il freine le ballon qui le traverse (`NET_DRAG`).
 - Couleurs du décor selon le thème : variables `--hl-*` de `css/hooplab.css`, lues avec `ThemeSwitch.color`. Sons `hoop*` dans `SoundEngine` (rebond, cercle, planche, filet, foule, dunk, vitre, feux d'artifice, arc, tonnerre, montée de combo, bulles).
 
+### Horsering
+
+- Chaque cheval est tiré au hasard (`HorseModels.next()`) : nom, robe (`COATS`, ou couleurs fantaisie `FANCY_COATS` dans `FANCY_CHANCE` des cas), crins, liste/étoile, balzanes, fanons, motif (pommelé, taches, pie, raie de mulet), crinière longue. Les teintes d'ombre, de sabot et de bout du nez sont calculées (`HorseArt.darken`). Robes imposées par le propriétaire (`HorseModels.FIXED`) : Scotty aubère (motif `roan`), Fuego gris pommelé aux jambes gris foncé (`sockColor`). Licorne rare (`UNICORN_CHANCE`) : robe pastel, crins arc-en-ciel, corne, étoiles qui scintillent, points ×`UNICORN_FACTOR`.
+- Problèmes tirés par `CareTasks.build()` : de `FIRST_COUNT` à `MAX_COUNT` (+1 tous les `MORE_EVERY` chevaux), puis toujours `shine` (lustrant) et `ribbon` (ruban), verrouillés tant que le reste n'est pas fini.
+- Saletés aléatoires : chaque point est placé au hasard dans des zones du cheval (`HorseArt.ZONES` : corps, ventre, croupe, encolure, tête, jambes ; `HoofArt.ZONES` pour la sole), le long d'une ligne (crinière, queue) ou parmi des places fixes (`spots` : œil, bouche, clous). Nombre (`count`) et taille (`r`, plutôt petits, parfois gros) tirés au hasard. `SpotArt.outline()` dessine un contour irrégulier à partir de la graine du point (même forme d'une étape à l'autre), avec éclaboussures et teintes de boue variées. Une grosse tache demande un peu plus de travail (`CareTasks.need`).
+- Étapes `{ tool, motion, need, short }` ; chaque point avance seul. Gestes (`GroomPointer`) : `circle`, `right` (vers la queue), `down`, `up` (cure-pied du talon vers la pince), `rub`, `hold` (appui long), `tap`, `feed` (clic sur la bouche, `HorseringGame.MOUTH`).
+- Guide façon Cooktou (`CareGuide`) : en haut de l'enclos, les outils du soin en cours dans l'ordre (fait / en cours / à venir) et le nom de l'outil, sans explication du geste. Tant que l'outil n'est pas en main, son bouton (ou son onglet s'il est caché) est entouré de bleu ; une fois l'outil en main, une bulle verte « Ici » / « Sa bouche » / « Ce sabot » montre où l'utiliser (cachée pendant l'appui). Quand l'étape change, l'onglet de la boîte à outils bascule tout seul. Le guide suit le soin choisi dans la liste, sinon le premier soin en cours. Pas de pastilles numérotées (① ②) dans les guides de Cooktou et de Horsering : choix du propriétaire.
+- Pas de jeu sur un écran trop petit (`HorseringGame.SMALL_QUERY` : moins de 721 px de large, moins de 360 px de haut, ou téléphone en portrait, ce qui couvre aussi un fort zoom) : la carte `.hr-small` invite à tourner le téléphone ou à dézoomer, le jeu est en pause et reprend tout seul quand la place revient. Choix du propriétaire.
+- Outils (`HorseTools`, dessins 64×64 avec ombres et reflets, sans dégradé à identifiant) : tenus par leur bout utile sous le pointeur (`#hrCursorTool`), avec une ombre au sol ; ils penchent selon le mouvement (`GroomPointer.MAX_TILT`) et s'écrasent un peu à l'appui.
+- Dessin du cheval (`HorseArt.muscles`) : épaule, avant-bras, hanche, grasset, flanc, joue et articulations, reflets sur l'encolure et la croupe ; œil avec iris et reflets, naseau, crinière et queue à mèches.
+- Interface volontairement légère : liste « Soins » = icône de l'outil en cours + nom court + barre ; bulles de la cow-girl très courtes. Mauvais outil ou mauvais geste : bulle courte et la ligne d'aide clignote.
+- Points : `TASK_POINTS` par soin fini, `PERFECT_BONUS` quand le cheval est à 100 %, carte de fin avec les points gagnés. `horsering_points` (points cumulés) et `horsering_total` (chevaux soignés) sont mémorisés.
+- La cow-girl s'appelle Carla (`Cowgirl.NAME`, affiché au-dessus de ses bulles) : femme, longs cheveux lisses brun foncé, yeux en amande noisette clair, blason en forme d'écu avec la lettre C sur le gilet. Couleurs dans `Cowgirl.LOOK`. Choix du propriétaire.
+
 ### WordHunt
 
 - Des mots tirés de `WordList.WORDS` sont lancés d'un bord du ciel à l'autre en arc (`FlyingWord`). Le joueur tape un mot dans le champ du bas puis appuie sur Entrée : s'il est à l'écran, il éclate et rapporte `POINTS_PER_LETTER` points par lettre. Un mot qui sort de l'autre côté est raté ; `MAX_MISSES` (3) ratés = fin.
@@ -202,11 +227,11 @@ Script de contrôle à coller dans la console après avoir lancé Cooktou (doit 
 
 ## Sons
 
-`SoundEngine` synthétise tout avec Web Audio (oscillateurs et bruit filtré), sans fichier audio. Le contexte audio n'est créé qu'après un premier geste de l'utilisateur. `Sfx.play(nom)` pour un son ponctuel, `Sfx.loop(nom, true|false)` pour `sizzle`, `pour`, `hum`. `whoosh` accompagne le lancer d'un mot dans WordHunt. Le bouton haut-parleur coupe le son (mémorisé).
+`SoundEngine` synthétise tout avec Web Audio (oscillateurs et bruit filtré), sans fichier audio. Le contexte audio n'est créé qu'après un premier geste de l'utilisateur. `Sfx.play(nom)` pour un son ponctuel, `Sfx.loop(nom, true|false)` pour `sizzle`, `pour`, `hum`. `whoosh` accompagne le lancer d'un mot dans WordHunt. Les sons `horse*` (brosses, sprays, croque, boit, hennit, sabots) servent à Horsering ; le jet d'eau réutilise la boucle `pour`. Le bouton haut-parleur coupe le son (mémorisé).
 
 ## Données mémorisées (localStorage)
 
-`worksoft_theme`, `worksoft_mute`, `wikopy_best`, `incscape_best`, `cooktou_best`, `wordhunt_best`, `whereword_best`, `hooplab_best` (meilleur combo), `cooktou_chef`. Toujours protéger l'accès par `try/catch` ou passer par `Store`.
+`worksoft_theme`, `worksoft_mute`, `wikopy_best`, `incscape_best`, `cooktou_best`, `wordhunt_best`, `whereword_best`, `hooplab_best` (meilleur combo), `horsering_total` (chevaux soignés au total), `horsering_points` (points cumulés), `cooktou_chef`. Toujours protéger l'accès par `try/catch` ou passer par `Store`.
 
 ## Hébergement
 
