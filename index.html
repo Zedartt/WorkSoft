@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="css/whereword.css" />
     <link rel="stylesheet" href="css/hooplab.css" />
     <link rel="stylesheet" href="css/horsering.css" />
+    <link rel="stylesheet" href="css/wheeeeel.css" />
   </head>
   <body>
     <div class="corner">
@@ -449,6 +450,70 @@
       </div>
     </section>
 
+    <section id="wheeeeel" class="screen">
+      <div class="game-top">
+        <button class="back">← Menu</button>
+        <h1 class="game-title">Wheeeeel</h1>
+        <div></div>
+      </div>
+      <div class="game-bar">
+        <button class="icon-btn" id="wlFolderBtn" title="Mes roues" aria-label="Afficher ou cacher mes roues">
+          <svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
+        </button>
+        <button class="btn primary wl-spin" id="wlSpin">Lancer la roue</button>
+        <button class="icon-btn" id="wlEdit" title="Modifier cette roue" aria-label="Modifier cette roue">
+          <svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM14 6l4 4" /></svg>
+        </button>
+        <button class="icon-btn" id="wlNew" title="Nouvelle roue" aria-label="Nouvelle roue">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>
+        </button>
+      </div>
+      <div class="wl-area" id="wlArea">
+        <aside class="wl-folder" id="wlFolder">
+          <div class="wl-folder-head">
+            <svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /></svg>
+            Mes roues
+          </div>
+          <ul class="wl-list" id="wlList"></ul>
+          <button class="wl-add" id="wlAdd">+ Nouvelle roue</button>
+        </aside>
+        <div class="wl-stage" id="wlStage">
+          <canvas class="wl-canvas" id="wlCanvas"></canvas>
+          <div class="wl-name" id="wlName"></div>
+          <div class="wl-flash" id="wlFlash"></div>
+          <div class="overlay wl-result" id="wlResult">
+            <div class="wl-result-card">
+              <div class="wl-rays"></div>
+              <h2 id="wlResultWheel"></h2>
+              <div class="wl-result-text" id="wlResultText"></div>
+              <div class="actions">
+                <button class="btn primary" id="wlAgain">Relancer</button>
+                <button class="btn" id="wlClose">Fermer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="overlay wl-editor" id="wlEditor">
+          <div class="card wl-edit-card">
+            <h2 id="wlEditTitle">Nouvelle roue</h2>
+            <label class="wl-field">
+              <span>Nom de la roue</span>
+              <input type="text" id="wlEditName" maxlength="40" placeholder="Par exemple : Qui fait la vaisselle ?" />
+            </label>
+            <div class="wl-cells-head"><span>Cases</span><small id="wlCount"></small></div>
+            <div class="wl-cells" id="wlCells"></div>
+            <button class="btn wl-add-cell" id="wlAddCell">+ Ajouter une case</button>
+            <p class="wl-error" id="wlError"></p>
+            <div class="actions">
+              <button class="btn primary" id="wlSave">Enregistrer</button>
+              <button class="btn" id="wlCancel">Annuler</button>
+              <button class="btn wl-danger" id="wlDelete">Supprimer la roue</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <script src="js/vendor/matter.min.js"></script>
     <script src="js/core/Dom.js"></script>
     <script src="js/core/Viewport.js"></script>
@@ -503,6 +568,11 @@
     <script src="js/games/horsering/CareGuide.js"></script>
     <script src="js/games/horsering/RanchKit.js"></script>
     <script src="js/games/horsering/HorseringGame.js"></script>
+    <script src="js/games/wheeeeel/WheelStore.js"></script>
+    <script src="js/games/wheeeeel/WheelPainter.js"></script>
+    <script src="js/games/wheeeeel/WheelFx.js"></script>
+    <script src="js/games/wheeeeel/WheelEditor.js"></script>
+    <script src="js/games/wheeeeel/WheeeeelGame.js"></script>
     <script src="js/core/App.js"></script>
   </body>
 </html>

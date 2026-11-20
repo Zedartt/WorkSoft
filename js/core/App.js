@@ -3,7 +3,7 @@ class App {
     this.viewport = new Viewport();
     this.theme = new ThemeSwitch([$("themeBtn"), $("menuThemeBtn")]);
     this.sound = new SoundSwitch([$("soundBtn"), $("menuSoundBtn")]);
-    this.games = [new WikopyGame(), new KaplabGame(), new IncscapeGame(), new CooktouGame(), new WordHuntGame(), new WhereWordGame(), new HooplabGame(), new HorseringGame()];
+    this.games = [new WikopyGame(), new KaplabGame(), new IncscapeGame(), new CooktouGame(), new WordHuntGame(), new WhereWordGame(), new HooplabGame(), new HorseringGame(), new WheeeeelGame()];
     this.help = new HelpPanel(this.games);
     this.launcher = new Launcher(this.games);
   }

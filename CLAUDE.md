@@ -16,7 +16,7 @@ Site de mini-jeux statique (HTML + CSS + JavaScript, sans framework ni étape de
 4. **Programmation orientée objet** : état dans des champs d'instance, réglages dans des champs `static` en MAJUSCULES, pas de variables globales en dehors de `$`, `Store`, `Sfx` et `app`.
 5. **Aucune dépendance externe** hormis `js/vendor/matter.min.js` (Matter.js 0.20.0, licence MIT, l'en-tête de licence doit rester). Pas de CDN, pas de npm à l'exécution.
 6. **Textes de l'interface en français**, tutoiement.
-7. **Classes CSS préfixées par jeu** (`ck-` Cooktou, `hl-` Hooplab, `plk-` Kaplab, `ink-` Incscape, `wh-` WordHunt, `ww-` WhereWord, `hr-` Horsering). Une classe générique a déjà provoqué une collision (`.hint` de Wikopy contre un repère de Cooktou).
+7. **Classes CSS préfixées par jeu** (`ck-` Cooktou, `hl-` Hooplab, `plk-` Kaplab, `ink-` Incscape, `wh-` WordHunt, `ww-` WhereWord, `hr-` Horsering, `wl-` Wheeeeel). Une classe générique a déjà provoqué une collision (`.hint` de Wikopy contre un repère de Cooktou).
 8. **Thème clair/sombre** : n'utiliser que les variables CSS de `css/base.css` (`--bg`, `--panel`, `--ink`, `--muted`, `--line`, `--accent`, `--bad`…) pour tout ce qui doit changer avec le thème. Le thème est porté par `data-theme` sur `<html>`.
 9. **En-tête identique pour tous les jeux** : `.game-top` (bouton « ← Menu », titre centré) puis `.game-bar` (bande de hauteur fixe pour ce qui est propre au jeu, boutons `.icon-btn`).
 
@@ -28,7 +28,7 @@ css/
   base.css                     variables, thèmes, boutons de thème et de son, animations communes
   components.css               en-tête de jeu, bande de jeu, boutons, carte de résultat, pastilles
   menu.css                     grille des chaînes, horloge, écran de lancement, fondu
-  wikopy.css  kaplab.css  incscape.css  cooktou.css  wordhunt.css  whereword.css  hooplab.css  horsering.css
+  wikopy.css  kaplab.css  incscape.css  cooktou.css  wordhunt.css  whereword.css  hooplab.css  horsering.css  wheeeeel.css
 js/
   core/
     Dom.js                     $(id) et Store (lecture/écriture localStorage protégée)
@@ -62,7 +62,7 @@ js/
       data/    HorseModels.js (tirage au hasard du nom, de la robe, des crins, des marques ; licorne rare), HorseTools.js (onglets et outils, dessins 64×64),
                CareTasks.js (problèmes possibles, placement aléatoire des taches, étapes outil + geste, tirage selon le nombre de chevaux soignés)
       art/     HorseArt.js (cheval de profil, viewBox 600×440), HoofArt.js (dessous du sabot, 300×340), SpotArt.js (boue, mousse, nœuds, mouches…),
-               Cowgirl.js (Carla, la cow-girl au blason « C », couleurs dans Cowgirl.LOOK)
+               Cowgirl.js (Carla, la cavalière au blason « C », couleurs dans Cowgirl.LOOK)
       CareSurface.js           une zone soignable (cheval ou sabot) : coordonnées, taches, particules, cercles d'aide
       GroomPointer.js          pointeur : clic, appui long, ronds, coups vers la droite / le bas / le haut, curseur outil
       CareBook.js              liste des soins (icône de l'outil en cours, barre de progression)
@@ -70,6 +70,8 @@ js/
       RanchKit.js              boîte à outils à onglets
       HorseringGame.js         règles, repas, câlins, sabot soulevé, arrivée/départ des chevaux, fin
     whereword/ ArticleSource.js (article Wikipédia complet découpé en blocs), HuntText.js (découpage en mots, comptage, choix du mot), WhereWordGame.js
+    wheeeeel/  WheelStore.js (roues enregistrées, roue par défaut), WheelPainter.js (dessin de la roue, ampoules, flèche, projecteurs),
+               WheelFx.js (étincelles, explosion, ondes, confettis), WheelEditor.js (fenêtre de création et de modification), WheeeeelGame.js
   vendor/matter.min.js
 ```
 
@@ -207,7 +209,7 @@ Script de contrôle à coller dans la console après avoir lancé Cooktou (doit 
 - Dessin du cheval (`HorseArt.muscles`) : épaule, avant-bras, hanche, grasset, flanc, joue et articulations, reflets sur l'encolure et la croupe ; œil avec iris et reflets, naseau, crinière et queue à mèches.
 - Interface volontairement légère : liste « Soins » = icône de l'outil en cours + nom court + barre ; bulles de la cow-girl très courtes. Mauvais outil ou mauvais geste : bulle courte et la ligne d'aide clignote.
 - Points : `TASK_POINTS` par soin fini, `PERFECT_BONUS` quand le cheval est à 100 %, carte de fin avec les points gagnés. `horsering_points` (points cumulés) et `horsering_total` (chevaux soignés) sont mémorisés.
-- La cow-girl s'appelle Carla (`Cowgirl.NAME`, affiché au-dessus de ses bulles) : femme, longs cheveux lisses brun foncé, yeux en amande noisette clair, blason en forme d'écu avec la lettre C sur le gilet. Couleurs dans `Cowgirl.LOOK`. Choix du propriétaire.
+- La cavalière s'appelle Carla (`Cowgirl.NAME`, affiché au-dessus de ses bulles) : femme sans chapeau, longs cheveux lisses brun très foncé avec raie au milieu, peau mate, sourcils épais et arqués, yeux en amande couleur miel ambré (doré autour de la pupille, marron chaud, contour foncé) avec eye-liner et cils, lèvres pleines. Tenue de concours d'équitation : veste bleu marine à revers et boutons dorés, col blanc montant avec épingle dorée, blason en forme d'écu avec la lettre C sur la veste. Couleurs dans `Cowgirl.LOOK`. Choix du propriétaire.
 
 ### WordHunt
 
@@ -225,13 +227,25 @@ Script de contrôle à coller dans la console après avoir lancé Cooktou (doit 
 - Règles (`WhereWordGame`) : `ROUND_TIME` (60 s) par page ; un clic sur n'importe quelle occurrence du mot le valide et passe à la page suivante. Valeur selon le temps (`worth()`, affichée en direct dans le badge `#wwWorth`) : `MAX_POINTS` (100) pendant les `FULL_TIME` (5) premières secondes, puis baisse régulière jusqu'à `MIN_POINTS` (10) à la fin de la minute. Le nombre d'apparitions du mot est affiché à titre d'indice mais ne change plus les points (choix du propriétaire). La barre de temps devient rouge à `LATE_TIME` secondes de la fin. Un mauvais clic ne coûte rien (le mot clignote en rouge). Temps écoulé = fin de partie : les occurrences sont surlignées, puis la carte de résultat s'affiche. Le chrono ne tourne pas pendant le chargement d'une page.
 - Anti-triche, choix du propriétaire : les mots de l'article (et son titre) sont affichés par CSS (`::before { content: attr(data-t) }`), donc introuvables par la recherche du navigateur, même ouverte par son menu. Pendant la partie, `WhereWordGame.isFindKey` bloque Ctrl/Cmd+F, Ctrl/Cmd+G, F3 et la recherche rapide de Firefox (`/`, `'`), et la touche Échap ne fait rien (écouteur en phase de capture sur `window`).
 
+### Wheeeeel
+
+- Roue du hasard personnalisable. Les roues sont dans `WheelStore` (localStorage `wheeeeel_wheels`, roue affichée `wheeeeel_current`) : `{ id, name, cells, colors }`, `colors[i]` vaut une couleur `#rrggbb` choisie par le joueur ou `null` (couleur automatique). S'il n'y a aucune roue, la roue par défaut « Vrai ou faux ? » (`WheelStore.DEFAULT`) est recréée. Une roue a de `MIN_CELLS` (2) à `MAX_CELLS` (24) cases de texte libre (`MAX_TEXT` caractères) ; `WheelStore.tidy()` nettoie tout ce qui est lu ou enregistré, et les noms passent par `WheeeeelGame.escape()` avant d'être affichés.
+- Couleurs automatiques (`WheelPainter.PALETTE`, choix du propriétaire) : d'abord les primaires rouge, bleu, jaune, vert, puis orange, violet, cyan, rose, vert clair, indigo, sarcelle, brun ; jamais deux cases voisines pareilles. Le texte d'une case claire est foncé (`WheelPainter.light`).
+- Dossier « Mes roues » à gauche (`.wl-folder`) : liste des roues, roue affichée en surbrillance, « + Nouvelle roue ». Bouton dossier de la bande pour le cacher ; sous 720 px de large il est fermé par défaut, s'ouvre par-dessus la roue et se referme quand on choisit une roue ou qu'on touche la roue.
+- Éditeur (`WheelEditor`) : nom, une ligne par case (pastille de couleur cliquable qui ouvre le sélecteur de couleur du navigateur, ✕ pour retirer la case), Entrée dans une case ajoute la suivante, « Supprimer la roue » demande un second clic. Échap ferme l'éditeur.
+- Lancer (bouton, clic sur la roue, Espace ou Entrée) : la case gagnante est tirée au hasard d'abord (toutes les cases ont la même chance), puis la roue tourne de `MIN_TURNS` à `MAX_TURNS` tours en `SPIN_TIME` s environ, avec un petit recul au départ (`WIND_UP`) et un ralentissement doux. À l'ouverture du jeu, la roue se lance toute seule après `AUTO_DELAY` s.
+- Style sobre et moderne, choix du propriétaire (pas de cadre doré ni d'ampoules de foire), avec un modèle par thème : en sombre, scène noire bleutée, cadre anthracite, flèche blanche, lumières en mélange additif (`lighter`) ; en clair, scène blanche, cadre argenté, flèche anthracite, lumières peintes par-dessus (`source-over`, cœur coloré, éclats dorés au lieu de blancs). Tout passe par les variables `--wl-*` de `css/wheeeeel.css` (cadre, LED, moyeu, flèche, ombre, `--wl-flare`, `--wl-glow`, `--wl-glow-alpha`, `--wl-core`, carte du résultat), lues par `WheelPainter.syncTheme()` à chaque changement de thème. Moyeu avec un point de la couleur sous la flèche, flèche en goutte.
+- Jeu de lumière tiré au hasard à chaque lancement (`WheelPainter.newShow()`), choix du propriétaire : nombre, couleurs, vitesses, sens et balancement des projecteurs, motif des LED pendant la rotation (`chase`, `bounce`, `sparkle`, `wave`, `split`), vitesse de l'arc-en-ciel, fréquence des éclairs, forme du final (`converge` vers la flèche, `fan` en éventail, `sweep` qui tourne) et motif des LED du final (`race`, `pulse`, `alternate`).
+- Lumières en trois temps, choix du propriétaire : au repos presque rien (léger halo) ; pendant la rotation c'est la folie (projecteurs de couleur qui balaient, LED arc-en-ciel en chenille, éclairs stroboscopiques, étincelles) ; à partir de `FINAL_FROM` (fin de la rotation) le jeu de lumière monte encore : projecteurs qui se regroupent selon le final tiré, LED qui clignotent, roue qui gonfle, son de montée (`wheelCharge`). À l'arrêt, `CHARGE_TIME` (court) de clignotement de la case gagnante, puis explosion : boule de lumière, cinq ondes, trois gerbes d'étincelles en traînées, éclats de roue colorés, rayons, secousse, confettis, flash de la couleur gagnante (`.wl-flash`). La carte du résultat s'affiche dans l'explosion, sans attendre. Les lumières utilisent le mélange additif (`lighter`) ; particules limitées à `WheelFx.MAX_PARTICLES`. Pas de minuterie : tout avance dans la boucle (les gerbes décalées sont dans `WheelFx.later`), donc la fiche « i » met bien tout en pause.
+- La face de la roue (cases et textes) est dessinée une seule fois dans un canvas caché et seulement tournée à chaque image. Un texte trop long passe sur deux lignes, puis se termine par « … » sur la roue (il reste entier dans le résultat).
+
 ## Sons
 
-`SoundEngine` synthétise tout avec Web Audio (oscillateurs et bruit filtré), sans fichier audio. Le contexte audio n'est créé qu'après un premier geste de l'utilisateur. `Sfx.play(nom)` pour un son ponctuel, `Sfx.loop(nom, true|false)` pour `sizzle`, `pour`, `hum`. `whoosh` accompagne le lancer d'un mot dans WordHunt. Les sons `horse*` (brosses, sprays, croque, boit, hennit, sabots) servent à Horsering ; le jet d'eau réutilise la boucle `pour`. Le bouton haut-parleur coupe le son (mémorisé).
+`SoundEngine` synthétise tout avec Web Audio (oscillateurs et bruit filtré), sans fichier audio. Le contexte audio n'est créé qu'après un premier geste de l'utilisateur. `Sfx.play(nom)` pour un son ponctuel, `Sfx.loop(nom, true|false)` pour `sizzle`, `pour`, `hum`. `whoosh` accompagne le lancer d'un mot dans WordHunt. Les sons `horse*` (brosses, sprays, croque, boit, hennit, sabots) servent à Horsering ; le jet d'eau réutilise la boucle `pour`. Les sons `wheel*` (départ, tic de la flèche, montée, explosion, fanfare) servent à Wheeeeel. Le bouton haut-parleur coupe le son (mémorisé).
 
 ## Données mémorisées (localStorage)
 
-`worksoft_theme`, `worksoft_mute`, `wikopy_best`, `incscape_best`, `cooktou_best`, `wordhunt_best`, `whereword_best`, `hooplab_best` (meilleur combo), `horsering_total` (chevaux soignés au total), `horsering_points` (points cumulés), `cooktou_chef`. Toujours protéger l'accès par `try/catch` ou passer par `Store`.
+`worksoft_theme`, `worksoft_mute`, `wikopy_best`, `incscape_best`, `cooktou_best`, `wordhunt_best`, `whereword_best`, `hooplab_best` (meilleur combo), `horsering_total` (chevaux soignés au total), `horsering_points` (points cumulés), `cooktou_chef`, `wheeeeel_wheels` (roues créées), `wheeeeel_current` (roue affichée). Toujours protéger l'accès par `try/catch` ou passer par `Store`.
 
 ## Hébergement
 

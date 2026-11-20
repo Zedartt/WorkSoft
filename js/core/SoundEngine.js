@@ -307,6 +307,30 @@ class SoundEngine {
       horseWalk: () => {
         for (let i = 0; i < 6; i++) this.knockAt(i * 0.17);
       },
+      wheelStart: () => {
+        this.noise(0.6, { f: 900, q: 0.8, vol: 0.12 });
+        this.tone(220, 0.5, { to: 660, vol: 0.1, type: "sawtooth" });
+      },
+      wheelTick: (power = 1) => {
+        this.tone(1500 + power * 700, 0.03, { type: "square", vol: 0.05 + power * 0.04 });
+        this.noise(0.02, { f: 3000, q: 2, vol: 0.08 });
+      },
+      wheelCharge: (length = 2) => {
+        const d = Math.max(0.6, Math.min(4, length + 0.3));
+        this.tone(160, d, { to: 1600, vol: 0.09, type: "sawtooth" });
+        this.tone(240, d, { to: 2400, vol: 0.05, type: "square" });
+        this.noise(d, { f: 2500, q: 0.7, vol: 0.06 });
+      },
+      wheelBoom: () => {
+        this.tone(60, 1.4, { to: 22, vol: 0.5 });
+        this.noise(0.3, { f: 300, filter: "lowpass", vol: 0.35, at: 0.14 });
+        this.noise(0.3, { f: 300, filter: "lowpass", vol: 0.3, at: 0.28 });
+        this.tone(90, 0.9, { to: 30, vol: 0.45 });
+        this.noise(0.9, { f: 500, filter: "lowpass", vol: 0.4 });
+        this.noise(0.25, { f: 4000, filter: "highpass", vol: 0.15 });
+        for (let i = 0; i < 10; i++) this.noise(0.03, { f: 5200, filter: "highpass", vol: 0.06, at: 0.2 + Math.random() * 0.7 });
+      },
+      wheelWin: () => this.arp([523, 659, 784, 1047, 1319, 1568], 0.07, { vol: 0.12, d: 0.35 }),
     };
   }
 
