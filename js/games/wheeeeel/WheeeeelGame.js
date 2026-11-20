@@ -7,6 +7,9 @@ class WheeeeelGame extends Game {
   static FINAL_FROM = 0.68;
   static AUTO_DELAY = 0.8;
   static FLASH_MS = 650;
+  static PINS = 40;
+  static TICK_GAP = 0.018;
+  static MUSIC_STEP = SoundEngine.CASINO.sixteenth * 8;
   static NARROW_QUERY = "(max-width: 720px)";
 
   constructor() {
@@ -48,6 +51,10 @@ class WheeeeelGame extends Game {
     this.tilt = 0;
     this.tiltVel = 0;
     this.lastIndex = -1;
+    this.lastPin = -1;
+    this.tickWait = 0;
+    this.musicLeft = 0;
+    this.musicStep = 0;
     this.winIndex = -1;
     this.chargeLeft = 0;
     this.build = 0;
@@ -182,6 +189,9 @@ class WheeeeelGame extends Game {
     this.build = 0;
     this.painter.newShow();
     this.lastIndex = this.indexAt(from, count);
+    this.lastPin = this.indexAt(from, WheeeeelGame.PINS);
+    this.musicLeft = 0.3;
+    this.musicStep = 0;
     this.state = "spin";
     this.autoLeft = 0;
     this.fx.reset();
@@ -219,7 +229,16 @@ class WheeeeelGame extends Game {
         this.lastIndex = index;
         this.tilt = -0.55;
         this.tiltVel = 0;
-        Sfx.play("wheelTick", Math.min(1, this.speed));
+      }
+      const pin = this.indexAt(this.angle, WheeeeelGame.PINS);
+      this.tickWait -= dt;
+      if (pin !== this.lastPin) {
+        this.lastPin = pin;
+        if (this.tilt > -0.2) this.tilt = -0.22;
+        if (this.tickWait <= 0) {
+          this.tickWait = WheeeeelGame.TICK_GAP;
+          Sfx.play("wheelTick", Math.min(1, this.speed));
+        }
       }
       this.fx.sparks(Math.min(1, this.speed * 0.8) + build * 0.8);
       this.scale = 1 + 0.03 * build * build + 0.006 * Math.sin(this.clock * 50) * build;
@@ -229,7 +248,9 @@ class WheeeeelGame extends Game {
         this.state = "charge";
         this.chargeLeft = WheeeeelGame.CHARGE_TIME;
       }
+      this.music(dt, Math.min(1, this.speed * 0.6), build);
     } else if (this.state === "charge") {
+      this.music(dt, 1, 1);
       this.chargeLeft -= dt;
       const k = 1 - this.chargeLeft / WheeeeelGame.CHARGE_TIME;
       this.scale = 1.03 + 0.04 * k * k + 0.012 * Math.sin(this.clock * 60);
@@ -244,6 +265,13 @@ class WheeeeelGame extends Game {
     this.tiltVel += (-this.tilt * 320 - this.tiltVel * 16) * dt;
     this.tilt += this.tiltVel * dt;
     this.fx.update(dt);
+  }
+
+  music(dt, energy, build) {
+    this.musicLeft -= dt;
+    if (this.musicLeft > 0.1) return;
+    Sfx.play("wheelBar", { step: this.musicStep++, energy, build, lead: Math.max(0, this.musicLeft) });
+    this.musicLeft += WheeeeelGame.MUSIC_STEP;
   }
 
   boom() {

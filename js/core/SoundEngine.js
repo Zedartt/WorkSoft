@@ -23,6 +23,7 @@ class SoundEngine {
     this.armed = false;
     this.isMuted = false;
     this.loops = {};
+    this.music = null;
     try {
       this.isMuted = localStorage.getItem("worksoft_mute") === "1";
     } catch (e) {}
@@ -308,30 +309,96 @@ class SoundEngine {
         for (let i = 0; i < 6; i++) this.knockAt(i * 0.17);
       },
       wheelStart: () => {
-        this.noise(0.6, { f: 900, q: 0.8, vol: 0.12 });
-        this.tone(220, 0.5, { to: 660, vol: 0.1, type: "sawtooth" });
+        this.noise(0.05, { f: 600, filter: "lowpass", vol: 0.3 });
+        this.tone(120, 0.08, { to: 60, vol: 0.25 });
+        this.tone(1976, 0.18, { type: "triangle", vol: 0.08, at: 0.05 });
+        this.tone(2637, 0.3, { type: "triangle", vol: 0.08, at: 0.12 });
+        [784, 988, 1175, 1568, 1976, 2349].forEach((f, i) => this.tone(f, 0.1, { type: "square", vol: 0.04, at: 0.2 + i * 0.035 }));
+        this.noise(0.5, { f: 1400, q: 0.7, vol: 0.07, at: 0.15 });
       },
       wheelTick: (power = 1) => {
-        this.tone(1500 + power * 700, 0.03, { type: "square", vol: 0.05 + power * 0.04 });
-        this.noise(0.02, { f: 3000, q: 2, vol: 0.08 });
+        this.noise(0.014, { f: 4200, q: 3, vol: 0.07 + power * 0.06 });
+        this.tone(3000 + Math.random() * 700, 0.014, { type: "triangle", vol: 0.025 + power * 0.02 });
       },
+      wheelBar: (o) => this.casinoBar(o),
       wheelCharge: (length = 2) => {
         const d = Math.max(0.6, Math.min(4, length + 0.3));
-        this.tone(160, d, { to: 1600, vol: 0.09, type: "sawtooth" });
-        this.tone(240, d, { to: 2400, vol: 0.05, type: "square" });
-        this.noise(d, { f: 2500, q: 0.7, vol: 0.06 });
+        this.tone(160, d, { to: 1600, vol: 0.05, type: "sawtooth", bus: true });
+        this.noise(d, { f: 2500, q: 0.7, vol: 0.04, bus: true });
       },
       wheelBoom: () => {
+        this.cutMusic();
         this.tone(60, 1.4, { to: 22, vol: 0.5 });
         this.noise(0.3, { f: 300, filter: "lowpass", vol: 0.35, at: 0.14 });
         this.noise(0.3, { f: 300, filter: "lowpass", vol: 0.3, at: 0.28 });
         this.tone(90, 0.9, { to: 30, vol: 0.45 });
         this.noise(0.9, { f: 500, filter: "lowpass", vol: 0.4 });
         this.noise(0.25, { f: 4000, filter: "highpass", vol: 0.15 });
-        for (let i = 0; i < 10; i++) this.noise(0.03, { f: 5200, filter: "highpass", vol: 0.06, at: 0.2 + Math.random() * 0.7 });
       },
-      wheelWin: () => this.arp([523, 659, 784, 1047, 1319, 1568], 0.07, { vol: 0.12, d: 0.35 }),
+      wheelWin: () => {
+        [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.12, { type: "square", vol: 0.07, at: 0.05 + i * 0.06 }));
+        [523, 659, 784, 1047, 1319].forEach((f) => {
+          this.tone(f, 1.3, { type: "triangle", vol: 0.06, at: 0.3 });
+          this.tone(f * 1.003, 1.1, { type: "square", vol: 0.018, at: 0.3 });
+        });
+        for (let i = 0; i < 24; i++) this.tone(i % 2 ? 1568 : 2093, 0.05, { type: "triangle", vol: 0.035, at: 0.3 + i * 0.05 });
+        for (let i = 0; i < 26; i++) this.tone(1800 + Math.random() * 1800, 0.08, { type: "triangle", vol: 0.035, at: 0.2 + Math.random() * 1.5 });
+      },
     };
+  }
+
+  static CASINO = {
+    sixteenth: 60 / 168 / 4,
+    roots: [48, 45, 41, 43],
+    shapes: [[0, 4, 7], [0, 3, 7], [0, 4, 7], [0, 4, 7]],
+  };
+
+  static midi(n) {
+    return 440 * Math.pow(2, (n - 69) / 12);
+  }
+
+  casinoBar({ step = 0, energy = 1, build = 0, lead = 0 } = {}) {
+    if (!this.ac()) return;
+    const C = SoundEngine.CASINO;
+    const s = C.sixteenth;
+    const chord = Math.floor(step / 2) % C.roots.length;
+    const root = C.roots[chord];
+    const tones = C.shapes[chord];
+    const at = (k) => lead + k * s;
+    const bus = true;
+    [0, 4].forEach((k) => this.tone(160, 0.14, { to: 40, vol: 0.3, at: at(k), bus }));
+    this.noise(0.09, { f: 1600, q: 0.9, vol: 0.1, at: at(4), bus });
+    for (let k = 0; k < 8; k++) this.noise(k % 2 ? 0.02 : 0.05, { f: 7500, filter: "highpass", vol: k % 2 ? 0.02 : 0.05, at: at(k), bus });
+    [0, 2, 4, 6].forEach((k, i) => this.tone(SoundEngine.midi(root + (i % 2 ? 24 : 12)), 0.1, { type: "triangle", vol: 0.16, at: at(k), bus }));
+    [2, 6].forEach((k) => tones.forEach((t) => this.tone(SoundEngine.midi(root + 24 + t), 0.07, { type: "square", vol: 0.022, at: at(k), bus })));
+    const bells = energy > 0.6 ? [0, 1, 2, 3, 4, 5, 6, 7] : [0, 3, 5];
+    bells.forEach((k) => {
+      if (Math.random() > 0.35 + energy * 0.5) return;
+      const t = tones[Math.floor(Math.random() * 3)] + 12 * (Math.random() < 0.5 ? 3 : 4);
+      this.tone(SoundEngine.midi(root + t), 0.16, { type: "triangle", vol: 0.04, at: at(k), bus });
+    });
+    if (build > 0) {
+      const hits = build > 0.6 ? 16 : 8;
+      for (let k = 0; k < hits; k++) this.noise(0.04, { f: 2200, q: 0.8, vol: 0.03 + 0.1 * build * (k / hits), at: lead + (k * 8 * s) / hits, bus });
+    }
+  }
+
+  out(o) {
+    if (!o.bus) return this.master;
+    if (!this.music) {
+      this.music = this.ctx.createGain();
+      this.music.gain.value = 1;
+      this.music.connect(this.master);
+    }
+    return this.music;
+  }
+
+  cutMusic() {
+    if (!this.music || !this.ctx) return;
+    const bus = this.music;
+    this.music = null;
+    bus.gain.setTargetAtTime(0, this.ctx.currentTime, 0.02);
+    setTimeout(() => bus.disconnect(), 400);
   }
 
   knockAt(at) {
@@ -373,7 +440,7 @@ class SoundEngine {
     g.gain.exponentialRampToValueAtTime(o.vol || 0.2, t + 0.012);
     g.gain.exponentialRampToValueAtTime(0.0001, t + d);
     osc.connect(g);
-    g.connect(this.master);
+    g.connect(this.out(o));
     osc.start(t);
     osc.stop(t + d + 0.03);
   }
@@ -389,7 +456,7 @@ class SoundEngine {
     f.Q.value = o.q || 1;
     s.connect(f);
     f.connect(g);
-    g.connect(this.master);
+    g.connect(this.out(o));
     return {
       s,
       g,
@@ -443,6 +510,7 @@ class SoundEngine {
   }
 
   stopAll() {
+    this.cutMusic();
     return Object.keys(this.loops).forEach((k) => this.loop(k, false));
   }
 

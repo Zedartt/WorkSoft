@@ -29,6 +29,7 @@ class WheelFx {
 
   sparks(energy) {
     const p = this.painter;
+    p.syncTheme();
     const count = Math.floor(energy * 5 + Math.random());
     const r = p.r * (1 + WheelPainter.RIM);
     for (let i = 0; i < count; i++) {
@@ -76,6 +77,7 @@ class WheelFx {
     this.rays = 1;
     this.core = 1;
     this.shake = 1.4;
+    this.painter.syncTheme();
     const flare = this.painter.look.flare;
     [
       [0, flare, 0.7],
