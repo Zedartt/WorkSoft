@@ -25,3 +25,6 @@ Des mots traversent le ciel en laissant une traînée arc-en-ciel ou d'étoile f
 
 ### WhereWord
 Une page Wikipédia s'ouvre au hasard et un mot de la page t'est donné : trouve-le dans le texte et clique dessus le plus vite possible pour passer à la page suivante. Tu as une minute par page. Trouvé dans les 5 premières secondes, le mot vaut 100 points ; ensuite il perd de la valeur à mesure que le temps passe.
+
+### Word King
+Un duel de frappe en ligne contre un ami. Crée un salon, donne-lui le code, et écrivez les mêmes mots le plus vite possible : chaque mot pousse la grande barre lumineuse vers le camp adverse. Bleu pour toi, rouge pour lui, et tu le vois écrire en direct. Celui qui pousse la barre jusqu'au bout est couronné Word King.

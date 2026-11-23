@@ -344,6 +344,41 @@ class SoundEngine {
         for (let i = 0; i < 24; i++) this.tone(i % 2 ? 1568 : 2093, 0.05, { type: "triangle", vol: 0.035, at: 0.3 + i * 0.05 });
         for (let i = 0; i < 26; i++) this.tone(1800 + Math.random() * 1800, 0.08, { type: "triangle", vol: 0.035, at: 0.2 + Math.random() * 1.5 });
       },
+      wkKey: () => this.tone(1300 + Math.random() * 300, 0.03, { type: "triangle", vol: 0.03 }),
+      wkMiss: () => this.tone(170, 0.1, { type: "square", vol: 0.05 }),
+      wkHit: () => {
+        this.tone(260, 0.16, { to: 1040, type: "sawtooth", vol: 0.04 });
+        this.noise(0.16, { f: 3200, q: 0.7, vol: 0.1 });
+        this.tone(110, 0.28, { to: 45, vol: 0.32, at: 0.06 });
+        this.tone(1319, 0.18, { type: "triangle", vol: 0.06, at: 0.06 });
+        this.tone(1976, 0.14, { type: "triangle", vol: 0.035, at: 0.1 });
+      },
+      wkFoe: () => {
+        this.noise(0.14, { f: 1300, q: 0.8, vol: 0.08 });
+        this.tone(140, 0.26, { to: 50, vol: 0.24, at: 0.05 });
+        this.tone(330, 0.14, { type: "square", vol: 0.022, at: 0.05 });
+      },
+      wkCount: () => {
+        this.tone(660, 0.18, { type: "square", vol: 0.05 });
+        this.tone(80, 0.25, { to: 40, vol: 0.25 });
+      },
+      wkGo: () => {
+        [392, 523, 659, 784].forEach((f) => this.tone(f, 0.7, { type: "sawtooth", vol: 0.035 }));
+        this.tone(1568, 0.5, { type: "triangle", vol: 0.06 });
+        this.noise(0.6, { f: 2400, q: 0.5, vol: 0.12 });
+        this.tone(120, 0.5, { to: 35, vol: 0.38 });
+      },
+      wkJoin: () => this.arp([523, 659, 784, 1047], 0.08, { vol: 0.1 }),
+      wkWin: () => {
+        this.arp([523, 659, 784, 1047, 1319], 0.1, { vol: 0.12, d: 0.3 });
+        [523, 659, 784, 1047].forEach((f) => this.tone(f, 1.4, { type: "sawtooth", vol: 0.025, at: 0.55 }));
+        this.tone(2093, 1, { type: "triangle", vol: 0.05, at: 0.55 });
+        for (let i = 0; i < 16; i++) this.noise(0.08, { f: 4000 + Math.random() * 3000, q: 2, vol: 0.05, at: 0.6 + Math.random() * 1.2 });
+      },
+      wkLose: () => {
+        this.arp([392, 349, 311, 262], 0.16, { vol: 0.1, d: 0.35, type: "square" });
+        this.tone(98, 0.9, { to: 55, vol: 0.2, at: 0.5 });
+      },
     };
   }
 

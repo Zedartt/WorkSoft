@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="css/hooplab.css" />
     <link rel="stylesheet" href="css/horsering.css" />
     <link rel="stylesheet" href="css/wheeeeel.css" />
+    <link rel="stylesheet" href="css/wordking.css" />
   </head>
   <body>
     <div class="corner">
@@ -514,6 +515,90 @@
       </div>
     </section>
 
+    <section id="wordking" class="screen">
+      <div class="game-top">
+        <button class="back">← Menu</button>
+        <h1 class="game-title">Word King</h1>
+        <div></div>
+      </div>
+      <div class="game-bar">
+        <button class="icon-btn" id="wkLeave" title="Quitter le salon" aria-label="Quitter le salon">
+          <svg viewBox="0 0 24 24"><path d="M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10" /></svg>
+        </button>
+        <div class="stat">Salon <b id="wkRoomCode">—</b></div>
+        <div class="stat">Temps <b id="wkTime">1:30</b></div>
+        <div class="stat">Victoires <b id="wkWins">0</b></div>
+      </div>
+      <div class="wk-area" id="wkArea">
+        <div class="wk-stage">
+          <canvas id="wkCanvas"></canvas>
+        </div>
+        <div class="wk-duel">
+          <div class="wk-side wk-me">
+            <div class="wk-who">Toi</div>
+            <div class="wk-word" id="wkMyWord">—</div>
+            <div class="wk-next" id="wkMyNext"></div>
+            <div class="wk-field" id="wkField">
+              <input id="wkInput" type="text" placeholder="Écris le mot…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Mot à écrire" />
+            </div>
+            <div class="wk-stats" id="wkMyStats"></div>
+          </div>
+          <div class="wk-side wk-foe">
+            <div class="wk-who">Adversaire</div>
+            <div class="wk-word" id="wkFoeWord">—</div>
+            <div class="wk-next" id="wkFoeNext"></div>
+            <div class="wk-field wk-ghost" aria-hidden="true"><span id="wkFoeTyped"></span><i class="wk-caret"></i></div>
+            <div class="wk-stats" id="wkFoeStats"></div>
+          </div>
+          <div class="overlay wk-over" id="wkOver">
+            <div class="card wk-over-card" id="wkOverCard">
+              <svg class="wk-crown" viewBox="0 0 64 44"><path d="M6 38V12l13 11L32 4l13 19 13-11v26z" /><rect x="6" y="38" width="52" height="5" rx="1.5" /></svg>
+              <h2 id="wkResultTitle">Victoire</h2>
+              <div class="wk-result" id="wkResult"></div>
+              <div class="wk-score">
+                <div><b class="wk-me-score" id="wkScoreMe">0</b><span>Toi</span></div>
+                <i>mots</i>
+                <div><b class="wk-foe-score" id="wkScoreFoe">0</b><span>Adversaire</span></div>
+              </div>
+              <p class="wk-note" id="wkAgainNote"></p>
+              <div class="actions">
+                <button class="btn primary" id="wkAgain">Revanche<span class="wk-key"> (Entrée)</span></button>
+                <button class="btn" id="wkQuit">Quitter le salon</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="overlay wk-lobby show" id="wkLobby">
+          <div class="card wk-lobby-card" id="wkLobbyCard" data-view="home">
+            <div class="wk-view wk-home">
+              <h2>Duel en ligne</h2>
+              <p class="wk-lead">Crée un salon et donne le code à ton adversaire, ou rejoins le sien.</p>
+              <button class="btn primary wk-big" id="wkCreate">Créer un salon</button>
+              <div class="wk-or"><span>ou</span></div>
+              <div class="wk-join-row">
+                <input id="wkCodeInput" type="text" maxlength="5" placeholder="CODE" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" aria-label="Code du salon" />
+                <button class="btn" id="wkJoin">Rejoindre</button>
+              </div>
+            </div>
+            <div class="wk-view wk-wait">
+              <h2>Ton salon</h2>
+              <div class="wk-code" id="wkCode"></div>
+              <button class="btn" id="wkCopy">Copier le code</button>
+              <p class="wk-lead wk-dots">En attente d'un adversaire</p>
+              <button class="btn" id="wkCancelHost">Annuler</button>
+            </div>
+            <div class="wk-view wk-join">
+              <h2>Connexion au salon</h2>
+              <div class="wk-code" id="wkJoinCode"></div>
+              <p class="wk-lead wk-dots">Connexion en cours</p>
+              <button class="btn" id="wkCancelJoin">Annuler</button>
+            </div>
+            <p class="wk-error" id="wkError"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <script src="js/vendor/matter.min.js"></script>
     <script src="js/core/Dom.js"></script>
     <script src="js/core/Viewport.js"></script>
@@ -573,6 +658,11 @@
     <script src="js/games/wheeeeel/WheelFx.js"></script>
     <script src="js/games/wheeeeel/WheelEditor.js"></script>
     <script src="js/games/wheeeeel/WheeeeelGame.js"></script>
+    <script src="js/games/wordking/DuelWords.js"></script>
+    <script src="js/games/wordking/DuelLink.js"></script>
+    <script src="js/games/wordking/DuelFx.js"></script>
+    <script src="js/games/wordking/DuelArena.js"></script>
+    <script src="js/games/wordking/WordKingGame.js"></script>
     <script src="js/core/App.js"></script>
   </body>
 </html>

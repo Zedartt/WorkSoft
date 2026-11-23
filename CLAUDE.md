@@ -6,6 +6,7 @@ Site de mini-jeux statique (HTML + CSS + JavaScript, sans framework ni étape de
 
 - Ouvrir `index.html` par double-clic (protocole `file://`) ou avec Live Server. Il n'y a rien à installer ni à compiler.
 - Il n'y a pas de tests automatisés. Après toute modification, ouvrir le site, lancer le jeu touché et jouer une partie ; vérifier la console (aucune erreur attendue).
+- Word King se joue à deux, en ligne : pour tester seul, ouvrir le site dans deux navigateurs différents (ou deux fenêtres, chacune au premier plan), créer un salon dans l'un et le rejoindre dans l'autre. Un onglet caché derrière un autre ne fait plus avancer son jeu.
 - Wikopy-past appelle l'API de Wikipédia : sans réseau, le bandeau rouge « Wikipédia injoignable » et un texte de secours sont le comportement normal. Cooktou appelle TheMealDB et MyMemory : sans réseau, la pastille « Recettes en ligne injoignables » et quelques recettes de secours sont le comportement normal.
 
 ## Règles du projet (à respecter)
@@ -16,7 +17,7 @@ Site de mini-jeux statique (HTML + CSS + JavaScript, sans framework ni étape de
 4. **Programmation orientée objet** : état dans des champs d'instance, réglages dans des champs `static` en MAJUSCULES, pas de variables globales en dehors de `$`, `Store`, `Sfx` et `app`.
 5. **Aucune dépendance externe** hormis `js/vendor/matter.min.js` (Matter.js 0.20.0, licence MIT, l'en-tête de licence doit rester). Pas de CDN, pas de npm à l'exécution.
 6. **Textes de l'interface en français**, tutoiement.
-7. **Classes CSS préfixées par jeu** (`ck-` Cooktou, `hl-` Hooplab, `plk-` Kaplab, `ink-` Incscape, `wh-` WordHunt, `ww-` WhereWord, `hr-` Horsering, `wl-` Wheeeeel). Une classe générique a déjà provoqué une collision (`.hint` de Wikopy contre un repère de Cooktou).
+7. **Classes CSS préfixées par jeu** (`ck-` Cooktou, `hl-` Hooplab, `plk-` Kaplab, `ink-` Incscape, `wh-` WordHunt, `ww-` WhereWord, `hr-` Horsering, `wl-` Wheeeeel, `wk-` Word King). Une classe générique a déjà provoqué une collision (`.hint` de Wikopy contre un repère de Cooktou).
 8. **Thème clair/sombre** : n'utiliser que les variables CSS de `css/base.css` (`--bg`, `--panel`, `--ink`, `--muted`, `--line`, `--accent`, `--bad`…) pour tout ce qui doit changer avec le thème. Le thème est porté par `data-theme` sur `<html>`.
 9. **En-tête identique pour tous les jeux** : `.game-top` (bouton « ← Menu », titre centré) puis `.game-bar` (bande de hauteur fixe pour ce qui est propre au jeu, boutons `.icon-btn`).
 
@@ -28,7 +29,7 @@ css/
   base.css                     variables, thèmes, boutons de thème et de son, animations communes
   components.css               en-tête de jeu, bande de jeu, boutons, carte de résultat, pastilles
   menu.css                     grille des chaînes, horloge, écran de lancement, fondu
-  wikopy.css  kaplab.css  incscape.css  cooktou.css  wordhunt.css  whereword.css  hooplab.css  horsering.css  wheeeeel.css
+  wikopy.css  kaplab.css  incscape.css  cooktou.css  wordhunt.css  whereword.css  hooplab.css  horsering.css  wheeeeel.css  wordking.css
 js/
   core/
     Dom.js                     $(id) et Store (lecture/écriture localStorage protégée)
@@ -72,6 +73,8 @@ js/
     whereword/ ArticleSource.js (article Wikipédia complet découpé en blocs), HuntText.js (découpage en mots, comptage, choix du mot), WhereWordGame.js
     wheeeeel/  WheelStore.js (roues enregistrées, roue par défaut), WheelPainter.js (dessin de la roue, ampoules, flèche, projecteurs),
                WheelFx.js (étincelles, explosion, ondes, confettis), WheelEditor.js (fenêtre de création et de modification), WheeeeelGame.js
+    wordking/  DuelWords.js (suite de mots tirée d'une graine commune), DuelLink.js (salon, mise en relation, liaison directe entre les deux navigateurs),
+               DuelFx.js (étincelles, ondes, « +n »), DuelArena.js (scène, barre de duel, projecteurs, point de choc, compte à rebours, couronne), WordKingGame.js
   vendor/matter.min.js
 ```
 
@@ -240,17 +243,27 @@ Script de contrôle à coller dans la console après avoir lancé Cooktou (doit 
 - Sons façon casino, choix du propriétaire : départ = levier de machine à sous, pièces et glissando de clochettes (`wheelStart`) ; pendant la rotation, musique entraînante à 168 BPM (`SoundEngine.casinoBar`, `SoundEngine.CASINO` : grosse caisse, clap, charleston, basse en octaves, accords en contretemps, clochettes au hasard, suite C–Am–F–G) jouée par demi-mesure (`WheeeeelGame.MUSIC_STEP`, programmée un peu à l'avance) et plus fournie quand la roue va vite ; au final, roulement de caisse claire qui accélère et son de montée (`wheelCharge`) ; à l'explosion, la musique est coupée net (`SoundEngine.cutMusic`, piste `bus` séparée, aussi coupée par `stopAll`) puis jackpot (`wheelWin` : fanfare, accord tenu, sonnette et cascade de pièces). Tics de bille rapides : un tic par picot du cadre (`WheeeeelGame.PINS`), quel que soit le nombre de cases, au plus un tous les `TICK_GAP` s.
 - La face de la roue (cases et textes) est dessinée une seule fois dans un canvas caché et seulement tournée à chaque image. Un texte trop long passe sur deux lignes, puis se termine par « … » sur la roue (il reste entier dans le résultat).
 
+### Word King
+
+- Duel de frappe en ligne à deux. Bleu = moi (toujours à gauche), rouge = l'adversaire (toujours à droite), sur les deux écrans. Couleurs du duel dans `DuelArena.COLORS` (canvas) et `--wk-me` / `--wk-foe` (pages).
+- **Salon** (`DuelLink`) : le site n'a pas de serveur. « Créer un salon » tire un code de `CODE_LEN` (5) caractères dans `ALPHABET` (sans I, O, 0, 1). Les deux navigateurs se retrouvent par le service gratuit ntfy.sh (sujet `TOPIC` + code, réception en direct par `EventSource`, envoi par `fetch` avec `?cache=no` pour que rien ne reste stocké), s'échangent une offre et une réponse WebRTC (serveurs STUN publics de Google et Cloudflare dans `ICE`), puis se parlent directement par un canal de données : ntfy n'est plus utilisé pendant le duel. Celui qui rejoint fait l'offre, l'hôte répond ; un seul adversaire est accepté (les autres reçoivent « full »). Sans réponse au bout de `JOIN_MS`, message « Salon introuvable » ; si l'échange a eu lieu mais que la liaison directe échoue (réseaux d'entreprise ou d'école, pas de serveur relais TURN), message `MSG.blocked`. Battement toutes les `PING_MS`, adversaire perdu après `LOST_MS` sans nouvelle ; « bye » envoyé au retour au menu et à la fermeture de la page.
+- **Messages du duel** : `start` (graine des mots, envoyé par l'hôte), `type` (ce que l'adversaire est en train d'écrire, affiché en direct), `word` (mot terminé : chacun recalcule les lettres à partir de sa propre liste, rien n'est cru sur parole), `end` (verdict de l'hôte), `again` (revanche), `ping`, `bye`.
+- **Règles** (`WordKingGame`) : les deux joueurs ont les mêmes mots dans le même ordre (`DuelWords`, graine commune, mots de `WordList`). Le mot part tout seul dès qu'il est juste (accents et majuscules facultatifs, `WordList.plain`) ; espace, Entrée, coller et glisser sont bloqués dans le champ. Une faute fait trembler le champ, il faut l'effacer. Barre = (mes lettres − ses lettres) / `TARGET` (60) : arrivée au bout = victoire ; sinon au bout de `ROUND_TIME` (90 s) celui qui a la barre de son côté gagne, égalité possible. L'hôte est l'arbitre (`referee`) et envoie le verdict avec les scores. Compte à rebours de `COUNT_TIME` s puis « DUEL ! ». Revanche quand les deux ont cliqué (ou Entrée). Victoires mémorisées.
+- Pas de pause en ligne : `pause()` renvoie `false`, le duel continue derrière la fiche « i ». L'hôte ne lance le duel que quand son onglet est affiché (la boucle `requestAnimationFrame` s'arrête dans un onglet caché).
+- **Lumières** (`DuelArena`, choix du propriétaire « comme un grand duel ») : scène toujours sombre (variables `--wk-stage-a` / `--wk-stage-b`, fond dessiné une fois dans un canvas caché), sol en perspective, projecteurs bleus à gauche et rouges à droite braqués sur le point de choc, barre en verre avec chevrons qui avancent vers le centre, point de choc blanc avec éclairs et étincelles permanentes. À chaque mot : onde lumineuse qui court le long de la barre depuis le bout du joueur, puis à l'arrivée gerbe d'étincelles, anneaux, flash du camp, petite secousse et coup de ressort de la barre (`SPRING`, `KICK`), « +n » lettres. Bout de barre qui pulse quand un joueur est en danger (`DANGER`). Fin : la barre se remplit de la couleur du gagnant, couronne au-dessus de son bout, feux d'artifice de son côté pendant `PARTY_TIME`, camp perdant assombri. Mélange additif (`lighter`), particules limitées à `DuelFx.MAX_PARTICLES`.
+- Données envoyées à ntfy.sh : seulement l'offre et la réponse de connexion (elles contiennent les adresses réseau des joueurs), sur un sujet dont le nom contient le code du salon.
+
 ## Sons
 
-`SoundEngine` synthétise tout avec Web Audio (oscillateurs et bruit filtré), sans fichier audio. Le contexte audio n'est créé qu'après un premier geste de l'utilisateur. `Sfx.play(nom)` pour un son ponctuel, `Sfx.loop(nom, true|false)` pour `sizzle`, `pour`, `hum`. `whoosh` accompagne le lancer d'un mot dans WordHunt. Les sons `horse*` (brosses, sprays, croque, boit, hennit, sabots) servent à Horsering ; le jet d'eau réutilise la boucle `pour`. Les sons `wheel*` (départ, tic de la bille, musique de casino `wheelBar`, montée, explosion, jackpot) servent à Wheeeeel ; la musique passe par une piste séparée (`bus: true`) que `cutMusic()` coupe net. Le bouton haut-parleur coupe le son (mémorisé).
+`SoundEngine` synthétise tout avec Web Audio (oscillateurs et bruit filtré), sans fichier audio. Le contexte audio n'est créé qu'après un premier geste de l'utilisateur. `Sfx.play(nom)` pour un son ponctuel, `Sfx.loop(nom, true|false)` pour `sizzle`, `pour`, `hum`. `whoosh` accompagne le lancer d'un mot dans WordHunt. Les sons `horse*` (brosses, sprays, croque, boit, hennit, sabots) servent à Horsering ; le jet d'eau réutilise la boucle `pour`. Les sons `wheel*` (départ, tic de la bille, musique de casino `wheelBar`, montée, explosion, jackpot) servent à Wheeeeel ; la musique passe par une piste séparée (`bus: true`) que `cutMusic()` coupe net. Les sons `wk*` (frappe, faute, mot envoyé, mot adverse, compte à rebours, départ, connexion, victoire, défaite) servent à Word King. Le bouton haut-parleur coupe le son (mémorisé).
 
 ## Données mémorisées (localStorage)
 
-`worksoft_theme`, `worksoft_mute`, `wikopy_best`, `incscape_best`, `cooktou_best`, `wordhunt_best`, `whereword_best`, `hooplab_best` (meilleur combo), `horsering_total` (chevaux soignés au total), `horsering_points` (points cumulés), `cooktou_chef`, `wheeeeel_wheels` (roues créées), `wheeeeel_current` (roue affichée). Toujours protéger l'accès par `try/catch` ou passer par `Store`.
+`worksoft_theme`, `worksoft_mute`, `wikopy_best`, `incscape_best`, `cooktou_best`, `wordhunt_best`, `whereword_best`, `hooplab_best` (meilleur combo), `horsering_total` (chevaux soignés au total), `horsering_points` (points cumulés), `cooktou_chef`, `wheeeeel_wheels` (roues créées), `wheeeeel_current` (roue affichée), `wordking_wins` (duels gagnés). Toujours protéger l'accès par `try/catch` ou passer par `Store`.
 
 ## Hébergement
 
-Site statique : publier le dossier tel quel (GitHub Pages, Netlify, Cloudflare Pages, itch.io…). Aucune variable d'environnement, aucun serveur.
+Site statique : publier le dossier tel quel (Word King n'a pas besoin de serveur non plus, il passe par ntfy.sh et une liaison directe entre navigateurs) (GitHub Pages, Netlify, Cloudflare Pages, itch.io…). Aucune variable d'environnement, aucun serveur.
 
 ## Façon de travailler attendue
 
