@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="css/horsering.css" />
     <link rel="stylesheet" href="css/wheeeeel.css" />
     <link rel="stylesheet" href="css/wordking.css" />
+    <link rel="stylesheet" href="css/farwest.css" />
   </head>
   <body>
     <div class="corner">
@@ -600,6 +601,75 @@
       </div>
     </section>
 
+    <section id="farwest" class="screen">
+      <div class="game-top">
+        <button class="back">← Menu</button>
+        <h1 class="game-title">FarWest</h1>
+        <div></div>
+      </div>
+      <div class="game-bar">
+        <button class="icon-btn" id="fwLeave" title="Quitter le salon" aria-label="Quitter le salon">
+          <svg viewBox="0 0 24 24"><path d="M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10" /></svg>
+        </button>
+        <div class="stat">Salon <b id="fwRoomCode">—</b></div>
+        <div class="stat lobby-route">Liaison <b id="fwRoute">—</b></div>
+      </div>
+      <div class="fw-area">
+        <div class="fw-stage" id="fwStage">
+          <canvas id="fwCanvas"></canvas>
+          <div class="overlay fw-over" id="fwOver" data-end>
+            <div class="card fw-over-card" id="fwOverCard">
+              <svg class="fw-badge" viewBox="-50 -50 100 100"><path d="M0-46 11-19 40-23 22 0 40 23 11 19 0 46-11 19-40 23-22 0-40-23-11-19z" /><circle r="14" /></svg>
+              <h2 id="fwResultTitle">Victoire</h2>
+              <div class="fw-result" id="fwResult"></div>
+              <div class="fw-score">
+                <div><b class="fw-me-score" id="fwScoreMe">0</b><span>Toi</span></div>
+                <i>manches</i>
+                <div><b class="fw-foe-score" id="fwScoreFoe">0</b><span>Adversaire</span></div>
+              </div>
+              <div class="fw-best">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" /><path d="M12 5V2M12 13l4-4M9 2h6" /></svg>
+                Ton meilleur réflexe : <b id="fwBest">—</b>
+              </div>
+              <p class="lobby-note" id="fwAgainNote"></p>
+              <div class="actions">
+                <button class="btn primary" id="fwAgain">Revanche<span class="lobby-key"> (Entrée)</span></button>
+                <button class="btn" id="fwQuit">Quitter le salon</button>
+              </div>
+            </div>
+          </div>
+          <div class="overlay lobby show" id="fwLobby">
+            <div class="card lobby-card" id="fwLobbyCard" data-view="home">
+              <div class="lobby-view lobby-home">
+                <h2>Duel au soleil</h2>
+                <p class="lobby-lead">Crée un salon et donne le code à ton adversaire, ou rejoins le sien.</p>
+                <button class="btn primary lobby-big" id="fwCreate">Créer un salon</button>
+                <div class="lobby-or"><span>ou</span></div>
+                <div class="lobby-join-row">
+                  <input class="lobby-code-input" id="fwCodeInput" type="text" maxlength="5" placeholder="CODE" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" aria-label="Code du salon" />
+                  <button class="btn" id="fwJoin">Rejoindre</button>
+                </div>
+              </div>
+              <div class="lobby-view lobby-wait">
+                <h2>Ton salon</h2>
+                <div class="lobby-code" id="fwCode"></div>
+                <button class="btn" id="fwCopy">Copier le code</button>
+                <p class="lobby-lead lobby-dots">En attente d'un adversaire</p>
+                <button class="btn" id="fwCancelHost">Annuler</button>
+              </div>
+              <div class="lobby-view lobby-join">
+                <h2>Connexion au salon</h2>
+                <div class="lobby-code" id="fwJoinCode"></div>
+                <p class="lobby-lead lobby-dots">Connexion en cours</p>
+                <button class="btn" id="fwCancelJoin">Annuler</button>
+              </div>
+              <p class="lobby-error" id="fwError"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <script src="js/vendor/matter.min.js"></script>
     <script src="js/core/Dom.js"></script>
     <script src="js/core/Viewport.js"></script>
@@ -607,6 +677,9 @@
     <script src="js/core/Game.js"></script>
     <script src="js/core/RecordBadge.js"></script>
     <script src="js/core/ReplayGuard.js"></script>
+    <script src="js/core/MqttRelay.js"></script>
+    <script src="js/core/DuelLink.js"></script>
+    <script src="js/core/DuelLobby.js"></script>
     <script src="js/core/ThemeSwitch.js"></script>
     <script src="js/core/MenuSettings.js"></script>
     <script src="js/core/HelpPanel.js"></script>
@@ -662,11 +735,14 @@
     <script src="js/games/wheeeeel/WheelEditor.js"></script>
     <script src="js/games/wheeeeel/WheeeeelGame.js"></script>
     <script src="js/games/wordking/DuelWords.js"></script>
-    <script src="js/games/wordking/MqttRelay.js"></script>
-    <script src="js/games/wordking/DuelLink.js"></script>
     <script src="js/games/wordking/DuelFx.js"></script>
     <script src="js/games/wordking/DuelArena.js"></script>
     <script src="js/games/wordking/WordKingGame.js"></script>
+    <script src="js/games/farwest/FarWestScene.js"></script>
+    <script src="js/games/farwest/Cowboy.js"></script>
+    <script src="js/games/farwest/WestFx.js"></script>
+    <script src="js/games/farwest/WestHud.js"></script>
+    <script src="js/games/farwest/FarWestGame.js"></script>
     <script src="js/core/App.js"></script>
   </body>
 </html>

@@ -28,3 +28,6 @@ Une page Wikipédia s'ouvre au hasard et un mot de la page t'est donné : trouve
 
 ### Word King
 Un duel de frappe en ligne contre un ami. Crée un salon, donne-lui le code, et écrivez les mêmes mots le plus vite possible : chaque mot pousse la grande barre lumineuse vers le camp adverse. Bleu pour toi, rouge pour lui, et tu le vois écrire en direct. Celui qui pousse la barre jusqu'au bout est couronné Word King.
+
+### FarWest
+Un duel de cowboys en ligne contre un ami, devant le saloon. Attends le signal « FEU ! » et dégaine plus vite que lui, mais pas avant, sinon tu perds la manche. Le premier à deux manches gagne.

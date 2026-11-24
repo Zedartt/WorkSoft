@@ -5,7 +5,7 @@ class RecordBadge {
       if (!game.record || game.record.bar === false) continue;
       const stat = document.createElement("div");
       stat.className = "stat record-stat";
-      stat.innerHTML = `${game.record.label || "Record"} <b></b>`;
+      stat.innerHTML = `${game.record.short || game.record.label || "Record"} <b></b>`;
       $(game.id).querySelector(".game-bar").appendChild(stat);
       this.badges.push({ game, value: stat.querySelector("b") });
     }

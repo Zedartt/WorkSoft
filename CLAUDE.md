@@ -17,7 +17,7 @@ Site de mini-jeux statique (HTML + CSS + JavaScript, sans framework ni étape de
 4. **Programmation orientée objet** : état dans des champs d'instance, réglages dans des champs `static` en MAJUSCULES, pas de variables globales en dehors de `$`, `Store`, `Sfx` et `app`.
 5. **Aucune dépendance externe** hormis `js/vendor/matter.min.js` (Matter.js 0.20.0, licence MIT, l'en-tête de licence doit rester). Pas de CDN, pas de npm à l'exécution.
 6. **Textes de l'interface en français**, tutoiement.
-7. **Classes CSS préfixées par jeu** (`ck-` Cooktou, `hl-` Hooplab, `plk-` Kaplab, `ink-` Incscape, `wh-` WordHunt, `ww-` WhereWord, `hr-` Horsering, `wl-` Wheeeeel, `wk-` Word King). Une classe générique a déjà provoqué une collision (`.hint` de Wikopy contre un repère de Cooktou).
+7. **Classes CSS préfixées par jeu** (`ck-` Cooktou, `hl-` Hooplab, `plk-` Kaplab, `ink-` Incscape, `wh-` WordHunt, `ww-` WhereWord, `hr-` Horsering, `wl-` Wheeeeel, `wk-` Word King, `fw-` FarWest ; `lobby-` pour l'écran de salon partagé des jeux en ligne). Une classe générique a déjà provoqué une collision (`.hint` de Wikopy contre un repère de Cooktou).
 8. **Thème clair/sombre** : n'utiliser que les variables CSS de `css/base.css` (`--bg`, `--panel`, `--ink`, `--muted`, `--line`, `--accent`, `--bad`…) pour tout ce qui doit changer avec le thème. Le thème est porté par `data-theme` sur `<html>`.
 9. **En-tête identique pour tous les jeux** : `.game-top` (bouton « ← Menu », titre centré) puis `.game-bar` (bande de hauteur fixe pour ce qui est propre au jeu, boutons `.icon-btn`).
 
@@ -29,7 +29,7 @@ css/
   base.css                     variables, thèmes, boutons de thème et de son, animations communes
   components.css               en-tête de jeu, bande de jeu, boutons, carte de résultat, pastilles
   menu.css                     grille des chaînes, horloge, écran de lancement, fondu
-  wikopy.css  kaplab.css  incscape.css  cooktou.css  wordhunt.css  whereword.css  hooplab.css  horsering.css  wheeeeel.css  wordking.css
+  wikopy.css  kaplab.css  incscape.css  cooktou.css  wordhunt.css  whereword.css  hooplab.css  horsering.css  wheeeeel.css  wordking.css  farwest.css
 js/
   core/
     Dom.js                     $(id) et Store (lecture/écriture localStorage protégée)
@@ -38,6 +38,9 @@ js/
     Game.js                    classe de base des jeux : id, name, tag, art, help, record, open(), close(), pause(), resume()
     RecordBadge.js             record du jeu dans sa bande (`.record-stat`), mis à jour à l'ouverture et à chaque carte de fin
     ReplayGuard.js             bloque 2 s les boutons et Entrée/Espace quand une carte de fin s'affiche
+    MqttRelay.js               petit client MQTT sur WebSocket pour le relais des jeux en ligne
+    DuelLink.js                salon en ligne à deux : code, mise en relation, liaison directe ou par relais (partagé par Word King et FarWest)
+    DuelLobby.js               écran de salon (créer, rejoindre, copier le code, annuler, liaison) à partir d'un préfixe d'identifiants
     HelpPanel.js               bouton « i » de chaque jeu et fiche « Comment jouer » (le jeu est en pause tant qu'elle est ouverte)
     ThemeSwitch.js             bascule de thème et bouton de son (chacun peut piloter plusieurs boutons)
     MenuSettings.js            panneau « Paramètres » du rouage de l'accueil (son, thème)
@@ -75,8 +78,10 @@ js/
     whereword/ ArticleSource.js (article Wikipédia complet découpé en blocs), HuntText.js (découpage en mots, comptage, choix du mot), WhereWordGame.js
     wheeeeel/  WheelStore.js (roues enregistrées, roue par défaut), WheelPainter.js (dessin de la roue, ampoules, flèche, projecteurs),
                WheelFx.js (étincelles, explosion, ondes, confettis), WheelEditor.js (fenêtre de création et de modification), WheeeeelGame.js
-    wordking/  DuelWords.js (suite de mots tirée d'une graine commune), DuelLink.js (salon, mise en relation, liaison directe ou par relais), MqttRelay.js (petit client MQTT sur WebSocket pour le relais),
+    wordking/  DuelWords.js (suite de mots tirée d'une graine commune),
                DuelFx.js (étincelles, ondes, « +n »), DuelArena.js (scène, barre de duel, projecteurs, point de choc, compte à rebours, couronne), WordKingGame.js
+    farwest/   FarWestScene.js (désert, saloon, mesas, cactus, nuages, poussière, boules de broussaille), Cowboy.js (cowboy dessiné, deux positions, chute, chapeau),
+               WestFx.js (éclair du canon, trace de balle, fumée, étincelles, rayons, voile de victoire ou de défaite), WestHud.js (icônes : étoile, sablier, revolver, croix, crâne, chrono), FarWestGame.js
   vendor/matter.min.js
 ```
 
@@ -119,10 +124,21 @@ Mesurer les zones de jeu avec `clientWidth` / `clientHeight`, jamais `getBoundin
 4. Ajouter `new <Nom>Game()` dans `App` (il prend la première case libre ; une page de 16 cases s'ajoute toute seule au-delà de 32 jeux).
 5. Jouer les sons via `Sfx.play("nom")` ; en ajouter dans `SoundEngine` (objet `sounds`) si besoin.
 
+### FarWest
+
+- Duel de réflexes en ligne à deux (choix du propriétaire), même salon que Word King (`DuelLink("farwest")`, `DuelLobby("fw")`). Moi en bleu à gauche (chapeau clair), l'adversaire en rouge à droite (chapeau noir), sur les deux écrans.
+- **Manches** : première à `TARGET` (2) manches gagnées (BO3). Chaque manche : « Manche n » (`INTRO_TIME`), puis « Attends… » avec battement de cœur (`BEAT`) pendant un délai tiré par l'hôte entre `MIN_DELAY` (1,5 s) et `MAX_DELAY` (4 s), puis signal « FEU ! » (icône revolver, flash, cloche). Tir : clic ou toucher sur la scène, ou Espace.
+- **Équité** : chaque navigateur lance son propre signal et mesure son propre temps de réaction `r` (négatif = trop tôt) ; il l'envoie (`shot`). L'hôte arbitre (`judge`) : un tir trop tôt perd la manche tout de suite ; deux tirs valides, le plus petit `r` gagne ; un seul tir valide, on attend `GRACE` (0,5 s) l'autre puis il gagne ; personne en `NO_SHOT` s ou deux trop tôt reçus ensemble = manche rejouée. Verdict `result` envoyé à l'invité ; les deux comptent les manches de la même façon et affichent la fin du match. Revanche quand les deux ont cliqué (ou Entrée).
+- **Cowboys** (`Cowboy`) : dessin en unités (hauteur 100), deux positions (bras le long du corps revolver vers le sol, bras tendu vers l'adversaire), passage animé (`DRAW_SPEED`), recul au tir, main qui tremble pendant l'attente, chute en arrière (`FALL_TIME`), yeux en croix, chapeau qui s'envole.
+- **Décor** (`FarWestScene`, choix du propriétaire) : ciel, soleil (jour) ou lune et étoiles (nuit), mesas, saloon avec enseigne, porche et portes battantes (fenêtres éclairées la nuit), cactus, sol de sable, tous dessinés une fois dans un canvas caché ; nuages, poussière et boules de broussaille qui roulent et rebondissent (toutes les `TUMBLE_MIN` à `TUMBLE_MAX` s, son de vent). Couleurs dans les variables `--fw-*` de `css/farwest.css` (jour en thème clair, nuit en thème sombre).
+- **Effets** (`WestFx`) : au tir, éclair au bout du canon, trace de balle, étincelles, fumée, flash de l'écran et secousse ; touché, gerbe d'étincelles ; manche gagnée, rayon de lumière sur le gagnant et étoile de shérif avec son temps au-dessus de sa tête ; trop tôt, croix rouge « Trop tôt » ; match gagné, pluie d'étoiles et rayons dorés ; match perdu, voile rouge sombre.
+- **Affichage** (`WestHud`, choix du propriétaire : icônes plutôt que texte) : en haut, « TOI » et « ADVERSAIRE » avec 2 étoiles de shérif chacun (pleine = manche gagnée), « MANCHE n » au centre ; au milieu, un message court avec son icône sur un bandeau sombre.
+- Record : meilleur temps de réaction en ms (`farwest_best`, « Réflexe » dans la bande) ; victoires dans `farwest_wins`.
+
 ## Records et fin de partie
 
-- Écran de lancement : sous la description, pastille « Record : 1 234 points » (`Game.recordText()`), ou « Pas encore de record ». Jeux concernés : Wikopy-past (mots/min), Incscape (capturés), Cooktou, WordHunt, WhereWord (points), Hooplab (meilleur combo, déjà dans sa bande), Word King (victoires, déjà dans sa bande). Kaplab, Horsering et Wheeeeel n'ont pas de record.
-- Toute carte de fin porte l'attribut `data-end` (`#results`, `#inkOver`, `#ckOver`, `#whOver`, `#wwOver`, `#hrCard`, `#wlResult`, `#wkOver`). Quand elle s'affiche, `ReplayGuard` bloque pendant `LOCK_MS` (2 s) les clics sur ses boutons et les touches Entrée et Espace (écouteurs en capture sur `window`, créés avant ceux des jeux), et une fine barre se remplit au-dessus des boutons (`.end-lock`) : choix du propriétaire, pour ne pas relancer sans le vouloir. Une nouvelle carte de fin doit porter `data-end`.
+- Écran de lancement : sous la description, pastille « Record : 1 234 points » (`Game.recordText()`), ou « Pas encore de record ». Jeux concernés : Wikopy-past (mots/min), Incscape (capturés), Cooktou, WordHunt, WhereWord (points), Hooplab (meilleur combo, déjà dans sa bande), Word King (victoires, déjà dans sa bande), FarWest (meilleur réflexe en ms, « Réflexe » dans la bande grâce à `short`). Kaplab, Horsering et Wheeeeel n'ont pas de record.
+- Toute carte de fin porte l'attribut `data-end` (`#results`, `#inkOver`, `#ckOver`, `#whOver`, `#wwOver`, `#hrCard`, `#wlResult`, `#wkOver`, `#fwOver`). Quand elle s'affiche, `ReplayGuard` bloque pendant `LOCK_MS` (2 s) les clics sur ses boutons et les touches Entrée et Espace (écouteurs en capture sur `window`, créés avant ceux des jeux), et une fine barre se remplit au-dessus des boutons (`.end-lock`) : choix du propriétaire, pour ne pas relancer sans le vouloir. Une nouvelle carte de fin doit porter `data-end`.
 
 ## Aide « i »
 
@@ -261,15 +277,16 @@ Script de contrôle à coller dans la console après avoir lancé Cooktou (doit 
 - **Règles** (`WordKingGame`) : les deux joueurs ont les mêmes mots dans le même ordre (`DuelWords`, graine commune, mots de `WordList`). Le mot part tout seul dès qu'il est parfait (accents et majuscules facultatifs, `WordList.plain`) et rapporte 1 point par lettre. Avec des fautes, Entrée le valide quand même (choix du propriétaire) : points = lettres × part du mot bien écrite (`gain`, distance d'édition `distance`), toujours moins que le maximum ; le message `word` envoie ces points (`n`), plafonnés par celui qui les reçoit. Espace, coller et glisser sont bloqués dans le champ. Une faute fait trembler le champ une fois. Affichage minimal (choix du propriétaire) : mot en cours, mot suivant en petit et plus sombre à sa droite (`.wk-after`), champ (pastille « Entrée » dès qu'on écrit), puis gain du dernier mot (« +6 · parfait » ou « +3 sur 5 »). Barre = (mes points − ses points) / `TARGET` (60) : arrivée au bout = victoire ; sinon au bout de `ROUND_TIME` (90 s) celui qui a la barre de son côté gagne, égalité possible. L'hôte est l'arbitre (`referee`) et envoie le verdict avec les scores. Compte à rebours de `COUNT_TIME` (5) s, en très grand au centre de la scène assombrie avec un anneau qui se vide, puis « DUEL ! ». Revanche quand les deux ont cliqué (ou Entrée). Victoires mémorisées.
 - Pas de pause en ligne : `pause()` renvoie `false`, le duel continue derrière la fiche « i ». L'hôte ne lance le duel que quand son onglet est affiché (la boucle `requestAnimationFrame` s'arrête dans un onglet caché).
 - **Lumières** (`DuelArena`, choix du propriétaire « comme un grand duel ») : scène toujours sombre (variables `--wk-stage-a` / `--wk-stage-b`, fond dessiné une fois dans un canvas caché), sol en perspective, projecteurs bleus à gauche et rouges à droite braqués sur le point de choc, barre en verre avec chevrons qui avancent vers le centre, point de choc blanc avec éclairs et étincelles permanentes. À chaque mot : onde lumineuse qui court le long de la barre depuis le bout du joueur, puis à l'arrivée gerbe d'étincelles, anneaux, flash du camp, petite secousse et coup de ressort de la barre (`SPRING`, `KICK`), « +n » lettres. Bout de barre qui pulse quand un joueur est en danger (`DANGER`). Fin : la barre se remplit de la couleur du gagnant, couronne au-dessus de son bout, feux d'artifice de son côté pendant `PARTY_TIME`, camp perdant assombri. Mélange additif (`lighter`), particules limitées à `DuelFx.MAX_PARTICLES`.
+- Le salon (`DuelLink`, `DuelLobby`) est dans `js/core` : `new DuelLink(nom, événements)`, le nom du jeu sépare les salons (sujets `worksoft-<nom>-<code>` et `worksoft/<nom>/…`). Word King garde son propre écran de salon (`wk-`) ; un nouveau jeu en ligne utilise `DuelLobby` avec des identifiants `<préfixe>Lobby`, `<préfixe>LobbyCard`, `<préfixe>Create`, `<préfixe>CodeInput`, `<préfixe>Join`, `<préfixe>Code`, `<préfixe>Copy`, `<préfixe>CancelHost`, `<préfixe>JoinCode`, `<préfixe>CancelJoin`, `<préfixe>Error`, `<préfixe>RoomCode`, `<préfixe>Leave`, `<préfixe>Route` et les classes `lobby-*` de `components.css` (voir FarWest).
 - Données envoyées à des services publics : à ntfy.sh seulement l'offre et la réponse de connexion (elles contiennent les adresses réseau des joueurs) ; au relais MQTT les messages du duel (mots, frappe) quand la liaison directe ne marche pas, sur un sujet qui contient le code du salon et un identifiant tiré au hasard.
 
 ## Sons
 
-`SoundEngine` synthétise tout avec Web Audio (oscillateurs et bruit filtré), sans fichier audio. Le contexte audio n'est créé qu'après un premier geste de l'utilisateur. `Sfx.play(nom)` pour un son ponctuel, `Sfx.loop(nom, true|false)` pour `sizzle`, `pour`, `hum`. `whoosh` accompagne le lancer d'un mot dans WordHunt. Les sons `horse*` (brosses, sprays, croque, boit, hennit, sabots) servent à Horsering ; le jet d'eau réutilise la boucle `pour`. Les sons `wheel*` (départ, tic de la bille, musique de casino `wheelBar`, montée, explosion, jackpot) servent à Wheeeeel ; la musique passe par une piste séparée (`bus: true`) que `cutMusic()` coupe net. Les sons `wk*` (frappe, faute, mot envoyé, mot adverse, compte à rebours, départ, connexion, victoire, défaite) servent à Word King. Le bouton haut-parleur coupe le son (mémorisé).
+`SoundEngine` synthétise tout avec Web Audio (oscillateurs et bruit filtré), sans fichier audio. Le contexte audio n'est créé qu'après un premier geste de l'utilisateur. `Sfx.play(nom)` pour un son ponctuel, `Sfx.loop(nom, true|false)` pour `sizzle`, `pour`, `hum`. `whoosh` accompagne le lancer d'un mot dans WordHunt. Les sons `horse*` (brosses, sprays, croque, boit, hennit, sabots) servent à Horsering ; le jet d'eau réutilise la boucle `pour`. Les sons `wheel*` (départ, tic de la bille, musique de casino `wheelBar`, montée, explosion, jackpot) servent à Wheeeeel ; la musique passe par une piste séparée (`bus: true`) que `cutMusic()` coupe net. Les sons `fw*` (coup de feu, touché, cloche du signal, battement de cœur, vent, manche, trop tôt, victoire, défaite) servent à FarWest. Les sons `wk*` (frappe, faute, mot envoyé, mot adverse, compte à rebours, départ, connexion, victoire, défaite) servent à Word King. Le bouton haut-parleur coupe le son (mémorisé).
 
 ## Données mémorisées (localStorage)
 
-`worksoft_theme`, `worksoft_mute`, `wikopy_best`, `incscape_best`, `cooktou_best`, `wordhunt_best`, `whereword_best`, `hooplab_best` (meilleur combo), `horsering_total` (chevaux soignés au total), `horsering_points` (points cumulés), `cooktou_chef`, `wheeeeel_wheels` (roues créées), `wheeeeel_current` (roue affichée), `wordking_wins` (duels gagnés). Toujours protéger l'accès par `try/catch` ou passer par `Store`.
+`worksoft_theme`, `worksoft_mute`, `wikopy_best`, `incscape_best`, `cooktou_best`, `wordhunt_best`, `whereword_best`, `hooplab_best` (meilleur combo), `horsering_total` (chevaux soignés au total), `horsering_points` (points cumulés), `cooktou_chef`, `wheeeeel_wheels` (roues créées), `wheeeeel_current` (roue affichée), `wordking_wins` (duels gagnés), `farwest_best` (meilleur réflexe en ms), `farwest_wins` (duels gagnés). Toujours protéger l'accès par `try/catch` ou passer par `Store`.
 
 ## Hébergement
 

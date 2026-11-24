@@ -194,6 +194,130 @@ kbd {
   color: var(--accent);
   font-variant-numeric: tabular-nums;
 }
+.lobby {
+  z-index: 2;
+}
+.lobby-card {
+  max-width: 440px;
+}
+.lobby-view {
+  display: none;
+}
+.lobby-card[data-view="home"] .lobby-home,
+.lobby-card[data-view="wait"] .lobby-wait,
+.lobby-card[data-view="join"] .lobby-join {
+  display: block;
+}
+.lobby-lead {
+  margin: 8px 0 18px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.lobby-big {
+  font-size: 17px;
+  padding: 12px 30px;
+}
+.lobby-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.lobby-or::before,
+.lobby-or::after {
+  content: "";
+  flex: 1;
+  height: 2px;
+  background: var(--line);
+}
+.lobby-join-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.lobby-code-input {
+  width: 9.5em;
+  padding: 8px 12px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-align: center;
+  text-transform: uppercase;
+  outline: 0;
+}
+.lobby-code-input:focus {
+  border-color: var(--accent);
+}
+.lobby-code-input::placeholder {
+  color: var(--muted);
+  letter-spacing: 0.15em;
+  font-size: 18px;
+}
+.lobby-code-input.lobby-wrong {
+  border-color: var(--bad);
+  animation: shake 0.25s;
+}
+.lobby-code {
+  margin: 10px 0 14px;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: clamp(38px, 9vw, 56px);
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  user-select: all;
+}
+.lobby-dots::after {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  vertical-align: middle;
+  animation: lobby-pulse 1s ease-in-out infinite;
+}
+@keyframes lobby-pulse {
+  50% {
+    opacity: 0.2;
+    transform: scale(0.5);
+  }
+}
+.lobby-error {
+  margin: 14px 0 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--bad);
+}
+.lobby-error:empty {
+  margin: 0;
+}
+.lobby-note {
+  min-height: 1.3em;
+  margin: 8px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+@media (max-width: 720px) {
+  .game-bar .lobby-route {
+    display: none;
+  }
+}
+@media (max-width: 720px), (max-height: 500px) {
+  .lobby-key {
+    display: none;
+  }
+}
 .end-lock .actions {
   position: relative;
 }

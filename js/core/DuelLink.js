@@ -1,8 +1,8 @@
 class DuelLink {
   static SIGNAL = "https://ntfy.sh/";
-  static TOPIC = "worksoft-wordking-";
+  static TOPIC = "worksoft-";
   static BROKERS = ["wss://test.mosquitto.org:8081/mqtt", "wss://broker.emqx.io:8084/mqtt", "wss://broker.hivemq.com:8884/mqtt"];
-  static RELAY_TOPIC = "worksoft/wordking/";
+  static RELAY_TOPIC = "worksoft/";
   static ICE = [{ urls: ["stun:stun.l.google.com:19302", "stun:stun.cloudflare.com:3478"] }];
   static ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   static CODE_LEN = 5;
@@ -55,7 +55,8 @@ class DuelLink {
     });
   }
 
-  constructor(events) {
+  constructor(name, events) {
+    this.name = name;
     this.events = events;
     this.gen = 0;
     this.reset();
@@ -125,7 +126,7 @@ class DuelLink {
   }
 
   topicOf(id) {
-    return DuelLink.RELAY_TOPIC + this.code + "/" + id;
+    return DuelLink.RELAY_TOPIC + this.name + "/" + this.code + "/" + id;
   }
 
   host() {
@@ -167,7 +168,7 @@ class DuelLink {
   }
 
   signalUrl() {
-    return DuelLink.SIGNAL + DuelLink.TOPIC + this.code;
+    return DuelLink.SIGNAL + DuelLink.TOPIC + this.name + "-" + this.code;
   }
 
   listen(ready) {

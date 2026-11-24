@@ -92,7 +92,7 @@ class WordKingGame extends Game {
     this.canvas = $("wkCanvas");
     this.arena = new DuelArena(this.canvas);
     this.input = $("wkInput");
-    this.link = new DuelLink({
+    this.link = new DuelLink("wordking", {
       open: () => this.connected(),
       message: (data) => this.receive(data),
       closed: (reason) => this.lobby(reason),

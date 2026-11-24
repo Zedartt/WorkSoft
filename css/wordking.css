@@ -433,7 +433,7 @@
   }
 }
 @media (max-width: 720px) {
-  .wk-route {
+  .game-bar .wk-route {
     display: none;
   }
   .wk-stage {

@@ -353,6 +353,39 @@ class SoundEngine {
         this.tone(1319, 0.18, { type: "triangle", vol: 0.06, at: 0.06 });
         this.tone(1976, 0.14, { type: "triangle", vol: 0.035, at: 0.1 });
       },
+      fwBang: () => {
+        this.noise(0.35, { f: 900, q: 0.4, vol: 0.5 });
+        this.noise(0.08, { f: 4500, filter: "highpass", vol: 0.35 });
+        this.tone(140, 0.4, { to: 40, vol: 0.45 });
+      },
+      fwHit: () => {
+        this.tone(90, 0.3, { to: 45, vol: 0.4, at: 0.05 });
+        this.noise(0.2, { f: 300, filter: "lowpass", vol: 0.25, at: 0.05 });
+      },
+      fwSignal: () => {
+        [1568, 2093, 3136].forEach((f, i) => this.tone(f, 0.9 - i * 0.2, { type: "triangle", vol: 0.12 / (i + 1) }));
+        this.tone(784, 0.6, { type: "square", vol: 0.03 });
+      },
+      fwBeat: () => {
+        this.tone(70, 0.12, { to: 50, vol: 0.28 });
+        this.tone(65, 0.12, { to: 45, vol: 0.2, at: 0.16 });
+      },
+      fwWind: () => this.noise(2.2, { f: 700, q: 0.4, vol: 0.05 }),
+      fwRound: () => this.arp([165, 247, 330, 392], 0.07, { vol: 0.1, d: 0.5 }),
+      fwEarly: () => {
+        this.tone(220, 0.25, { to: 110, type: "square", vol: 0.07 });
+        this.tone(233, 0.25, { to: 116, type: "square", vol: 0.05 });
+      },
+      fwRoundWin: () => [392, 494, 587, 784].forEach((f, i) => this.tone(f, 0.35, { type: "triangle", vol: 0.12, at: 0.25 + i * 0.08 })),
+      fwRoundLose: () => [392, 330, 262].forEach((f, i) => this.tone(f, 0.4, { type: "square", vol: 0.06, at: 0.25 + i * 0.12 })),
+      fwWin: () => {
+        this.arp([392, 523, 659, 784], 0.13, { type: "sawtooth", vol: 0.06, d: 0.35 });
+        [523, 659, 784, 1047].forEach((f) => this.tone(f, 1.4, { type: "sawtooth", vol: 0.03, at: 0.6 }));
+        this.tone(2093, 1.2, { type: "triangle", vol: 0.06, at: 0.6 });
+      },
+      fwLose: () => {
+        [392, 370, 349, 294].forEach((f, i) => this.tone(f, i === 3 ? 1 : 0.4, { to: f * 0.94, type: "square", vol: 0.06, at: i * 0.42 }));
+      },
       wkPart: () => {
         this.tone(260, 0.12, { to: 520, type: "sawtooth", vol: 0.03 });
         this.tone(110, 0.2, { to: 55, vol: 0.2, at: 0.04 });
