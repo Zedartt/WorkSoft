@@ -194,6 +194,33 @@ kbd {
   color: var(--accent);
   font-variant-numeric: tabular-nums;
 }
+.end-lock .actions {
+  position: relative;
+}
+.end-lock .actions .btn {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.end-lock .actions::before {
+  content: "";
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  top: -10px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--accent);
+  transform-origin: left;
+  animation: end-lock 2s linear forwards;
+}
+@keyframes end-lock {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
 .esc {
   display: inline-block;
   width: 12px;

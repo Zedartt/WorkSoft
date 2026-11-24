@@ -74,14 +74,14 @@ class DuelArena {
     return this.x0 + (this.x1 - this.x0) * (0.5 + this.pos / 2);
   }
 
-  hit(side, letters) {
-    const power = Math.min(1.6, 0.6 + letters / 10);
-    this.pulses.push({ side, t: 0, power });
-    this.flash[side] = Math.max(this.flash[side], 0.55);
+  hit(side, letters, perfect = true) {
+    const power = Math.min(1.6, 0.6 + letters / 10) * (perfect ? 1 : 0.55);
+    if (letters > 0) this.pulses.push({ side, t: 0, power });
+    this.flash[side] = Math.max(this.flash[side], perfect ? 0.55 : 0.3);
     const sx = this.splitX(),
       x = (side === "me" ? (this.x0 + sx) / 2 : (sx + this.x1) / 2) + (Math.random() - 0.5) * this.thick * 3,
       y = this.y - this.thick * (1.3 + Math.random() * 0.8);
-    this.fx.label(x, y, "+" + letters, DuelArena.COLORS[side].hot, Math.round(this.font * 1.1));
+    this.fx.label(x, y, "+" + letters, perfect ? DuelArena.COLORS[side].hot : "#b9c0cc", Math.round(this.font * (perfect ? 1.1 : 0.9)));
   }
 
   impact(pulse) {
@@ -490,9 +490,25 @@ class DuelArena {
       grow = 1 - Math.pow(1 - Math.min(1, k * 3), 3),
       scale = 1.8 - 0.8 * grow,
       alpha = 1 - Math.max(0, (k - 0.7) / 0.3),
-      size = Math.min(this.H * 0.32, this.W * 0.16);
+      size = count.big ? Math.min(this.H * 0.48, this.W * 0.3) : Math.min(this.H * 0.4, this.W * 0.16),
+      cy = count.big ? this.H * 0.54 : this.H * 0.4;
+    if (count.big) {
+      const radius = size * 0.68;
+      ctx.fillStyle = "rgba(0,0,0,0.5)";
+      ctx.fillRect(0, 0, this.W, this.H);
+      ctx.lineWidth = Math.max(4, size * 0.06);
+      ctx.strokeStyle = "rgba(255,255,255,0.15)";
+      ctx.beginPath();
+      ctx.arc(this.W / 2, cy, radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(this.W / 2, cy, radius, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - k));
+      ctx.stroke();
+    }
     ctx.save();
-    ctx.translate(this.W / 2, this.H * 0.32);
+    ctx.translate(this.W / 2, cy);
     ctx.scale(scale, scale);
     ctx.globalAlpha = alpha;
     ctx.textAlign = "center";

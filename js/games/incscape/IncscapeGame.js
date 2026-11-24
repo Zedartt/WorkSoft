@@ -3,6 +3,7 @@ class IncscapeGame extends Game {
   constructor() {
     super({
       id: "incscape",
+      record: { key: "incscape_best", unit: "capturés" },
       name: "Incscape",
       tag: "Entoure les bonhommes d'encre avant qu'ils ne s'enfuient de la feuille",
       art: '<svg viewBox="0 0 80 80" style="height:1em" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"><circle cx="40" cy="40" r="34" stroke-dasharray="7 9" stroke="#2f9be0"/><circle cx="40" cy="26" r="6" fill="currentColor" stroke="none"/><path d="M40 32v16M40 48l-8 12M40 48l8 12M40 37l-10-7M40 37l10-7"/></svg>',

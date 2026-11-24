@@ -85,15 +85,22 @@
 .wk-foe .wk-who {
   color: var(--wk-foe);
 }
-.wk-word {
+.wk-line {
   max-width: 100%;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.6em;
+  padding-bottom: 8px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.wk-word {
+  flex: none;
   font-size: clamp(26px, 4vw, 50px);
   font-weight: 800;
   line-height: 1.15;
   color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .wk-me .wk-word .ok {
   color: var(--wk-me);
@@ -109,7 +116,8 @@
 .wk-foe .wk-word .bad {
   color: var(--muted);
 }
-.wk-word.wk-pop {
+.wk-word.wk-pop,
+.wk-gain.wk-pop {
   animation: wk-pop 0.28s ease-out;
 }
 @keyframes wk-pop {
@@ -122,14 +130,27 @@
     opacity: 1;
   }
 }
-.wk-next {
-  max-width: 100%;
-  min-height: 1.3em;
-  font-size: 15px;
-  color: var(--muted);
-  white-space: nowrap;
+.wk-after {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: clamp(14px, 1.7vw, 22px);
+  font-weight: 700;
+  color: var(--muted);
+  opacity: 0.75;
+}
+.wk-gain {
+  min-height: 1.3em;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.wk-me .wk-gain.wk-perfect {
+  color: var(--wk-me);
+}
+.wk-foe .wk-gain.wk-perfect {
+  color: var(--wk-foe);
 }
 .wk-field {
   width: min(320px, 100%);
@@ -149,6 +170,13 @@
 .wk-field.wk-wrong {
   border-color: var(--bad);
   animation: shake 0.25s;
+}
+.wk-enter {
+  display: none;
+  flex: none;
+}
+.wk-field.wk-typing .wk-enter {
+  display: inline-block;
 }
 #wkInput {
   width: 100%;
@@ -182,17 +210,6 @@
   margin-left: 2px;
   background: var(--wk-foe);
   animation: blink 1s steps(1) infinite;
-}
-.wk-stats {
-  font-size: 13px;
-  color: var(--muted);
-  white-space: nowrap;
-}
-.wk-me .wk-stats b {
-  color: var(--wk-me);
-}
-.wk-foe .wk-stats b {
-  color: var(--wk-foe);
 }
 .wk-lobby {
   z-index: 2;
@@ -387,9 +404,6 @@
     gap: 4px;
     padding: 8px;
   }
-  .wk-next {
-    font-size: 13px;
-  }
   .wk-field {
     min-height: 40px;
     padding: 2px 10px;
@@ -419,6 +433,9 @@
   }
 }
 @media (max-width: 720px) {
+  .wk-route {
+    display: none;
+  }
   .wk-stage {
     flex: 1 1 38%;
   }
@@ -429,7 +446,7 @@
 }
 @media (max-height: 500px) {
   .wk-who,
-  .wk-stats {
+  .wk-gain {
     display: none;
   }
 }

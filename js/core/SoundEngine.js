@@ -353,6 +353,11 @@ class SoundEngine {
         this.tone(1319, 0.18, { type: "triangle", vol: 0.06, at: 0.06 });
         this.tone(1976, 0.14, { type: "triangle", vol: 0.035, at: 0.1 });
       },
+      wkPart: () => {
+        this.tone(260, 0.12, { to: 520, type: "sawtooth", vol: 0.03 });
+        this.tone(110, 0.2, { to: 55, vol: 0.2, at: 0.04 });
+        this.tone(880, 0.12, { type: "triangle", vol: 0.04, at: 0.04 });
+      },
       wkFoe: () => {
         this.noise(0.14, { f: 1300, q: 0.8, vol: 0.08 });
         this.tone(140, 0.26, { to: 50, vol: 0.24, at: 0.05 });

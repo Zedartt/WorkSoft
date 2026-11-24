@@ -338,6 +338,19 @@ body.on-menu .corner {
   color: var(--muted);
   font-size: 18px;
 }
+.launch-body .launch-record {
+  margin-top: 14px;
+  padding: 6px 18px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+}
+.launch-body .launch-record[hidden] {
+  display: none;
+}
 .launch-bar {
   height: 120px;
   background: var(--bar);

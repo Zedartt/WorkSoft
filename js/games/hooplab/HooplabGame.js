@@ -21,6 +21,7 @@ class HooplabGame extends Game {
   constructor() {
     super({
       id: "hooplab",
+      record: { key: "hooplab_best", label: "Meilleur combo", bar: false },
       name: "Hooplab",
       tag: "Lance le ballon où tu veux et marque des paniers spectaculaires",
       art: '<svg viewBox="3 2 60 57" style="height:1em"><rect x="56" y="4" width="5" height="34" rx="1.5" fill="#cfd8e3" stroke="#8c99a8" stroke-width="1.5"/><path d="M36 22h20" stroke="#e8492b" stroke-width="3.5" stroke-linecap="round"/><path d="M37 23l4 12h10l4-12M41 23l5 12 5-12" fill="none" stroke="#9aa6b5" stroke-width="1.4"/><circle cx="18" cy="44" r="13" fill="#f0741f" stroke="#7a2e08" stroke-width="2"/><path d="M5 44h26M18 31v26M9 34q7 10 0 20M27 34q-7 10 0 20" fill="none" stroke="#7a2e08" stroke-width="1.6"/></svg>',

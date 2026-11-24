@@ -19,6 +19,7 @@ class WordHuntGame extends Game {
   constructor() {
     super({
       id: "wordhunt",
+      record: { key: "wordhunt_best", unit: "points" },
       name: "WordHunt",
       tag: "Tape les mots lancés dans le ciel avant qu'ils ne s'envolent",
       art: '<svg viewBox="34 0 60 60" style="height:1em" fill="none" stroke-linecap="round"><text x="64" y="39" text-anchor="middle" font-size="25" font-weight="800" fill="currentColor">A</text><g stroke="#e5484d" stroke-width="4"><circle cx="64" cy="30" r="19"/><path d="M64 4v9M64 47v9M38 30h9M81 30h9"/></g></svg>',

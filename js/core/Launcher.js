@@ -156,6 +156,8 @@ class Launcher {
     $("launchArt").innerHTML = game.art;
     $("launchName").textContent = game.name;
     $("launchTag").textContent = game.tag;
+    $("launchRecord").textContent = game.recordText();
+    $("launchRecord").hidden = !game.record;
     this.setBox(tile.getBoundingClientRect());
     this.panel.style.display = "flex";
     void this.panel.offsetWidth;

@@ -11,6 +11,7 @@ class CooktouGame extends Game {
   constructor() {
     super({
       id: "cooktou",
+      record: { key: "cooktou_best", unit: "points" },
       name: "Cooktou",
       tag: "Prends les commandes et cuisine de vraies recettes du monde entier, étape par étape",
       art: '<svg viewBox="0 0 90 60" style="height:1em"><circle cx="32" cy="30" r="24" fill="#4a515b" stroke="#14171c" stroke-width="4"/><rect x="54" y="25" width="34" height="10" rx="5" fill="#3b2a20"/><ellipse cx="32" cy="30" rx="15" ry="13" fill="#fff"/><circle cx="34" cy="31" r="6" fill="#ffc83d"/></svg>',

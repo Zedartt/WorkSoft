@@ -1,11 +1,10 @@
 class WordKingGame extends Game {
   static TARGET = 60;
   static ROUND_TIME = 90;
-  static COUNT_TIME = 3;
+  static COUNT_TIME = 5;
   static GO_TIME = 0.8;
   static START_DELAY = 1;
   static RESTART_DELAY = 0.4;
-  static NEXT_SHOWN = 3;
   static MAX_TYPED = 40;
   static WINS_KEY = "wordking_wins";
 
@@ -20,6 +19,24 @@ class WordKingGame extends Game {
   static clockText(seconds) {
     const s = Math.max(0, Math.ceil(seconds));
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  }
+
+  static distance(a, b) {
+    let row = Array.from({ length: b.length + 1 }, (_, i) => i);
+    for (let i = 1; i <= a.length; i++) {
+      const next = [i];
+      for (let j = 1; j <= b.length; j++) next[j] = Math.min(row[j] + 1, next[j - 1] + 1, row[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      row = next;
+    }
+    return row[b.length];
+  }
+
+  static gain(word, typed) {
+    const target = WordList.plain(word),
+      max = DuelWords.letters(word);
+    if (typed === target) return { points: max, max, perfect: true };
+    const ratio = Math.max(0, 1 - WordKingGame.distance(target, typed) / Math.max(target.length, typed.length));
+    return { points: Math.min(max - 1, Math.round(max * ratio)), max, perfect: false };
   }
 
   static marks(word, typed) {
@@ -46,6 +63,7 @@ class WordKingGame extends Game {
   constructor() {
     super({
       id: "wordking",
+      record: { key: "wordking_wins", label: "Victoires", none: "Aucune victoire pour l'instant", bar: false },
       name: "Word King",
       tag: "Duel de vitesse de frappe en ligne : pousse la barre jusqu'au camp adverse",
       art: '<svg viewBox="0 0 64 52" style="height:1em"><path d="M6 40 3 12l15 12L32 4v36z" fill="#2f8bff"/><path d="M32 4l14 20 15-12-3 28H32z" fill="#ff3048"/><rect x="6" y="43" width="52" height="7" rx="2" fill="currentColor"/></svg>',
@@ -55,14 +73,17 @@ class WordKingGame extends Game {
           ["Créer un salon", "Donne le code de 5 caractères à ton adversaire"],
           ["Rejoindre", "Tape le code reçu puis valide"],
           ["Clavier", "Écris le mot affiché : il part tout seul dès qu'il est juste"],
-          ["Entrée", "Revanche, à la fin du duel"],
+          ["Entrée", "Valide le mot même avec des fautes (moins de points)"],
+          ["Entrée, à la fin", "Revanche"],
         ],
         rules: [
           "Bleu, c'est toi ; rouge, c'est ton adversaire. Tu vois ce qu'il tape en direct.",
-          "Chaque mot écrit pousse la barre vers l'autre camp, d'autant plus qu'il est long.",
+          "Chaque mot écrit pousse la barre vers l'autre camp : 1 point par lettre quand il est parfait.",
+          "Avec des fautes, Entrée le valide quand même, mais il rapporte moins : seulement la part du mot bien écrite.",
+          "Le petit mot à droite est le suivant : prépare-toi à l'écrire.",
           `La barre poussée jusqu'au bout gagne le duel. Au bout de ${WordKingGame.clockText(WordKingGame.ROUND_TIME)}, celui qui a la barre de son côté gagne.`,
           "Vous avez tous les deux les mêmes mots, dans le même ordre.",
-          "Accents et majuscules sont facultatifs. Une faute ne coûte rien, mais il faut l'effacer.",
+          "Accents et majuscules sont facultatifs.",
           "Il faut une connexion Internet. Ça marche sur la même box comme sur deux réseaux différents : en liaison directe quand c'est possible, sinon par un relais.",
           "Pas de pause en ligne : le duel continue derrière cette fiche.",
         ],
@@ -210,6 +231,9 @@ class WordKingGame extends Game {
     $("wkOver").classList.remove("show");
     $("wkLobby").classList.remove("show");
     this.input.value = "";
+    $("wkField").classList.remove("wk-typing");
+    $("wkMyGain").textContent = "";
+    $("wkFoeGain").textContent = "";
     this.input.focus({ preventScroll: true });
     this.render();
   }
@@ -298,12 +322,15 @@ class WordKingGame extends Game {
       this.foe.typed = WordList.plain(String(data.v || "")).slice(0, WordKingGame.MAX_TYPED);
       this.renderFoe(false);
     } else if (data.t === "word" && this.words && (this.phase === "duel" || this.phase === "count")) {
-      const letters = DuelWords.letters(this.words.at(this.foe.index));
+      const max = DuelWords.letters(this.words.at(this.foe.index)),
+        points = Number.isInteger(data.n) ? Math.max(0, Math.min(max, data.n)) : max,
+        perfect = points === max;
       this.foe.index++;
       this.foe.words++;
-      this.foe.letters += letters;
+      this.foe.letters += points;
       this.foe.typed = "";
-      this.arena.hit("foe", letters);
+      this.arena.hit("foe", points, perfect);
+      this.showGain("wkFoeGain", points, max, perfect);
       Sfx.play("wkFoe");
       this.renderFoe(true);
     } else if (data.t === "end" && !this.link.isHost && this.phase !== "over") {
@@ -334,8 +361,9 @@ class WordKingGame extends Game {
     else if (ok && typed.length > this.me.typed.length) Sfx.play("wkKey");
     this.me.bad = !ok;
     this.me.typed = typed;
+    $("wkField").classList.toggle("wk-typing", typed.length > 0);
     if (typed === target) {
-      this.complete(word);
+      this.complete(word, typed);
       return;
     }
     this.link.send({ t: "type", i: this.me.index, v: typed });
@@ -350,32 +378,33 @@ class WordKingGame extends Game {
     Sfx.play("wkMiss");
   }
 
-  complete(word) {
-    const letters = DuelWords.letters(word);
+  submit() {
+    if (this.phase !== "duel") return;
+    const typed = WordList.plain(this.input.value.replace(/\s+/g, ""));
+    if (typed) this.complete(this.words.at(this.me.index), typed);
+  }
+
+  complete(word, typed) {
+    const { points, max, perfect } = WordKingGame.gain(word, typed);
     this.me.index++;
     this.me.words++;
-    this.me.letters += letters;
+    this.me.letters += points;
     this.me.typed = "";
     this.me.bad = false;
     this.input.value = "";
-    this.link.send({ t: "word", i: this.me.index });
-    this.arena.hit("me", letters);
-    Sfx.play("wkHit");
+    $("wkField").classList.remove("wk-typing");
+    this.link.send({ t: "word", i: this.me.index, n: points });
+    this.arena.hit("me", points, perfect);
+    this.showGain("wkMyGain", points, max, perfect);
+    Sfx.play(perfect ? "wkHit" : "wkPart");
     this.renderMe(true);
   }
 
-  upcoming(index) {
-    const next = [];
-    for (let i = 1; i <= WordKingGame.NEXT_SHOWN; i++) next.push(this.words.at(index + i));
-    return next.join("  ·  ");
-  }
-
-  wpm(player) {
-    return this.clock > 2 ? Math.round(player.words / (this.clock / 60)) : 0;
-  }
-
-  stats(player) {
-    return `<b>${player.words}</b> ${player.words > 1 ? "mots" : "mot"} · <b>${this.wpm(player)}</b> mots/min`;
+  showGain(id, points, max, perfect) {
+    const el = $(id);
+    el.textContent = perfect ? `+${points} · parfait` : `+${points} sur ${max}`;
+    el.classList.toggle("wk-perfect", perfect);
+    this.pop(el);
   }
 
   pop(element) {
@@ -393,12 +422,11 @@ class WordKingGame extends Game {
     if (!this.words) {
       word.textContent = this.idleWord();
       $("wkMyNext").textContent = "";
-      $("wkMyStats").innerHTML = this.stats(this.me);
+      $("wkMyGain").textContent = "";
       return;
     }
     word.innerHTML = WordKingGame.marks(this.words.at(this.me.index), this.me.typed);
-    $("wkMyNext").textContent = this.upcoming(this.me.index);
-    $("wkMyStats").innerHTML = this.stats(this.me);
+    $("wkMyNext").textContent = this.words.at(this.me.index + 1);
     if (pop) this.pop(word);
   }
 
@@ -408,12 +436,11 @@ class WordKingGame extends Game {
     if (!this.words) {
       word.textContent = this.idleWord();
       $("wkFoeNext").textContent = "";
-      $("wkFoeStats").innerHTML = this.stats(this.foe);
+      $("wkFoeGain").textContent = "";
       return;
     }
     word.innerHTML = WordKingGame.marks(this.words.at(this.foe.index), this.foe.typed);
-    $("wkFoeNext").textContent = this.upcoming(this.foe.index);
-    $("wkFoeStats").innerHTML = this.stats(this.foe);
+    $("wkFoeNext").textContent = this.words.at(this.foe.index + 1);
     if (pop) this.pop(word);
   }
 
@@ -431,15 +458,12 @@ class WordKingGame extends Game {
     if (text === this.timeText) return;
     this.timeText = text;
     $("wkTime").textContent = text;
-    if (this.phase !== "duel") return;
-    $("wkMyStats").innerHTML = this.stats(this.me);
-    $("wkFoeStats").innerHTML = this.stats(this.foe);
   }
 
   countView() {
     if (this.phase === "count") {
       const left = -this.clock;
-      return { text: String(Math.ceil(left)), k: 1 - (left - Math.floor(left)) };
+      return { text: String(Math.ceil(left)), k: 1 - (left - Math.floor(left)), big: true };
     }
     if (this.phase === "duel" && this.clock < WordKingGame.GO_TIME) return { text: "DUEL !", k: this.clock / WordKingGame.GO_TIME };
     return null;
@@ -491,6 +515,7 @@ class WordKingGame extends Game {
     this.input.addEventListener("input", () => this.typed());
     this.input.addEventListener("keydown", (event) => {
       if (event.key === " " || event.key === "Enter") event.preventDefault();
+      if (event.key === "Enter" && !event.repeat) this.submit();
     });
     this.input.addEventListener("paste", (event) => event.preventDefault());
     this.input.addEventListener("drop", (event) => event.preventDefault());

@@ -2,6 +2,7 @@ class WikopyGame extends Game {
   constructor() {
     super({
       id: "wikopy",
+      record: { key: "wikopy_best", unit: "mots/min" },
       name: "Wikopy-past",
       tag: "Recopie Wikipédia le plus vite possible",
       art: "W<i></i>",
