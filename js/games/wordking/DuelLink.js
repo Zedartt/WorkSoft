@@ -1,7 +1,7 @@
 class DuelLink {
   static SIGNAL = "https://ntfy.sh/";
   static TOPIC = "worksoft-wordking-";
-  static BROKERS = ["wss://broker.emqx.io:8084/mqtt", "wss://test.mosquitto.org:8081/mqtt", "wss://broker.hivemq.com:8884/mqtt"];
+  static BROKERS = ["wss://test.mosquitto.org:8081/mqtt", "wss://broker.emqx.io:8084/mqtt", "wss://broker.hivemq.com:8884/mqtt"];
   static RELAY_TOPIC = "worksoft/wordking/";
   static ICE = [{ urls: ["stun:stun.l.google.com:19302", "stun:stun.cloudflare.com:3478"] }];
   static ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -11,6 +11,9 @@ class DuelLink {
   static SIGNAL_MS = 9000;
   static JOIN_MS = 20000;
   static HELLO_MS = 600;
+  static FLUSH_MS = 125;
+  static RESEND_MS = 450;
+  static MAX_BATCH = 40;
   static PING_MS = 1000;
   static LOST_MS = 10000;
   static MSG = {
@@ -76,6 +79,7 @@ class DuelLink {
     clearInterval(this.hello);
     clearTimeout(this.timer);
     clearTimeout(this.signalTimer);
+    clearTimeout(this.flushTimer);
     this.id = DuelLink.newCode() + Date.now().toString(36);
     this.role = null;
     this.code = "";
@@ -92,6 +96,11 @@ class DuelLink {
     this.hello = 0;
     this.timer = 0;
     this.signalTimer = 0;
+    this.flushTimer = 0;
+    this.outSeq = 0;
+    this.inSeq = 0;
+    this.unacked = [];
+    this.ackOwed = false;
   }
 
   closeChannel() {
@@ -223,15 +232,37 @@ class DuelLink {
     clearInterval(this.hello);
     const tick = () => {
       if (gen !== this.gen || this.relayOk || !this.peer) clearInterval(this.hello);
-      else this.relaySend({ t: "hi" });
+      else this.relayPublish({ h: 1 });
     };
     this.hello = setInterval(tick, DuelLink.HELLO_MS);
     tick();
   }
 
-  relaySend(data) {
+  relayPublish(packet) {
     if (!this.relay || !this.peer) return false;
-    return this.relay.publish(this.topicOf(this.peer), JSON.stringify({ f: this.id, d: data }));
+    return this.relay.publish(this.topicOf(this.peer), JSON.stringify(Object.assign({ f: this.id }, packet)));
+  }
+
+  queue(data) {
+    this.unacked.push({ s: ++this.outSeq, d: data, at: 0 });
+    this.schedule();
+  }
+
+  schedule() {
+    if (!this.flushTimer) this.flushTimer = setTimeout(() => this.flush(), DuelLink.FLUSH_MS);
+  }
+
+  flush() {
+    this.flushTimer = 0;
+    if (!this.relay || !this.peer) return;
+    const now = performance.now(),
+      due = this.unacked.filter((m) => now - m.at >= DuelLink.RESEND_MS).slice(0, DuelLink.MAX_BATCH);
+    if (due.length || this.ackOwed) {
+      for (const m of due) m.at = now;
+      this.relayPublish({ a: this.inSeq, m: due.map((m) => [m.s, m.d]) });
+      this.ackOwed = false;
+    }
+    if (this.unacked.length) this.schedule();
   }
 
   fromRelay(text, gen) {
@@ -242,14 +273,24 @@ class DuelLink {
     } catch (error) {
       return;
     }
-    if (!packet || packet.f !== this.peer || !packet.d) return;
+    if (!packet || packet.f !== this.peer) return;
+    this.seen = performance.now();
     if (!this.relayOk) {
       this.relayOk = true;
       clearInterval(this.hello);
-      this.relaySend({ t: "hi" });
+      this.relayPublish({ h: 1 });
       this.ready();
     }
-    this.handle(packet.d);
+    if (Number.isInteger(packet.a)) this.unacked = this.unacked.filter((m) => m.s > packet.a);
+    if (!Array.isArray(packet.m) || !packet.m.length) return;
+    this.ackOwed = true;
+    this.schedule();
+    for (const [seq, data] of packet.m.slice().sort((x, y) => x[0] - y[0])) {
+      if (gen !== this.gen) return;
+      if (seq !== this.inSeq + 1) continue;
+      this.inSeq = seq;
+      this.handle(data);
+    }
   }
 
   makePeer(gen) {
@@ -377,11 +418,17 @@ class DuelLink {
         return;
       } catch (error) {}
     }
-    if (this.relayOk) this.relaySend(data);
+    if (this.relayOk) this.queue(data);
   }
 
   leave() {
-    if (this.opened) this.send({ t: "bye" });
+    if (this.opened) {
+      this.send({ t: "bye" });
+      if (!this.direct && this.relayOk) {
+        clearTimeout(this.flushTimer);
+        this.flush();
+      }
+    }
     this.reset();
   }
 
