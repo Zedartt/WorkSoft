@@ -63,7 +63,7 @@ class WordKingGame extends Game {
           `La barre poussée jusqu'au bout gagne le duel. Au bout de ${WordKingGame.clockText(WordKingGame.ROUND_TIME)}, celui qui a la barre de son côté gagne.`,
           "Vous avez tous les deux les mêmes mots, dans le même ordre.",
           "Accents et majuscules sont facultatifs. Une faute ne coûte rien, mais il faut l'effacer.",
-          "Il faut une connexion Internet. Certains réseaux d'entreprise ou d'école bloquent le duel.",
+          "Il faut une connexion Internet. Ça marche sur la même box comme sur deux réseaux différents : en liaison directe quand c'est possible, sinon par un relais.",
           "Pas de pause en ligne : le duel continue derrière cette fiche.",
         ],
       },
@@ -76,6 +76,7 @@ class WordKingGame extends Game {
       message: (data) => this.receive(data),
       closed: (reason) => this.lobby(reason),
       failed: (reason) => this.lobby(reason),
+      route: (route) => this.showRoute(route),
     });
     this.raf = 0;
     this.last = 0;
@@ -101,6 +102,10 @@ class WordKingGame extends Game {
     $("wkLeave").style.visibility = code ? "visible" : "hidden";
   }
 
+  showRoute(route) {
+    $("wkRoute").textContent = route === "direct" ? "directe" : route === "relay" ? "relais" : "—";
+  }
+
   wins() {
     return +Store.read(WordKingGame.WINS_KEY, 0) || 0;
   }
@@ -121,6 +126,7 @@ class WordKingGame extends Game {
     $("wkError").textContent = error;
     if (error) Sfx.play("bad");
     this.room("");
+    this.showRoute("");
     this.input.value = "";
     this.input.blur();
     this.render();
@@ -185,6 +191,7 @@ class WordKingGame extends Game {
     this.phase = "ready";
     this.startIn = WordKingGame.START_DELAY;
     this.arena.energy = 0.6;
+    this.showRoute(this.link.route);
     Sfx.play("wkJoin");
     this.render();
   }
