@@ -305,7 +305,6 @@ class FarWestGame extends Game {
     card.classList.toggle("win", won);
     card.classList.toggle("lose", !won);
     $("fwResultTitle").textContent = this.local ? `${FarWestGame.PLAYERS[winner]} gagne` : won ? "Victoire" : "Défaite";
-    $("fwResult").textContent = this.local ? "La gâchette la plus rapide de l'Ouest !" : won ? "Tu es la gâchette la plus rapide de l'Ouest !" : "Ton adversaire a été plus rapide.";
     $("fwNameMe").textContent = this.local ? FarWestGame.PLAYERS.me : "Toi";
     $("fwNameFoe").textContent = this.local ? FarWestGame.PLAYERS.foe : "Adversaire";
     $("fwBestLabel").textContent = this.local ? "Meilleur réflexe :" : "Ton meilleur réflexe :";

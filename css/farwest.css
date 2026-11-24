@@ -110,10 +110,10 @@
 .fw-over-card.lose h2 {
   color: var(--bad);
 }
-.fw-result {
-  margin: 2px 0 10px;
-  font-size: 18px;
-  font-weight: 800;
+.fw-over-card h2 {
+  margin: 2px 0 12px;
+  font-size: 21px;
+  letter-spacing: 3px;
 }
 .fw-score {
   display: flex;
