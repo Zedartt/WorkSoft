@@ -623,13 +623,13 @@
               <h2 id="fwResultTitle">Victoire</h2>
               <div class="fw-result" id="fwResult"></div>
               <div class="fw-score">
-                <div><b class="fw-me-score" id="fwScoreMe">0</b><span>Toi</span></div>
+                <div><b class="fw-me-score" id="fwScoreMe">0</b><span id="fwNameMe">Toi</span></div>
                 <i>manches</i>
-                <div><b class="fw-foe-score" id="fwScoreFoe">0</b><span>Adversaire</span></div>
+                <div><b class="fw-foe-score" id="fwScoreFoe">0</b><span id="fwNameFoe">Adversaire</span></div>
               </div>
               <div class="fw-best">
                 <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8" /><path d="M12 5V2M12 13l4-4M9 2h6" /></svg>
-                Ton meilleur réflexe : <b id="fwBest">—</b>
+                <span id="fwBestLabel">Ton meilleur réflexe :</span> <b id="fwBest">—</b>
               </div>
               <p class="lobby-note" id="fwAgainNote"></p>
               <div class="actions">
@@ -648,6 +648,14 @@
                 <div class="lobby-join-row">
                   <input class="lobby-code-input" id="fwCodeInput" type="text" maxlength="5" placeholder="CODE" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" aria-label="Code du salon" />
                   <button class="btn" id="fwJoin">Rejoindre</button>
+                </div>
+                <div class="fw-local">
+                  <div class="lobby-or"><span>ou</span></div>
+                  <button class="btn fw-local-btn" id="fwLocal">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="13" rx="2" /><path d="M6 10h1M10 10h1M14 10h1M18 10h1M7 15h10" /></svg>
+                    Jouer à deux sur ce PC
+                  </button>
+                  <p class="fw-local-keys"><kbd>Q</kbd> joueur de gauche · <kbd>M</kbd> joueur de droite</p>
                 </div>
               </div>
               <div class="lobby-view lobby-wait">

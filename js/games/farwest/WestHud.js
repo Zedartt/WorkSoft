@@ -140,6 +140,32 @@ class WestHud {
     ctx.stroke();
   }
 
+  static keycap(ctx, x, y, s, letter, color, glow) {
+    ctx.save();
+    if (glow) {
+      ctx.shadowColor = color;
+      ctx.shadowBlur = s * 0.6;
+    }
+    ctx.fillStyle = "#6b5a44";
+    ctx.beginPath();
+    ctx.roundRect(x - s / 2, y - s / 2 + s * 0.1, s, s, s * 0.18);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#f6ecd6";
+    ctx.beginPath();
+    ctx.roundRect(x - s / 2, y - s / 2, s, s * 0.9, s * 0.18);
+    ctx.fill();
+    ctx.lineWidth = Math.max(2, s * 0.07);
+    ctx.strokeStyle = color;
+    ctx.stroke();
+    ctx.fillStyle = "#2a1c10";
+    ctx.font = `900 ${Math.round(s * 0.58)}px ${WestHud.FONT}`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(letter, x, y - s * 0.03);
+    ctx.restore();
+  }
+
   static icon(ctx, name, x, y, s, color, t = 0) {
     if (name === "star") WestHud.star(ctx, x, y, s * 0.5, true, color);
     else if (name === "wait") WestHud.hourglass(ctx, x, y, s, color, Math.sin(t * 3) * 0.15);
@@ -194,6 +220,10 @@ class WestHud {
       ctx.roundRect(W / 2 - w / 2, top - f * 0.75, w, f * 1.5, f * 0.75);
       ctx.fill();
       WestHud.text(ctx, label, W / 2, top, f * 0.8, "#f3dfb6");
+    }
+    for (const key of view.keys || []) {
+      const s = f * 2.1 * (key.hot ? 1 + 0.08 * Math.sin(view.t * 14) : 1);
+      WestHud.keycap(ctx, key.x, key.y - s * 0.4 + Math.sin(view.t * 3) * 2, s, key.letter, key.color, key.hot);
     }
     for (const mark of view.marks) {
       const s = f * 1.6,

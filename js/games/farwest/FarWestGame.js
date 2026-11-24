@@ -13,6 +13,8 @@ class FarWestGame extends Game {
   static BEAT = 0.75;
   static BEST_KEY = "farwest_best";
   static WINS_KEY = "farwest_wins";
+  static KEYS = { q: "me", m: "foe" };
+  static PLAYERS = { me: "Joueur 1", foe: "Joueur 2" };
 
   static seconds(r) {
     return r.toFixed(3).replace(".", ",") + " s";
@@ -30,7 +32,8 @@ class FarWestGame extends Game {
         controls: [
           ["Créer un salon", "Donne le code de 5 caractères à ton adversaire"],
           ["Rejoindre", "Tape le code reçu puis valide"],
-          ["Espace, clic ou toucher l'écran", "Tirer"],
+          ["Espace, clic ou toucher l'écran", "Tirer (en ligne)"],
+          ["Jouer à deux sur ce PC", "Joueur de gauche : touche Q, joueur de droite : touche M"],
         ],
         rules: [
           "Après « Attends… », le signal tombe au hasard, entre 1,5 et 4 secondes.",
@@ -38,7 +41,7 @@ class FarWestGame extends Game {
           "Après le signal, le plus rapide gagne la manche. Ton temps de réaction est mesuré sur ton écran : la connexion ne te désavantage pas.",
           `Pour gagner le duel, il faut au moins ${FarWestGame.TARGET} manches et ${FarWestGame.LEAD} manches d'avance : tant que l'écart n'est pas de ${FarWestGame.LEAD}, le duel continue.`,
           "Chaque manche gagnée ajoute une étoile ; quand il y en a trop, la dernière étoile affiche le total.",
-          "Bleu, c'est toi à gauche ; rouge, c'est ton adversaire à droite.",
+          "Bleu, c'est toi à gauche ; rouge, c'est ton adversaire à droite. À deux sur le même PC, la touche de chacun est affichée au-dessus de son cowboy.",
           "Ton meilleur réflexe est gardé en record.",
           "Pas de pause en ligne : le duel continue derrière cette fiche.",
         ],
@@ -58,6 +61,7 @@ class FarWestGame extends Game {
       route: (route) => this.lobby.route(route),
     });
     this.lobby = new DuelLobby("fw", this.link, () => this.leave());
+    this.local = false;
     this.raf = 0;
     this.last = 0;
     this.bound = false;
@@ -92,7 +96,24 @@ class FarWestGame extends Game {
     this.fx.clear();
   }
 
+  get isHost() {
+    return this.local || this.link.isHost;
+  }
+
+  startLocal() {
+    this.link.leave();
+    this.reset();
+    this.local = true;
+    this.lobby.hide();
+    this.lobby.room("Local");
+    this.phase = "ready";
+    this.startIn = FarWestGame.START_DELAY;
+    this.setBanner(null, "Duel !", "#f3dfb6");
+    Sfx.play("wkJoin");
+  }
+
   toLobby(error = "") {
+    this.local = false;
     this.reset();
     $("fwOver").classList.remove("show");
     this.lobby.show(error);
@@ -185,14 +206,14 @@ class FarWestGame extends Game {
     Sfx.play("fwBang");
   }
 
-  shoot() {
-    if ((this.phase !== "wait" && this.phase !== "fire") || this.shots.me !== null) return;
+  shoot(side = "me") {
+    if ((this.phase !== "wait" && this.phase !== "fire") || this.shots[side] !== null) return;
     const now = performance.now(),
       r = this.phase === "wait" ? (now - this.waitStart) / 1000 - this.delay : (now - this.signalAt) / 1000;
-    this.shots.me = r;
-    this.fireFx("me", r < 0);
-    this.link.send({ t: "shot", id: this.roundId, r });
-    if (this.link.isHost) this.judge();
+    this.shots[side] = r;
+    this.fireFx(side, r < 0);
+    if (!this.local) this.link.send({ t: "shot", id: this.roundId, r });
+    if (this.isHost) this.judge();
   }
 
   judge() {
@@ -205,6 +226,7 @@ class FarWestGame extends Game {
     else if (earlyMe) this.resolve("foe", "early");
     else if (earlyFoe) this.resolve("me", "early");
     else if (me !== null && foe !== null) this.resolve(me < foe ? "me" : foe < me ? "foe" : null, me === foe ? "tie" : "fast");
+    else if (this.local && (me !== null || foe !== null)) this.resolve(me !== null ? "me" : "foe", "fast");
     else if ((me !== null || foe !== null) && !this.judgeAt) this.judgeAt = performance.now() + FarWestGame.GRACE * 1000;
   }
 
@@ -225,6 +247,7 @@ class FarWestGame extends Game {
     const L = this.layout(),
       head = (side) => ({ x: L[side], y: L.y - L.h * 1.12 });
     if (rMe !== null && rMe >= 0) this.saveBest(rMe);
+    if (this.local && rFoe !== null && rFoe >= 0) this.saveBest(rFoe);
     if (!winner) {
       const texts = { both: "Trop tôt tous les deux !", tie: "Égalité parfaite !", slow: "Personne n'a tiré" };
       this.setBanner(why === "both" ? "early" : "wait", texts[why] || "Manche rejouée", "#f3dfb6");
@@ -241,9 +264,10 @@ class FarWestGame extends Game {
     this.fx.ray(L[winner], winner === "me" ? "255,215,110" : "255,120,100");
     this.marks.push({ ...head(winner), icon: "star", text: why === "fast" && rWin !== null ? FarWestGame.seconds(rWin) : "", color: WestHud.GOLD });
     if (why === "early") this.marks.push({ ...head(loser), icon: "early", text: "Trop tôt", color: "#ff5a4a" });
-    this.setBanner(winner === "me" ? "star" : "skull", winner === "me" ? "Manche gagnée" : "Manche perdue", winner === "me" ? WestHud.GOLD : "#ff6b5a");
+    if (this.local) this.setBanner("star", `${FarWestGame.PLAYERS[winner]} gagne la manche`, WestHud.GOLD);
+    else this.setBanner(winner === "me" ? "star" : "skull", winner === "me" ? "Manche gagnée" : "Manche perdue", winner === "me" ? WestHud.GOLD : "#ff6b5a");
     Sfx.play("fwHit");
-    Sfx.play(winner === "me" ? "fwRoundWin" : "fwRoundLose");
+    Sfx.play(winner === "me" || this.local ? "fwRoundWin" : "fwRoundLose");
   }
 
   matchWinner() {
@@ -261,8 +285,9 @@ class FarWestGame extends Game {
 
   finish() {
     this.phase = "over";
-    const won = this.matchWinner() === "me";
-    if (won) Store.write(FarWestGame.WINS_KEY, (+Store.read(FarWestGame.WINS_KEY, 0) || 0) + 1);
+    const winner = this.matchWinner(),
+      won = this.local || winner === "me";
+    if (winner === "me" && !this.local) Store.write(FarWestGame.WINS_KEY, (+Store.read(FarWestGame.WINS_KEY, 0) || 0) + 1);
     if (won) {
       this.fx.stars(this.W, this.H);
       this.fx.ray(this.W * 0.2, "255,215,110", 4);
@@ -274,8 +299,12 @@ class FarWestGame extends Game {
     const card = $("fwOverCard");
     card.classList.toggle("win", won);
     card.classList.toggle("lose", !won);
-    $("fwResultTitle").textContent = won ? "Victoire" : "Défaite";
-    $("fwResult").textContent = won ? "Tu es la gâchette la plus rapide de l'Ouest !" : "Ton adversaire a été plus rapide.";
+    $("fwResultTitle").textContent = this.local ? `${FarWestGame.PLAYERS[winner]} gagne` : won ? "Victoire" : "Défaite";
+    $("fwResult").textContent = this.local ? "La gâchette la plus rapide de l'Ouest !" : won ? "Tu es la gâchette la plus rapide de l'Ouest !" : "Ton adversaire a été plus rapide.";
+    $("fwNameMe").textContent = this.local ? FarWestGame.PLAYERS.me : "Toi";
+    $("fwNameFoe").textContent = this.local ? FarWestGame.PLAYERS.foe : "Adversaire";
+    $("fwBestLabel").textContent = this.local ? "Meilleur réflexe :" : "Ton meilleur réflexe :";
+    $("fwQuit").textContent = this.local ? "Quitter" : "Quitter le salon";
     $("fwScoreMe").textContent = this.wins.me;
     $("fwScoreFoe").textContent = this.wins.foe;
     $("fwBest").textContent = this.best === null ? "—" : `${this.best} ms`;
@@ -286,6 +315,7 @@ class FarWestGame extends Game {
   rematch() {
     if (this.phase !== "over" || this.again) return;
     this.again = true;
+    if (this.local) this.foeAgain = true;
     this.link.send({ t: "again" });
     Sfx.play("click");
     this.note();
@@ -293,7 +323,7 @@ class FarWestGame extends Game {
   }
 
   maybeRestart() {
-    if (!this.link.isHost || !this.again || !this.foeAgain) return;
+    if (!this.isHost || !this.again || !this.foeAgain) return;
     this.phase = "ready";
     this.startIn = FarWestGame.RESTART_DELAY;
   }
@@ -326,7 +356,7 @@ class FarWestGame extends Game {
   update(dt) {
     this.t += dt;
     this.phaseT += dt;
-    const host = this.link.isHost,
+    const host = this.isHost,
       now = performance.now();
     if (this.phase === "ready" && host) {
       this.startIn -= dt;
@@ -371,10 +401,14 @@ class FarWestGame extends Game {
     this.scene.drawFront(ctx);
     this.fx.drawFront(ctx, W, H);
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
-    const showRound = ["intro", "wait", "fire", "result"].includes(this.phase);
+    const showRound = ["intro", "wait", "fire", "result"].includes(this.phase),
+      keys = [];
+    if (this.local && ["ready", "intro", "wait", "fire"].includes(this.phase))
+      for (const [letter, side] of Object.entries(FarWestGame.KEYS)) if (this.shots[side] === null) keys.push({ x: L[side], y: L.y - L.h * 1.12, letter: letter.toUpperCase(), color: WestHud.COLORS[side], hot: this.phase === "fire" });
     this.hud.draw(ctx, W, H, {
-      me: { name: "TOI", wins: this.wins.me },
-      foe: { name: "ADVERSAIRE", wins: this.wins.foe },
+      me: { name: this.local ? "JOUEUR 1" : "TOI", wins: this.wins.me },
+      foe: { name: this.local ? "JOUEUR 2" : "ADVERSAIRE", wins: this.wins.foe },
+      keys,
       target: FarWestGame.TARGET,
       maxStars: FarWestGame.MAX_STARS,
       round: showRound ? this.round : 0,
@@ -406,13 +440,22 @@ class FarWestGame extends Game {
 
   bind() {
     $("fwStage").addEventListener("pointerdown", (event) => {
-      if (event.target.closest("button, input, .overlay.show")) return;
+      if (this.local || event.target.closest("button, input, .overlay.show")) return;
       if (event.button !== undefined && event.button > 0) return;
       event.preventDefault();
       this.shoot();
     });
     document.addEventListener("keydown", (event) => {
       if (!this.raf || event.repeat) return;
+      if (this.local && FarWestGame.KEYS[event.key.toLowerCase()] && !event.ctrlKey && !event.altKey && !event.metaKey) {
+        event.preventDefault();
+        this.shoot(FarWestGame.KEYS[event.key.toLowerCase()]);
+        return;
+      }
+      if (this.local && event.key === " ") {
+        event.preventDefault();
+        return;
+      }
       const playing = ["intro", "wait", "fire", "result"].includes(this.phase);
       if (event.key === " " && (playing || !event.target.closest("input, button"))) {
         event.preventDefault();
@@ -423,6 +466,7 @@ class FarWestGame extends Game {
       }
     });
     $("fwAgain").addEventListener("click", () => this.rematch());
+    $("fwLocal").addEventListener("click", () => this.startLocal());
     $("fwQuit").addEventListener("click", () => this.leave());
     window.addEventListener("pagehide", () => this.link.leave());
     new ResizeObserver(() => {
