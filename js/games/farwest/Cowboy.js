@@ -12,6 +12,8 @@ class Cowboy {
   static DRAW_SPEED = 14;
   static FALL_TIME = 0.55;
   static SLIDE = 30;
+  static GRIP = [2.2, -3.6];
+  static BARREL = 12;
 
   constructor(side) {
     this.side = side;
@@ -90,7 +92,12 @@ class Cowboy {
   tip(x, y, h) {
     const k = h / 100,
       { hx, hy, a2 } = this.arm();
-    return { x: x + this.dir * k * (hx + Math.cos(a2) * 12), y: y + k * (hy + Math.sin(a2) * 12) };
+    const [gx, gy] = Cowboy.GRIP,
+      lx = gx + Cowboy.BARREL,
+      ly = gy + 0.2,
+      px = hx + Math.cos(a2) * lx - Math.sin(a2) * ly,
+      py = hy + Math.sin(a2) * lx + Math.cos(a2) * ly;
+    return { x: x + this.dir * k * px, y: y + k * py };
   }
 
   chest(x, y, h) {
@@ -163,6 +170,7 @@ class Cowboy {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);
+    ctx.translate(Cowboy.GRIP[0], Cowboy.GRIP[1]);
     ctx.fillStyle = "#6b3e22";
     ctx.beginPath();
     ctx.moveTo(-1, 1);

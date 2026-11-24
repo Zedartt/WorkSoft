@@ -1,7 +1,7 @@
 class FarWestGame extends Game {
   static TARGET = 3;
   static LEAD = 2;
-  static MAX_STARS = 5;
+  static MAX_STARS = 10;
   static INTRO_TIME = 1.6;
   static MIN_DELAY = 1.5;
   static MAX_DELAY = 4;

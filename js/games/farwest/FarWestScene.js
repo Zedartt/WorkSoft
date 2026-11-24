@@ -4,6 +4,13 @@ class FarWestScene {
   static TUMBLE_MIN = 4;
   static TUMBLE_MAX = 10;
   static DUST = 36;
+  static TWINKLES = 26;
+  static FLIES = 14;
+  static RAYS = 9;
+  static GUST_MIN = 3;
+  static GUST_MAX = 7;
+  static METEOR_MIN = 5;
+  static METEOR_MAX = 11;
   static COLORS = ["--fw-sky-a", "--fw-sky-b", "--fw-sun", "--fw-mesa-far", "--fw-mesa-near", "--fw-ground-a", "--fw-ground-b", "--fw-wood", "--fw-wood-dark", "--fw-window", "--fw-cactus", "--fw-night"];
 
   static seeded(seed) {
@@ -27,6 +34,16 @@ class FarWestScene {
     this.puffs = [];
     this.dust = [];
     this.clouds = [];
+    this.twinkles = [];
+    this.flies = [];
+    this.birds = [];
+    this.streaks = [];
+    this.gustIn = 2;
+    this.meteor = null;
+    this.meteorIn = 3;
+    this.night = 0;
+    this.sun = { x: 0, y: 0, r: 1 };
+    this.windows = [];
   }
 
   resize(W, H, dpr) {
@@ -36,6 +53,11 @@ class FarWestScene {
     this.key = "";
     this.dust = Array.from({ length: FarWestScene.DUST }, () => ({ x: Math.random() * W, y: H * (0.35 + Math.random() * 0.6), s: 0.6 + Math.random() * 1.6, v: 12 + Math.random() * 30, a: 0.15 + Math.random() * 0.35 }));
     this.clouds = Array.from({ length: 3 }, (_, i) => ({ x: W * (0.15 + i * 0.35), y: H * (0.1 + i * 0.07), w: W * (0.16 + Math.random() * 0.1), v: 6 + Math.random() * 8 }));
+    const horizon = H * FarWestScene.HORIZON;
+    this.twinkles = Array.from({ length: FarWestScene.TWINKLES }, () => ({ x: Math.random() * W, y: Math.random() * horizon * 0.8, r: 0.8 + Math.random() * 1.3, speed: 1.5 + Math.random() * 3, phase: Math.random() * 7 }));
+    this.flies = Array.from({ length: FarWestScene.FLIES }, () => ({ x: W * (0.25 + Math.random() * 0.5), y: horizon + Math.random() * H * 0.2, a: Math.random() * 7, speed: 8 + Math.random() * 14, phase: Math.random() * 7 }));
+    this.birds = Array.from({ length: 2 }, (_, i) => ({ cx: W * (0.25 + i * 0.4), cy: H * (0.18 + i * 0.06), rx: W * (0.08 + i * 0.03), ry: H * 0.03, a: Math.random() * 7, speed: 0.22 + i * 0.08, size: Math.max(6, H * 0.012) }));
+    this.streaks = [];
     this.paintWeed();
   }
 
@@ -101,6 +123,9 @@ class FarWestScene {
     const sunX = W * 0.72,
       sunY = horizon * (night > 0 ? 0.28 : 0.55),
       sunR = Math.min(W, H) * 0.07;
+    this.night = night;
+    this.sun = { x: sunX, y: sunY, r: sunR };
+    this.windows = [];
     g = c.createRadialGradient(sunX, sunY, sunR * 0.5, sunX, sunY, sunR * 4);
     g.addColorStop(0, P.sun);
     g.addColorStop(1, "rgba(255,255,255,0)");
@@ -219,6 +244,7 @@ class FarWestScene {
       winY = porchY + h * 0.18;
     for (const k of [0.1, 0.73]) {
       const wx = x + k * w;
+      this.windows.push({ x: wx, y: winY, w: winW, h: winH });
       if (night > 0) {
         const glow = c.createRadialGradient(wx + winW / 2, winY + winH / 2, 0, wx + winW / 2, winY + winH / 2, winW * 1.6);
         glow.addColorStop(0, `rgba(255,190,90,${0.45 * night})`);
@@ -241,6 +267,7 @@ class FarWestScene {
     const doorW = w * 0.2,
       doorX = W / 2 - doorW / 2,
       doorY = porchY + h * 0.14;
+    this.windows.push({ x: doorX, y: doorY, w: doorW, h: base - doorY - h * 0.05 });
     c.fillStyle = night > 0 ? P.window : "rgba(0,0,0,0.55)";
     c.fillRect(doorX, doorY, doorW, base - doorY - h * 0.05);
     c.fillStyle = P["wood-dark"];
@@ -291,6 +318,165 @@ class FarWestScene {
       cl.x += cl.v * dt;
       if (cl.x - cl.w > this.W) cl.x = -cl.w;
     }
+    this.gustIn -= dt;
+    if (this.gustIn <= 0) {
+      this.gustIn = FarWestScene.GUST_MIN + Math.random() * (FarWestScene.GUST_MAX - FarWestScene.GUST_MIN);
+      const y = this.H * (0.62 + Math.random() * 0.25);
+      for (let i = 0; i < 18; i++) this.streaks.push({ x: -Math.random() * this.W * 0.5, y: y + (Math.random() - 0.5) * this.H * 0.08, len: this.W * (0.03 + Math.random() * 0.05), v: this.W * (0.5 + Math.random() * 0.4), life: 1.6, max: 1.6 });
+    }
+    for (const st of this.streaks) {
+      st.life -= dt;
+      st.x += st.v * dt;
+    }
+    this.streaks = this.streaks.filter((st) => st.life > 0 && st.x < this.W + st.len);
+    for (const f of this.flies) {
+      f.a += (Math.random() - 0.5) * dt * 3;
+      f.x += Math.cos(f.a) * f.speed * dt;
+      f.y += Math.sin(f.a) * f.speed * dt * 0.6;
+      if (f.x < this.W * 0.15 || f.x > this.W * 0.85) f.a = Math.PI - f.a;
+      const horizon = this.H * FarWestScene.HORIZON;
+      if (f.y < horizon - this.H * 0.05 || f.y > horizon + this.H * 0.25) f.a = -f.a;
+    }
+    for (const b of this.birds) b.a += b.speed * dt;
+    if (this.night > 0) {
+      this.meteorIn -= dt;
+      if (this.meteorIn <= 0 && !this.meteor) {
+        this.meteorIn = FarWestScene.METEOR_MIN + Math.random() * (FarWestScene.METEOR_MAX - FarWestScene.METEOR_MIN);
+        const fromLeft = Math.random() < 0.5;
+        this.meteor = { x: this.W * (fromLeft ? 0.1 + Math.random() * 0.3 : 0.6 + Math.random() * 0.3), y: this.H * (0.05 + Math.random() * 0.12), vx: (fromLeft ? 1 : -1) * this.W * 0.55, vy: this.H * 0.28, life: 0.9, max: 0.9 };
+      }
+      if (this.meteor) {
+        const m = this.meteor;
+        m.life -= dt;
+        m.x += m.vx * dt;
+        m.y += m.vy * dt;
+        if (m.life <= 0) this.meteor = null;
+      }
+    }
+  }
+
+  drawDay(ctx) {
+    const day = 1 - this.night,
+      { x, y, r } = this.sun,
+      horizon = this.H * FarWestScene.HORIZON;
+    if (day <= 0) return;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.translate(x, y);
+    ctx.rotate(this.t * 0.04);
+    const len = Math.max(this.W, this.H) * 0.9;
+    for (let i = 0; i < FarWestScene.RAYS; i++) {
+      const a = (i / FarWestScene.RAYS) * Math.PI * 2,
+        g = ctx.createLinearGradient(0, 0, Math.cos(a) * len, Math.sin(a) * len);
+      g.addColorStop(0, `rgba(255,236,180,${0.09 * day * (0.7 + 0.3 * Math.sin(this.t * 0.8 + i))})`);
+      g.addColorStop(1, "rgba(255,236,180,0)");
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(Math.cos(a - 0.07) * len, Math.sin(a - 0.07) * len);
+      ctx.lineTo(Math.cos(a + 0.07) * len, Math.sin(a + 0.07) * len);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+    ctx.strokeStyle = `rgba(255,245,220,${0.16 * day})`;
+    ctx.lineWidth = 1.5;
+    for (let band = 0; band < 3; band++) {
+      const by = horizon - this.H * (0.01 + band * 0.012);
+      ctx.beginPath();
+      for (let px = 0; px <= this.W; px += 12) {
+        const py = by + Math.sin(px * 0.03 + this.t * (2 + band) + band) * 1.6;
+        if (px) ctx.lineTo(px, py);
+        else ctx.moveTo(px, py);
+      }
+      ctx.stroke();
+    }
+    ctx.strokeStyle = `rgba(40,25,15,${0.75 * day})`;
+    ctx.lineWidth = 1.6;
+    for (const b of this.birds) {
+      const bx = b.cx + Math.cos(b.a) * b.rx,
+        by = b.cy + Math.sin(b.a) * b.ry,
+        flap = Math.sin(this.t * 3 + b.cx) * b.size * 0.25;
+      ctx.beginPath();
+      ctx.moveTo(bx - b.size, by - flap);
+      ctx.quadraticCurveTo(bx - b.size * 0.4, by - b.size * 0.35, bx, by);
+      ctx.quadraticCurveTo(bx + b.size * 0.4, by - b.size * 0.35, bx + b.size, by - flap);
+      ctx.stroke();
+    }
+  }
+
+  drawNight(ctx) {
+    const night = this.night;
+    if (night <= 0) return;
+    const { x, y, r } = this.sun;
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    const halo = ctx.createRadialGradient(x, y, r, x, y, r * (3.2 + 0.25 * Math.sin(this.t * 0.7)));
+    halo.addColorStop(0, `rgba(230,225,255,${0.16 * night})`);
+    halo.addColorStop(1, "rgba(230,225,255,0)");
+    ctx.fillStyle = halo;
+    ctx.fillRect(x - r * 4, y - r * 4, r * 8, r * 8);
+    ctx.fillStyle = "#ffffff";
+    for (const s of this.twinkles) {
+      ctx.globalAlpha = night * Math.max(0, 0.25 + 0.75 * Math.sin(this.t * s.speed + s.phase));
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    if (this.meteor) {
+      const m = this.meteor,
+        k = m.life / m.max,
+        tx = m.x - m.vx * 0.18,
+        ty = m.y - m.vy * 0.18,
+        g = ctx.createLinearGradient(m.x, m.y, tx, ty);
+      g.addColorStop(0, `rgba(255,255,255,${0.9 * k * night})`);
+      g.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.strokeStyle = g;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(m.x, m.y);
+      ctx.lineTo(tx, ty);
+      ctx.stroke();
+    }
+    const flicker = 0.75 + 0.15 * Math.sin(this.t * 9) + 0.1 * Math.sin(this.t * 23);
+    for (const w of this.windows) {
+      const cx = w.x + w.w / 2,
+        cy = w.y + w.h / 2,
+        rr = Math.max(w.w, w.h) * 1.4,
+        g = ctx.createRadialGradient(cx, cy, 0, cx, cy, rr);
+      g.addColorStop(0, `rgba(255,170,70,${0.22 * night * flicker})`);
+      g.addColorStop(1, "rgba(255,170,70,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(cx - rr, cy - rr, rr * 2, rr * 2);
+    }
+    ctx.restore();
+  }
+
+  drawLights(ctx) {
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    if (this.night > 0)
+      for (const f of this.flies) {
+        const glow = Math.max(0, Math.sin(this.t * 2.5 + f.phase)),
+          g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, 7);
+        g.addColorStop(0, `rgba(220,255,140,${0.9 * glow * this.night})`);
+        g.addColorStop(1, "rgba(220,255,140,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(f.x - 7, f.y - 7, 14, 14);
+      }
+    ctx.restore();
+    ctx.lineCap = "round";
+    ctx.lineWidth = 1.2;
+    for (const st of this.streaks) {
+      ctx.globalAlpha = Math.min(1, st.life / st.max * 2) * (this.night > 0 ? 0.18 : 0.35);
+      ctx.strokeStyle = "#f3dfb6";
+      ctx.beginPath();
+      ctx.moveTo(st.x, st.y);
+      ctx.lineTo(st.x - st.len, st.y + st.len * 0.04);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
   }
 
   drawBack(ctx) {
@@ -303,6 +489,8 @@ class FarWestScene {
       ctx.ellipse(cl.x + cl.w * 0.12, cl.y - cl.w * 0.06, cl.w * 0.22, cl.w * 0.08, 0, 0, Math.PI * 2);
       ctx.fill();
     }
+    this.drawDay(ctx);
+    this.drawNight(ctx);
   }
 
   drawMiddle(ctx) {
@@ -331,6 +519,7 @@ class FarWestScene {
   }
 
   drawFront(ctx) {
+    this.drawLights(ctx);
     ctx.fillStyle = "#f3dfb6";
     for (const d of this.dust) {
       ctx.globalAlpha = d.a;

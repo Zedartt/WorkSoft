@@ -198,19 +198,22 @@ class WestHud {
         need = Math.min(view[side].need, view.maxStars - 1),
         filled = Math.min(wins, view.maxStars - need),
         shown = filled + need,
-        gap = f * 1.7,
-        start = left ? x + f * 0.75 : x - f * 0.75 - (shown - 1) * gap;
+        gap = Math.min(f * 1.7, (W * 0.42 - f) / Math.max(1, shown)),
+        r = Math.min(f * 0.7, gap * 0.42),
+        start = left ? x + r * 1.1 : x - r * 1.1 - (shown - 1) * gap;
       for (let i = 0; i < shown; i++) {
         const stacked = wins > filled && i === filled - 1,
           sx = start + i * gap,
           sy = top + f * 1.55;
-        WestHud.star(ctx, sx, sy, f * (stacked ? 0.85 : 0.7), i < filled, WestHud.GOLD);
+        WestHud.star(ctx, sx, sy, r * (stacked ? 1.25 : 1), i < filled, WestHud.GOLD);
         if (!stacked) continue;
-        ctx.font = `900 ${Math.round(f * 0.72)}px ${WestHud.FONT}`;
+        const label = String(wins);
+        ctx.font = `900 ${Math.round(r * (label.length > 1 ? 0.95 : 1.1))}px ${WestHud.FONT}`;
         ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
+        ctx.textBaseline = "alphabetic";
+        const m = ctx.measureText(label);
         ctx.fillStyle = "#3a2200";
-        ctx.fillText(String(wins), sx, sy + f * 0.04);
+        ctx.fillText(label, sx, sy + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2);
       }
     }
     if (view.round) {
