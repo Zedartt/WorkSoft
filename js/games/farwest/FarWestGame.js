@@ -1,5 +1,7 @@
 class FarWestGame extends Game {
-  static TARGET = 2;
+  static TARGET = 3;
+  static LEAD = 2;
+  static MAX_STARS = 5;
   static INTRO_TIME = 1.6;
   static MIN_DELAY = 1.5;
   static MAX_DELAY = 4;
@@ -28,13 +30,14 @@ class FarWestGame extends Game {
         controls: [
           ["Créer un salon", "Donne le code de 5 caractères à ton adversaire"],
           ["Rejoindre", "Tape le code reçu puis valide"],
-          ["Clic, toucher l'écran ou Espace", "Tirer"],
+          ["Espace, clic ou toucher l'écran", "Tirer"],
         ],
         rules: [
           "Après « Attends… », le signal tombe au hasard, entre 1,5 et 4 secondes.",
           "Tirer avant le signal fait perdre la manche.",
           "Après le signal, le plus rapide gagne la manche. Ton temps de réaction est mesuré sur ton écran : la connexion ne te désavantage pas.",
-          `Le premier à ${FarWestGame.TARGET} manches gagne le duel.`,
+          `Pour gagner le duel, il faut au moins ${FarWestGame.TARGET} manches et ${FarWestGame.LEAD} manches d'avance : tant que l'écart n'est pas de ${FarWestGame.LEAD}, le duel continue.`,
+          "Chaque manche gagnée ajoute une étoile ; quand il y en a trop, la dernière étoile affiche le total.",
           "Bleu, c'est toi à gauche ; rouge, c'est ton adversaire à droite.",
           "Ton meilleur réflexe est gardé en record.",
           "Pas de pause en ligne : le duel continue derrière cette fiche.",
@@ -140,6 +143,7 @@ class FarWestGame extends Game {
     for (const cowboy of Object.values(this.cowboys)) cowboy.reset();
     this.fx.clear();
     this.setBanner(null, `Manche ${this.round}`, "#f3dfb6");
+    if (document.activeElement && document.activeElement.closest("#farwest")) document.activeElement.blur();
     Sfx.play("fwRound");
   }
 
@@ -242,6 +246,12 @@ class FarWestGame extends Game {
     Sfx.play(winner === "me" ? "fwRoundWin" : "fwRoundLose");
   }
 
+  matchWinner() {
+    const { me, foe } = this.wins;
+    if (Math.max(me, foe) < FarWestGame.TARGET || Math.abs(me - foe) < FarWestGame.LEAD) return null;
+    return me > foe ? "me" : "foe";
+  }
+
   saveBest(r) {
     const ms = Math.round(r * 1000);
     if (this.best === null || ms < this.best) this.best = ms;
@@ -251,7 +261,7 @@ class FarWestGame extends Game {
 
   finish() {
     this.phase = "over";
-    const won = this.wins.me >= FarWestGame.TARGET;
+    const won = this.matchWinner() === "me";
     if (won) Store.write(FarWestGame.WINS_KEY, (+Store.read(FarWestGame.WINS_KEY, 0) || 0) + 1);
     if (won) {
       this.fx.stars(this.W, this.H);
@@ -337,7 +347,7 @@ class FarWestGame extends Game {
     }
     if (this.phase === "result" && this.phaseT >= FarWestGame.RESULT_TIME && !this.resultDone) {
       this.resultDone = true;
-      if (this.wins.me >= FarWestGame.TARGET || this.wins.foe >= FarWestGame.TARGET) this.finish();
+      if (this.matchWinner()) this.finish();
       else if (host) this.newRound(false);
     }
     const floor = this.scene.groundY;
@@ -356,6 +366,7 @@ class FarWestGame extends Game {
     this.scene.drawBack(ctx);
     this.fx.drawBack(ctx, W, H);
     const L = this.layout();
+    this.scene.drawMiddle(ctx);
     for (const side of ["me", "foe"]) this.cowboys[side].render(ctx, L[side], L.y, L.h);
     this.scene.drawFront(ctx);
     this.fx.drawFront(ctx, W, H);
@@ -365,6 +376,7 @@ class FarWestGame extends Game {
       me: { name: "TOI", wins: this.wins.me },
       foe: { name: "ADVERSAIRE", wins: this.wins.foe },
       target: FarWestGame.TARGET,
+      maxStars: FarWestGame.MAX_STARS,
       round: showRound ? this.round : 0,
       marks: this.marks,
       banner: this.phase === "lobby" || this.phase === "over" ? null : this.banner && { ...this.banner, k: this.t - this.banner.at },
@@ -401,7 +413,8 @@ class FarWestGame extends Game {
     });
     document.addEventListener("keydown", (event) => {
       if (!this.raf || event.repeat) return;
-      if (event.key === " " && !event.target.closest("input, button")) {
+      const playing = ["intro", "wait", "fire", "result"].includes(this.phase);
+      if (event.key === " " && (playing || !event.target.closest("input, button"))) {
         event.preventDefault();
         this.shoot();
       } else if (event.key === "Enter" && this.phase === "over") {

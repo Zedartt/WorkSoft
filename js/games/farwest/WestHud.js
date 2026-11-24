@@ -168,9 +168,21 @@ class WestHud {
       const left = side === "me",
         x = left ? W * 0.04 : W * 0.96;
       WestHud.text(ctx, view[side].name, x, top, f, WestHud.COLORS[side], left ? "left" : "right");
-      for (let i = 0; i < view.target; i++) {
-        const sx = left ? x + f * 0.75 + i * f * 1.7 : x - f * 0.75 - i * f * 1.7;
-        WestHud.star(ctx, sx, top + f * 1.55, f * 0.7, i < view[side].wins, WestHud.GOLD);
+      const wins = view[side].wins,
+        shown = Math.min(Math.max(view.target, wins), view.maxStars),
+        gap = f * 1.7,
+        start = left ? x + f * 0.75 : x - f * 0.75 - (shown - 1) * gap;
+      for (let i = 0; i < shown; i++) {
+        const stacked = wins > view.maxStars && i === shown - 1,
+          sx = start + i * gap,
+          sy = top + f * 1.55;
+        WestHud.star(ctx, sx, sy, f * (stacked ? 0.85 : 0.7), i < wins, WestHud.GOLD);
+        if (!stacked) continue;
+        ctx.font = `900 ${Math.round(f * 0.72)}px ${WestHud.FONT}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#3a2200";
+        ctx.fillText(String(wins), sx, sy + f * 0.04);
       }
     }
     if (view.round) {

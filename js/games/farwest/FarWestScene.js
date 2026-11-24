@@ -305,7 +305,7 @@ class FarWestScene {
     }
   }
 
-  drawFront(ctx) {
+  drawMiddle(ctx) {
     for (const p of this.puffs) {
       ctx.globalAlpha = (p.life / p.max) * 0.35;
       ctx.fillStyle = "#c9a46b";
@@ -328,6 +328,9 @@ class FarWestScene {
       ctx.drawImage(this.weed, -size / 2, -size / 2, size, size);
       ctx.restore();
     }
+  }
+
+  drawFront(ctx) {
     ctx.fillStyle = "#f3dfb6";
     for (const d of this.dust) {
       ctx.globalAlpha = d.a;

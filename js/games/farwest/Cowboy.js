@@ -1,7 +1,7 @@
 class Cowboy {
   static LOOK = {
-    me: { hat: "#d9bf8c", hatDark: "#a88a55", band: "#2f8bff", bandana: "#2f8bff", shirt: "#eee3cc", vest: "#6b4a2b", pants: "#3c4d70", boots: "#5a3a22", skin: "#e0ad82", hair: "#5a3a22" },
-    foe: { hat: "#2b2624", hatDark: "#141110", band: "#ff3048", bandana: "#ff3048", shirt: "#cbb594", vest: "#2f2a28", pants: "#4d3d33", boots: "#2a1c14", skin: "#c98f63", hair: "#1c1410" },
+    me: { hat: "#d9bf8c", hatDark: "#a88a55", band: "#2f8bff", bandana: "#2f8bff", shirt: "#eee3cc", cuff: "#cfc2a6", glove: "#8a5a32", vest: "#6b4a2b", pants: "#3c4d70", boots: "#5a3a22", skin: "#e0ad82", hair: "#5a3a22" },
+    foe: { hat: "#2b2624", hatDark: "#141110", band: "#ff3048", bandana: "#ff3048", shirt: "#cbb594", cuff: "#a8936f", glove: "#2a2220", vest: "#2f2a28", pants: "#4d3d33", boots: "#2a1c14", skin: "#c98f63", hair: "#1c1410" },
   };
   static SHOULDER = [5, -71];
   static UPPER = 14;
@@ -92,6 +92,51 @@ class Cowboy {
     return { x: x + this.dir * (h / 100) * 1, y: y - (h / 100) * 60 };
   }
 
+  capsule(ctx, x1, y1, r1, x2, y2, r2, color) {
+    const a = Math.atan2(y2 - y1, x2 - x1);
+    ctx.fillStyle = color;
+    ctx.strokeStyle = "rgba(30,18,8,0.45)";
+    ctx.lineWidth = 0.7;
+    ctx.beginPath();
+    ctx.arc(x1, y1, r1, a + Math.PI / 2, a - Math.PI / 2);
+    ctx.arc(x2, y2, r2, a - Math.PI / 2, a + Math.PI / 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  hand(ctx, x, y, angle, fist) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.fillStyle = this.look.glove;
+    ctx.strokeStyle = "rgba(20,10,4,0.5)";
+    ctx.lineWidth = 0.6;
+    ctx.beginPath();
+    ctx.roundRect(-2.4, -2.5, 4.8, fist ? 4.6 : 5, 1.8);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(1.6, -2.2, 1.5, 1, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  armShape(ctx, sx, sy, ex, ey, hx, hy) {
+    const L = this.look,
+      cx = ex + (hx - ex) * 0.78,
+      cy = ey + (hy - ey) * 0.78;
+    this.capsule(ctx, sx, sy, 3.5, ex, ey, 2.8, L.shirt);
+    this.capsule(ctx, ex, ey, 2.8, hx, hy, 2.2, L.shirt);
+    this.capsule(ctx, cx, cy, 2.5, hx, hy, 2.4, L.cuff);
+    ctx.strokeStyle = "rgba(30,18,8,0.25)";
+    ctx.lineWidth = 0.6;
+    ctx.beginPath();
+    ctx.arc(ex, ey, 1.6, Math.atan2(hy - ey, hx - ex) + 0.6, Math.atan2(hy - ey, hx - ex) + 2.2);
+    ctx.stroke();
+  }
+
   limb(ctx, points, color, width) {
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
@@ -159,11 +204,13 @@ class Cowboy {
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     const arm = this.arm();
-    this.limb(ctx, [[-4, -71], [-7.5, -58], [-7, -47]], L.shirt, 5.2);
-    ctx.fillStyle = L.skin;
-    ctx.beginPath();
-    ctx.arc(-7, -46, 2.3, 0, Math.PI * 2);
-    ctx.fill();
+    const back = this.dead ? this.fall : 0,
+      bex = -7.5 - back * 2,
+      bey = -58 - back * 22,
+      bhx = -7 - back * 6,
+      bhy = -47 - back * 34;
+    this.armShape(ctx, -4, -70.5, bex, bey, bhx, bhy);
+    this.hand(ctx, bhx, bhy + 1, Math.atan2(bhy - bey, bhx - bex) - Math.PI / 2, true);
     this.limb(ctx, [[-3, -44], [-5, -23], [-8, -5]], L.pants, 6.4);
     this.limb(ctx, [[3, -44], [5, -23], [7, -5]], L.pants, 6.4);
     ctx.fillStyle = L.boots;
@@ -250,18 +297,16 @@ class Cowboy {
       ctx.fillRect(3, -84.4, 3.4, 0.8);
     }
     if (!this.hat) this.hatShape(ctx);
-    this.limb(ctx, [[arm.sx, arm.sy], [arm.ex, arm.ey], [arm.hx, arm.hy]], L.shirt, 5.2);
-    if (this.aim < 0.5 && !this.dead) {
-      ctx.fillStyle = L.vest;
-      ctx.beginPath();
-      ctx.arc(arm.sx, arm.sy + 1, 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
     this.gun(ctx, arm.hx, arm.hy, arm.a2);
-    ctx.fillStyle = L.skin;
+    this.armShape(ctx, arm.sx, arm.sy, arm.ex, arm.ey, arm.hx, arm.hy);
+    ctx.fillStyle = L.vest;
+    ctx.strokeStyle = "rgba(30,18,8,0.45)";
+    ctx.lineWidth = 0.7;
     ctx.beginPath();
-    ctx.arc(arm.hx, arm.hy, 2.4, 0, Math.PI * 2);
+    ctx.ellipse(arm.sx - 0.6, arm.sy - 0.4, 3.9, 3.1, 0.3, Math.PI * 0.95, Math.PI * 2.05);
     ctx.fill();
+    ctx.stroke();
+    this.hand(ctx, arm.hx, arm.hy, arm.a2, false);
     ctx.restore();
     if (this.hat) {
       const hat = this.hat;
