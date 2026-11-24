@@ -195,14 +195,16 @@ class WestHud {
         x = left ? W * 0.04 : W * 0.96;
       WestHud.text(ctx, view[side].name, x, top, f, WestHud.COLORS[side], left ? "left" : "right");
       const wins = view[side].wins,
-        shown = Math.min(Math.max(view.target, wins), view.maxStars),
+        need = Math.min(view[side].need, view.maxStars - 1),
+        filled = Math.min(wins, view.maxStars - need),
+        shown = filled + need,
         gap = f * 1.7,
         start = left ? x + f * 0.75 : x - f * 0.75 - (shown - 1) * gap;
       for (let i = 0; i < shown; i++) {
-        const stacked = wins > view.maxStars && i === shown - 1,
+        const stacked = wins > filled && i === filled - 1,
           sx = start + i * gap,
           sy = top + f * 1.55;
-        WestHud.star(ctx, sx, sy, f * (stacked ? 0.85 : 0.7), i < wins, WestHud.GOLD);
+        WestHud.star(ctx, sx, sy, f * (stacked ? 0.85 : 0.7), i < filled, WestHud.GOLD);
         if (!stacked) continue;
         ctx.font = `900 ${Math.round(f * 0.72)}px ${WestHud.FONT}`;
         ctx.textAlign = "center";

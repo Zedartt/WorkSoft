@@ -276,6 +276,11 @@ class FarWestGame extends Game {
     return me > foe ? "me" : "foe";
   }
 
+  need(side) {
+    const other = side === "me" ? "foe" : "me";
+    return Math.max(0, Math.max(FarWestGame.TARGET, this.wins[other] + FarWestGame.LEAD) - this.wins[side]);
+  }
+
   saveBest(r) {
     const ms = Math.round(r * 1000);
     if (this.best === null || ms < this.best) this.best = ms;
@@ -406,8 +411,8 @@ class FarWestGame extends Game {
     if (this.local && ["ready", "intro", "wait", "fire"].includes(this.phase))
       for (const [letter, side] of Object.entries(FarWestGame.KEYS)) if (this.shots[side] === null) keys.push({ x: L[side], y: L.y - L.h * 1.12, letter: letter.toUpperCase(), color: WestHud.COLORS[side], hot: this.phase === "fire" });
     this.hud.draw(ctx, W, H, {
-      me: { name: this.local ? "JOUEUR 1" : "TOI", wins: this.wins.me },
-      foe: { name: this.local ? "JOUEUR 2" : "ADVERSAIRE", wins: this.wins.foe },
+      me: { name: this.local ? "JOUEUR 1" : "TOI", wins: this.wins.me, need: this.phase === "over" ? 0 : this.need("me") },
+      foe: { name: this.local ? "JOUEUR 2" : "ADVERSAIRE", wins: this.wins.foe, need: this.phase === "over" ? 0 : this.need("foe") },
       keys,
       target: FarWestGame.TARGET,
       maxStars: FarWestGame.MAX_STARS,
