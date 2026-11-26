@@ -7,6 +7,7 @@ class FrienblingGame extends Game {
   static SHOW_MS = 3500;
   static RESYNC_MS = 400;
   static MOOD_MS = 6000;
+  static IDLE_MS = 7000;
   static START_MONEY = 100;
   static CHIPS = [1, 5, 10, 25, 100, 500];
   static CHIP_COLORS = { 1: "#eef1f5", 5: "#e5484d", 10: "#2f9be0", 25: "#1fb36b", 100: "#2a2d34", 500: "#9b5cff" };
@@ -86,6 +87,7 @@ class FrienblingGame extends Game {
         goal: "Une table de roulette : mise tes jetons avec les autres joueurs de la table, ou seul en solo, et fais grossir ta fortune.",
         controls: [
           ["Pseudo puis « Rejoindre une table »", "Tu rejoins une table libre (8 joueurs au plus) ; s'il n'y en a pas, une nouvelle table est créée"],
+          ["« Prêt » (en ligne)", "Quand tous les joueurs de la table sont prêts, la roue se lance tout de suite sans attendre la fin de la minute"],
           ["« Jouer en solo »", "Tu joues seul contre la maison, même sans connexion Internet ; « Lancer ! » fait tourner la roue sans attendre"],
           ["Jetons sous le tapis", "Choisis la valeur du jeton : 1, 5, 10, 25, 100 ou 500 €"],
           ["Clic sur une case du tapis", "Pose un jeton sur cette case"],
@@ -99,6 +101,7 @@ class FrienblingGame extends Game {
           "Tes jetons sont gros et brillants ; ceux des autres sont plus petits, à la couleur de leur personnage.",
           "Plus ta mise gagnante était rare, et plus tu avais misé de ta fortune, plus la fête est grande.",
           "Le joueur le plus riche de la table porte la couronne.",
+          "Un joueur qui n'a rien misé depuis 7 secondes ne compte plus dans le vote « Prêt » : la roue peut partir sans lui.",
           "Pas de pause : la table continue derrière cette fiche.",
         ],
       },
@@ -130,6 +133,9 @@ class FrienblingGame extends Game {
     this.lastBets = this.loadLast();
     this.results = [];
     this.moods = new Map();
+    this.arrivals = new Map();
+    this.seatedAt = 0;
+    this.openAt = 0;
     this.cells = new Map();
     this.slots = [];
     this.netMsg = "";
@@ -148,6 +154,8 @@ class FrienblingGame extends Game {
   }
 
   resetRound() {
+    this.readyRound = -1;
+    this.arrivals.clear();
     this.synced = false;
     this.round = 0;
     this.spinAt = 0;
@@ -234,7 +242,7 @@ class FrienblingGame extends Game {
       for (const visual of order) {
         const el = document.createElement("div");
         el.className = "fb-seat fb-empty";
-        el.innerHTML = `<div class="fb-avatar"><span class="fb-crown">${FrienblingGame.CROWN}</span><div class="fb-face"></div></div><div class="fb-name">Place libre</div><div class="fb-cash"></div><div class="fb-stake"></div>`;
+        el.innerHTML = `<div class="fb-avatar"><span class="fb-crown">${FrienblingGame.CROWN}</span><div class="fb-face"></div><span class="fb-ready-tag">Prêt</span></div><div class="fb-name">Place libre</div><div class="fb-cash"></div><div class="fb-stake"></div>`;
         row.appendChild(el);
         this.slots[visual] = { el, avatar: el.querySelector(".fb-avatar"), face: el.querySelector(".fb-face"), name: el.querySelector(".fb-name"), cash: el.querySelector(".fb-cash"), stake: el.querySelector(".fb-stake"), sig: "", faceSig: "" };
       }
@@ -285,6 +293,7 @@ class FrienblingGame extends Game {
     $("fbClear").addEventListener("click", () => this.clearBets());
     $("fbRepeat").addEventListener("click", () => this.repeat());
     $("fbSpin").addEventListener("click", () => this.launchNow());
+    $("fbReady").addEventListener("click", () => this.toggleReady());
     $("fbJoin").addEventListener("click", () => this.play());
     $("fbSolo").addEventListener("click", () => this.playSolo());
     $("fbCancel").addEventListener("click", () => this.leave());
@@ -354,8 +363,47 @@ class FrienblingGame extends Game {
     this.touchView();
   }
 
+  isReady() {
+    return this.readyRound === this.round;
+  }
+
+  toggleReady() {
+    if (this.link.solo || this.phase() !== "bet") return;
+    this.readyRound = this.isReady() ? -1 : this.round;
+    this.link.touch();
+    Sfx.play(this.isReady() ? "fbChip" : "back");
+    this.touchView();
+  }
+
+  votes() {
+    const now = this.clock(),
+      list = [{ ready: this.isReady(), bets: FrienblingGame.sum(this.bets), since: this.seatedAt }];
+    for (const peer of this.link.peers.values()) {
+      const current = peer.br === this.round;
+      list.push({ ready: current && peer.rd === this.round, bets: current ? FrienblingGame.sum(peer.bets) : 0, since: this.arrivals.get(peer.id) || 0 });
+    }
+    let ready = 0,
+      needed = 0;
+    for (const vote of list) {
+      if (vote.ready) {
+        ready++;
+        needed++;
+      } else if (vote.bets || now - Math.max(this.openAt, vote.since) < FrienblingGame.IDLE_MS) needed++;
+    }
+    return { ready, needed, go: ready > 0 && ready === needed };
+  }
+
+  checkReady(now) {
+    if (this.link.solo || !this.link.isHost || this.spin || this.spinAt - now <= FrienblingGame.CLOSE_MS) return;
+    if (!this.votes().go) return;
+    this.spinAt = now + FrienblingGame.CLOSE_MS;
+    this.link.touch();
+    this.touchView();
+  }
+
   seated(created) {
     $("fbLobby").classList.remove("show");
+    this.seatedAt = this.openAt = this.clock();
     if (created) {
       this.synced = true;
       this.round = 1;
@@ -397,7 +445,7 @@ class FrienblingGame extends Game {
 
   myState() {
     const spin = this.spin && !this.spin.landed ? this.spin : null,
-      state = { name: this.nick, money: this.money, bets: Object.fromEntries(spin ? spin.mine : this.bets), br: spin ? spin.round : this.round };
+      state = { name: this.nick, money: this.money, bets: Object.fromEntries(spin ? spin.mine : this.bets), br: spin ? spin.round : this.round, rd: this.isReady() ? this.round : 0 };
     if (this.link.isHost && this.synced) state.h = { round: this.round, left: Math.round(this.spinAt - this.clock()), last: this.lastResult };
     return state;
   }
@@ -405,7 +453,10 @@ class FrienblingGame extends Game {
   onPeer(peer, known) {
     const spin = this.spin;
     if (spin && !spin.landed && peer.br === spin.round) spin.others.set(peer.id, { bets: { ...peer.bets }, money: peer.money });
-    if (!known) Sfx.play("fbJoin");
+    if (!known) {
+      this.arrivals.set(peer.id, this.clock());
+      Sfx.play("fbJoin");
+    }
     this.touchView();
   }
 
@@ -414,6 +465,7 @@ class FrienblingGame extends Game {
     if (h.last) this.applyResult(h.last, now);
     if (!this.synced) {
       this.synced = true;
+      this.openAt = now;
       this.round = h.round;
       this.spinAt = now + h.left;
     } else if (h.round === this.round) {
@@ -421,6 +473,7 @@ class FrienblingGame extends Game {
       if (Math.abs(target - this.spinAt) > FrienblingGame.RESYNC_MS) this.spinAt = target;
     } else if (h.round > this.round && !this.spin) {
       this.refundBets();
+      this.openAt = now;
       this.round = h.round;
       this.spinAt = now + h.left;
     }
@@ -438,6 +491,7 @@ class FrienblingGame extends Game {
   advance() {
     if (!this.link.seated || !this.synced) return;
     const now = this.clock();
+    this.checkReady(now);
     if (!this.spin && !this.closedSound && now >= this.spinAt - FrienblingGame.CLOSE_MS) {
       this.closedSound = true;
       Sfx.play("fbClose");
@@ -549,6 +603,7 @@ class FrienblingGame extends Game {
 
   endSpin() {
     this.spin = null;
+    this.openAt = this.clock();
     if (this.money < 1 && !this.bets.size) this.gift();
     this.touchView();
   }
@@ -652,8 +707,8 @@ class FrienblingGame extends Game {
       if (spin) return FrienblingGame.sum(id === this.link.id ? spin.mine : (spin.others.get(id) || { bets: {} }).bets);
       return br === this.round ? FrienblingGame.sum(live) : 0;
     };
-    list.push({ id: this.link.id, name: this.nick, seat: this.link.seat, money: this.money, stake: stakeOf(this.link.id, this.bets, this.round), me: true });
-    for (const peer of this.link.peers.values()) list.push({ id: peer.id, name: peer.name, seat: peer.seat, money: peer.money, stake: stakeOf(peer.id, peer.bets, peer.br), me: false });
+    list.push({ id: this.link.id, name: this.nick, seat: this.link.seat, money: this.money, stake: stakeOf(this.link.id, this.bets, this.round), me: true, ready: !spin && this.isReady() });
+    for (const peer of this.link.peers.values()) list.push({ id: peer.id, name: peer.name, seat: peer.seat, money: peer.money, stake: stakeOf(peer.id, peer.bets, peer.br), me: false, ready: !spin && peer.br === this.round && peer.rd === this.round });
     return list;
   }
 
@@ -672,7 +727,7 @@ class FrienblingGame extends Game {
       const person = byVisual.get(visual),
         mood = person && this.moods.get(person.id),
         live = mood && mood.until > now ? mood : null,
-        sig = person ? [person.id, person.name, person.money, person.stake, person === richest, live ? live.mood + live.level : ""].join("|") : "empty";
+        sig = person ? [person.id, person.name, person.money, person.stake, person === richest, live ? live.mood + live.level : "", person.ready && !this.link.solo ? 1 : 0].join("|") : "empty";
       if (sig === slot.sig) return;
       slot.sig = sig;
       const el = slot.el;
@@ -680,6 +735,7 @@ class FrienblingGame extends Game {
       el.classList.toggle("fb-me", !!(person && person.me));
       el.classList.toggle("fb-rich", !!person && person === richest);
       el.classList.toggle("fb-won", !!(live && live.mood === "win"));
+      el.classList.toggle("fb-is-ready", !!(person && person.ready && !this.link.solo));
       el.dataset.level = live && live.level ? live.level : "";
       if (!person) {
         slot.face.innerHTML = "";
@@ -749,6 +805,15 @@ class FrienblingGame extends Game {
       clock = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
     }
     this.write("fbPhase", text);
+    if (!this.link.solo) {
+      const votes = phase === "bet" ? this.votes() : null,
+        mine = !!votes && this.isReady();
+      this.write("fbReady", votes ? `${mine ? "Prêt ✓" : "Prêt"} ${votes.ready}/${Math.max(1, votes.needed)}` : "Prêt");
+      if (this.view.readyOn !== mine) {
+        this.view.readyOn = mine;
+        $("fbReady").classList.toggle("on", mine);
+      }
+    }
     this.write("fbClock", clock);
     const area = $("fbArea"),
       mode = this.link.solo ? "solo" : "online";

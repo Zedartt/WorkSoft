@@ -43,6 +43,7 @@ class TableLink {
       rank: TableLink.int(data.rank, 0, 1e9),
       money: TableLink.int(data.money, 0, 1e12),
       br: TableLink.int(data.br, 0, 1e9),
+      rd: TableLink.int(data.rd, 0, 1e9) || 0,
       bets: {},
       h: null,
     };

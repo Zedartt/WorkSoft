@@ -553,6 +553,38 @@
 .fb-stage:not([data-mode="solo"]) .fb-go {
   display: none;
 }
+.fb-stage[data-mode="solo"] .fb-ready {
+  display: none;
+}
+#frienbling .btn.fb-ready {
+  min-width: 110px;
+  background: #8fd0ff;
+}
+#frienbling .btn.fb-ready.on {
+  background: #5fd38a;
+}
+.fb-play:not([data-phase="bet"]) .fb-ready {
+  opacity: 0.5;
+}
+.fb-ready-tag {
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  z-index: 2;
+  padding: 1px 7px;
+  border: 2px solid var(--fb-outline);
+  border-radius: 999px;
+  background: #5fd38a;
+  color: var(--fb-outline);
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+  transform: translateX(-50%) scale(0);
+  transition: transform 0.2s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.fb-is-ready .fb-ready-tag {
+  transform: translateX(-50%) scale(1);
+}
 .fb-stage[data-mode="solo"] .fb-top {
   display: none;
 }
