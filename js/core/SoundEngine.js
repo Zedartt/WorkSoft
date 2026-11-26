@@ -15,6 +15,11 @@ class SoundEngine {
       filter: "lowpass",
       vol: 0.25,
     },
+    roll: {
+      f: 2400,
+      q: 0.7,
+      vol: 0.045,
+    },
   };
   constructor() {
     this.ctx = null;
@@ -385,6 +390,43 @@ class SoundEngine {
       },
       fwLose: () => {
         [392, 370, 349, 294].forEach((f, i) => this.tone(f, i === 3 ? 1 : 0.4, { to: f * 0.94, type: "square", vol: 0.06, at: i * 0.42 }));
+      },
+      fbChip: () => {
+        this.noise(0.03, { f: 3800, q: 2, vol: 0.18 });
+        this.noise(0.03, { f: 3200, q: 2, vol: 0.12, at: 0.05 });
+        this.tone(1900, 0.03, { type: "triangle", vol: 0.04 });
+      },
+      fbTick: (k = 1) => this.noise(0.02, { f: 2600 + Math.random() * 600, q: 3, vol: 0.05 + 0.1 * k }),
+      fbClose: () => {
+        [988, 1319].forEach((f, i) => this.tone(f, 0.7, { type: "triangle", vol: 0.1, at: i * 0.14 }));
+        this.tone(659, 0.9, { type: "sine", vol: 0.06, at: 0.28 });
+      },
+      fbSpin: () => {
+        this.noise(0.5, { f: 1800, q: 0.5, vol: 0.1 });
+        this.tone(220, 0.4, { to: 660, type: "triangle", vol: 0.05 });
+      },
+      fbLand: () => {
+        this.noise(0.05, { f: 3000, q: 1.5, vol: 0.25 });
+        this.noise(0.04, { f: 2600, q: 2, vol: 0.12, at: 0.09 });
+        this.noise(0.03, { f: 2400, q: 2, vol: 0.06, at: 0.16 });
+      },
+      fbJoin: () => this.arp([659, 880], 0.08, { vol: 0.07, d: 0.2 }),
+      fbGift: () => this.arp([523, 659, 784, 1047, 1319], 0.07, { vol: 0.1 }),
+      fbCoins: () => {
+        for (let i = 0; i < 8; i++) this.tone(1800 + Math.random() * 1500, 0.08, { type: "triangle", vol: 0.03, at: i * 0.06 });
+      },
+      fbLose: () => this.arp([392, 349, 294], 0.13, { vol: 0.07, d: 0.3, type: "square" }),
+      fbWin: (level = 1) => {
+        const notes = [523, 659, 784, 1047, 1319, 1568, 2093].slice(0, 3 + level);
+        this.arp(notes, 0.08, { vol: 0.12, d: 0.3 });
+        const at = notes.length * 0.08;
+        if (level >= 2) [523, 659, 784, 1047].forEach((f) => this.tone(f, 0.6 + level * 0.25, { type: "sawtooth", vol: 0.02 + level * 0.004, at }));
+        for (let i = 0; i < 6 + level * 8; i++) this.tone(1700 + Math.random() * 1900, 0.08, { type: "triangle", vol: 0.03, at: at + Math.random() * (0.5 + level * 0.35) });
+        if (level >= 4) {
+          this.tone(80, 0.8, { to: 40, vol: 0.35, at });
+          this.noise(0.8, { f: 2400, q: 0.5, vol: 0.14, at });
+        }
+        if (level >= 5) for (let i = 0; i < 4; i++) this.noise(0.3, { f: 5000, filter: "highpass", vol: 0.1, at: at + 0.4 + i * 0.35 });
       },
       wkPart: () => {
         this.tone(260, 0.12, { to: 520, type: "sawtooth", vol: 0.03 });

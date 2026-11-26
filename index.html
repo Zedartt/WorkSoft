@@ -4,20 +4,21 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>Worksoft</title>
-    <link rel="stylesheet" href="css/base.css?v=20261124c" />
-    <link rel="stylesheet" href="css/components.css?v=20261124c" />
-    <link rel="stylesheet" href="css/menu.css?v=20261124c" />
-    <link rel="stylesheet" href="css/wikopy.css?v=20261124c" />
-    <link rel="stylesheet" href="css/kaplab.css?v=20261124c" />
-    <link rel="stylesheet" href="css/incscape.css?v=20261124c" />
-    <link rel="stylesheet" href="css/cooktou.css?v=20261124c" />
-    <link rel="stylesheet" href="css/wordhunt.css?v=20261124c" />
-    <link rel="stylesheet" href="css/whereword.css?v=20261124c" />
-    <link rel="stylesheet" href="css/hooplab.css?v=20261124c" />
-    <link rel="stylesheet" href="css/horsering.css?v=20261124c" />
-    <link rel="stylesheet" href="css/wheeeeel.css?v=20261124c" />
-    <link rel="stylesheet" href="css/wordking.css?v=20261124c" />
-    <link rel="stylesheet" href="css/farwest.css?v=20261124c" />
+    <link rel="stylesheet" href="css/base.css?v=20261126b" />
+    <link rel="stylesheet" href="css/components.css?v=20261126b" />
+    <link rel="stylesheet" href="css/menu.css?v=20261126b" />
+    <link rel="stylesheet" href="css/wikopy.css?v=20261126b" />
+    <link rel="stylesheet" href="css/kaplab.css?v=20261126b" />
+    <link rel="stylesheet" href="css/incscape.css?v=20261126b" />
+    <link rel="stylesheet" href="css/cooktou.css?v=20261126b" />
+    <link rel="stylesheet" href="css/wordhunt.css?v=20261126b" />
+    <link rel="stylesheet" href="css/whereword.css?v=20261126b" />
+    <link rel="stylesheet" href="css/hooplab.css?v=20261126b" />
+    <link rel="stylesheet" href="css/horsering.css?v=20261126b" />
+    <link rel="stylesheet" href="css/wheeeeel.css?v=20261126b" />
+    <link rel="stylesheet" href="css/wordking.css?v=20261126b" />
+    <link rel="stylesheet" href="css/farwest.css?v=20261126b" />
+    <link rel="stylesheet" href="css/frienbling.css?v=20261126b" />
   </head>
   <body>
     <div class="corner">
@@ -366,7 +367,7 @@
         <div class="stat">Points <b id="hlScore">0</b></div>
         <div class="stat">Combo <b id="hlCombo">0</b><span class="hl-timer" title="Temps pour marquer le panier suivant"><i id="hlTimer"></i></span></div>
         <div class="stat">Record <b id="hlBest">0</b></div>
-        <span class="hl-help">Glisse le ballon pour le lancer · clic droit n'importe où : rebond (1 fois en l'air) · en l'air, tire en arc ailleurs (1 fois)</span>
+        <span class="hl-help">Glisse le ballon pour le lancer · clic droit n'importe où : rebond (1 fois en l'air) · en l'air, tire en arc ailleurs (1 fois) · R : retour au point de départ (maintenu 1,5 s : le placer)</span>
       </div>
       <div class="hl-area" id="hlArea"><canvas id="hlCanvas"></canvas></div>
     </section>
@@ -677,79 +678,159 @@
       </div>
     </section>
 
-    <script src="js/vendor/matter.min.js?v=20261124c"></script>
-    <script src="js/core/Dom.js?v=20261124c"></script>
-    <script src="js/core/Viewport.js?v=20261124c"></script>
-    <script src="js/core/SoundEngine.js?v=20261124c"></script>
-    <script src="js/core/Game.js?v=20261124c"></script>
-    <script src="js/core/RecordBadge.js?v=20261124c"></script>
-    <script src="js/core/ReplayGuard.js?v=20261124c"></script>
-    <script src="js/core/MqttRelay.js?v=20261124c"></script>
-    <script src="js/core/DuelLink.js?v=20261124c"></script>
-    <script src="js/core/DuelLobby.js?v=20261124c"></script>
-    <script src="js/core/ThemeSwitch.js?v=20261124c"></script>
-    <script src="js/core/MenuSettings.js?v=20261124c"></script>
-    <script src="js/core/HelpPanel.js?v=20261124c"></script>
-    <script src="js/core/Launcher.js?v=20261124c"></script>
-    <script src="js/games/wikopy/TextRules.js?v=20261124c"></script>
-    <script src="js/games/wikopy/WikiSource.js?v=20261124c"></script>
-    <script src="js/games/wikopy/WikopyGame.js?v=20261124c"></script>
-    <script src="js/games/kaplab/KaplabGame.js?v=20261124c"></script>
-    <script src="js/games/incscape/Geometry.js?v=20261124c"></script>
-    <script src="js/games/incscape/IncscapeGame.js?v=20261124c"></script>
-    <script src="js/games/cooktou/data/Catalog.js?v=20261124c"></script>
-    <script src="js/games/cooktou/data/Recipe.js?v=20261124c"></script>
-    <script src="js/games/cooktou/data/OfflineRecipes.js?v=20261124c"></script>
-    <script src="js/games/cooktou/data/RecipeWriter.js?v=20261124c"></script>
-    <script src="js/games/cooktou/data/RecipeSource.js?v=20261124c"></script>
-    <script src="js/games/cooktou/art/Icons.js?v=20261124c"></script>
-    <script src="js/games/cooktou/art/Avatar.js?v=20261124c"></script>
-    <script src="js/games/cooktou/Order.js?v=20261124c"></script>
-    <script src="js/games/cooktou/KitchenView.js?v=20261124c"></script>
-    <script src="js/games/cooktou/KitchenGuide.js?v=20261124c"></script>
-    <script src="js/games/cooktou/PointerController.js?v=20261124c"></script>
-    <script src="js/games/cooktou/ServiceHistory.js?v=20261124c"></script>
-    <script src="js/games/cooktou/CooktouGame.js?v=20261124c"></script>
-    <script src="js/games/wordhunt/WordList.js?v=20261124c"></script>
-    <script src="js/games/wordhunt/FlyingWord.js?v=20261124c"></script>
-    <script src="js/games/wordhunt/WordHuntGame.js?v=20261124c"></script>
-    <script src="js/games/whereword/ArticleSource.js?v=20261124c"></script>
-    <script src="js/games/whereword/HuntText.js?v=20261124c"></script>
-    <script src="js/games/whereword/WhereWordGame.js?v=20261124c"></script>
-    <script src="js/games/hooplab/HoopCourt.js?v=20261124c"></script>
-    <script src="js/games/hooplab/HoopBall.js?v=20261124c"></script>
-    <script src="js/games/hooplab/HoopNet.js?v=20261124c"></script>
-    <script src="js/games/hooplab/HoopFx.js?v=20261124c"></script>
-    <script src="js/games/hooplab/HoopRules.js?v=20261124c"></script>
-    <script src="js/games/hooplab/HoopAim.js?v=20261124c"></script>
-    <script src="js/games/hooplab/HooplabGame.js?v=20261124c"></script>
-    <script src="js/games/horsering/art/HorseArt.js?v=20261124c"></script>
-    <script src="js/games/horsering/art/HoofArt.js?v=20261124c"></script>
-    <script src="js/games/horsering/art/SpotArt.js?v=20261124c"></script>
-    <script src="js/games/horsering/art/Cowgirl.js?v=20261124c"></script>
-    <script src="js/games/horsering/data/HorseModels.js?v=20261124c"></script>
-    <script src="js/games/horsering/data/HorseTools.js?v=20261124c"></script>
-    <script src="js/games/horsering/data/CareTasks.js?v=20261124c"></script>
-    <script src="js/games/horsering/CareSurface.js?v=20261124c"></script>
-    <script src="js/games/horsering/GroomPointer.js?v=20261124c"></script>
-    <script src="js/games/horsering/CareBook.js?v=20261124c"></script>
-    <script src="js/games/horsering/CareGuide.js?v=20261124c"></script>
-    <script src="js/games/horsering/RanchKit.js?v=20261124c"></script>
-    <script src="js/games/horsering/HorseringGame.js?v=20261124c"></script>
-    <script src="js/games/wheeeeel/WheelStore.js?v=20261124c"></script>
-    <script src="js/games/wheeeeel/WheelPainter.js?v=20261124c"></script>
-    <script src="js/games/wheeeeel/WheelFx.js?v=20261124c"></script>
-    <script src="js/games/wheeeeel/WheelEditor.js?v=20261124c"></script>
-    <script src="js/games/wheeeeel/WheeeeelGame.js?v=20261124c"></script>
-    <script src="js/games/wordking/DuelWords.js?v=20261124c"></script>
-    <script src="js/games/wordking/DuelFx.js?v=20261124c"></script>
-    <script src="js/games/wordking/DuelArena.js?v=20261124c"></script>
-    <script src="js/games/wordking/WordKingGame.js?v=20261124c"></script>
-    <script src="js/games/farwest/FarWestScene.js?v=20261124c"></script>
-    <script src="js/games/farwest/Cowboy.js?v=20261124c"></script>
-    <script src="js/games/farwest/WestFx.js?v=20261124c"></script>
-    <script src="js/games/farwest/WestHud.js?v=20261124c"></script>
-    <script src="js/games/farwest/FarWestGame.js?v=20261124c"></script>
-    <script src="js/core/App.js?v=20261124c"></script>
+    <section id="frienbling" class="screen">
+      <div class="game-top">
+        <button class="back">← Menu</button>
+        <h1 class="game-title">Frienbling</h1>
+        <div></div>
+      </div>
+      <div class="game-bar">
+        <button class="icon-btn" id="fbLeave" title="Quitter la table" aria-label="Quitter la table">
+          <svg viewBox="0 0 24 24"><path d="M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10" /></svg>
+        </button>
+        <div class="stat fb-bar-table">Table <b id="fbTable">—</b></div>
+        <div class="stat">Joueurs <b id="fbCount">—</b></div>
+        <div class="stat">Argent <b id="fbMoney">—</b></div>
+      </div>
+      <div class="fb-area">
+        <div class="fb-stage" id="fbStage">
+          <div class="fb-seats fb-top" id="fbSeatsTop"></div>
+          <div class="fb-middle">
+            <div class="fb-wheel-box">
+              <div class="fb-wheel-wrap">
+                <canvas id="fbWheel"></canvas>
+                <div class="fb-result" id="fbResult"></div>
+              </div>
+              <div class="fb-history" id="fbHistory" title="Derniers numéros sortis"></div>
+            </div>
+            <div class="fb-play" id="fbArea">
+              <div class="fb-status">
+                <span class="fb-phase" id="fbPhase"></span>
+                <b class="fb-clock" id="fbClock"></b>
+                <span class="fb-timer"><i id="fbTimer"></i></span>
+              </div>
+              <div class="fb-board" id="fbBoard"></div>
+              <div class="fb-tray">
+                <div class="fb-chipset" id="fbChips" role="group" aria-label="Valeur du jeton"></div>
+                <div class="fb-actions">
+                  <button class="btn fb-small" id="fbUndo">Annuler</button>
+                  <button class="btn fb-small" id="fbClear">Tout retirer</button>
+                  <button class="btn fb-small" id="fbRepeat">Re-miser</button>
+                  <button class="btn fb-small fb-go" id="fbSpin">Lancer !</button>
+                </div>
+              </div>
+              <p class="fb-hint" id="fbHint"></p>
+            </div>
+          </div>
+          <div class="fb-seats fb-bottom" id="fbSeatsBottom"></div>
+          <canvas class="fb-fx" id="fbFx"></canvas>
+          <div class="overlay fb-lobby show" id="fbLobby">
+            <div class="card fb-lobby-card" id="fbLobbyCard" data-view="home">
+              <div class="fb-view fb-home">
+                <div class="fb-logo" aria-hidden="true">
+                  <svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="29" fill="#6b3d1c"/><circle cx="32" cy="32" r="23" fill="#d42a32"/><path d="M32 9a23 23 0 0 1 16.3 6.7L32 32zM48.3 48.3A23 23 0 0 1 32 55L32 32zM9 32a23 23 0 0 1 6.7-16.3L32 32z" fill="#1b1d22"/><path d="M55 32a23 23 0 0 1-6.7 16.3L32 32z" fill="#0c8a4a"/><circle cx="32" cy="32" r="11" fill="#b8862c"/><circle cx="32" cy="32" r="5" fill="#ffe08a"/><circle cx="46" cy="17" r="3.4" fill="#fff"/></svg>
+                </div>
+                <h1 class="fb-title">Frienbling</h1>
+                <h2>Table de roulette</h2>
+                <p class="lobby-lead">Choisis ton pseudo : tu rejoins une table libre avec tes amis, ou tu joues seul contre la maison.</p>
+                <input class="fb-name-input" id="fbName" type="text" maxlength="14" placeholder="Ton pseudo" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Ton pseudo" />
+                <p class="fb-purse">Ton argent : <b id="fbPurse">100 €</b></p>
+                <div class="fb-modes">
+                  <button class="btn primary lobby-big" id="fbJoin">Rejoindre une table</button>
+                  <button class="btn lobby-big fb-solo" id="fbSolo">Jouer en solo</button>
+                </div>
+              </div>
+              <div class="fb-view fb-search">
+                <h2>Recherche d'une table</h2>
+                <p class="lobby-lead lobby-dots">On cherche une table libre</p>
+                <button class="btn" id="fbCancel">Annuler</button>
+              </div>
+              <p class="lobby-error" id="fbError"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script src="js/vendor/matter.min.js?v=20261126b"></script>
+    <script src="js/core/Dom.js?v=20261126b"></script>
+    <script src="js/core/Viewport.js?v=20261126b"></script>
+    <script src="js/core/SoundEngine.js?v=20261126b"></script>
+    <script src="js/core/Game.js?v=20261126b"></script>
+    <script src="js/core/RecordBadge.js?v=20261126b"></script>
+    <script src="js/core/ReplayGuard.js?v=20261126b"></script>
+    <script src="js/core/MqttRelay.js?v=20261126b"></script>
+    <script src="js/core/DuelLink.js?v=20261126b"></script>
+    <script src="js/core/DuelLobby.js?v=20261126b"></script>
+    <script src="js/core/ThemeSwitch.js?v=20261126b"></script>
+    <script src="js/core/MenuSettings.js?v=20261126b"></script>
+    <script src="js/core/HelpPanel.js?v=20261126b"></script>
+    <script src="js/core/Launcher.js?v=20261126b"></script>
+    <script src="js/games/wikopy/TextRules.js?v=20261126b"></script>
+    <script src="js/games/wikopy/WikiSource.js?v=20261126b"></script>
+    <script src="js/games/wikopy/WikopyGame.js?v=20261126b"></script>
+    <script src="js/games/kaplab/KaplabGame.js?v=20261126b"></script>
+    <script src="js/games/incscape/Geometry.js?v=20261126b"></script>
+    <script src="js/games/incscape/IncscapeGame.js?v=20261126b"></script>
+    <script src="js/games/cooktou/data/Catalog.js?v=20261126b"></script>
+    <script src="js/games/cooktou/data/Recipe.js?v=20261126b"></script>
+    <script src="js/games/cooktou/data/OfflineRecipes.js?v=20261126b"></script>
+    <script src="js/games/cooktou/data/RecipeWriter.js?v=20261126b"></script>
+    <script src="js/games/cooktou/data/RecipeSource.js?v=20261126b"></script>
+    <script src="js/games/cooktou/art/Icons.js?v=20261126b"></script>
+    <script src="js/games/cooktou/art/Avatar.js?v=20261126b"></script>
+    <script src="js/games/cooktou/Order.js?v=20261126b"></script>
+    <script src="js/games/cooktou/KitchenView.js?v=20261126b"></script>
+    <script src="js/games/cooktou/KitchenGuide.js?v=20261126b"></script>
+    <script src="js/games/cooktou/PointerController.js?v=20261126b"></script>
+    <script src="js/games/cooktou/ServiceHistory.js?v=20261126b"></script>
+    <script src="js/games/cooktou/CooktouGame.js?v=20261126b"></script>
+    <script src="js/games/wordhunt/WordList.js?v=20261126b"></script>
+    <script src="js/games/wordhunt/FlyingWord.js?v=20261126b"></script>
+    <script src="js/games/wordhunt/WordHuntGame.js?v=20261126b"></script>
+    <script src="js/games/whereword/ArticleSource.js?v=20261126b"></script>
+    <script src="js/games/whereword/HuntText.js?v=20261126b"></script>
+    <script src="js/games/whereword/WhereWordGame.js?v=20261126b"></script>
+    <script src="js/games/hooplab/HoopCourt.js?v=20261126b"></script>
+    <script src="js/games/hooplab/HoopBall.js?v=20261126b"></script>
+    <script src="js/games/hooplab/HoopNet.js?v=20261126b"></script>
+    <script src="js/games/hooplab/HoopFx.js?v=20261126b"></script>
+    <script src="js/games/hooplab/HoopRules.js?v=20261126b"></script>
+    <script src="js/games/hooplab/HoopAim.js?v=20261126b"></script>
+    <script src="js/games/hooplab/HooplabGame.js?v=20261126b"></script>
+    <script src="js/games/horsering/art/HorseArt.js?v=20261126b"></script>
+    <script src="js/games/horsering/art/HoofArt.js?v=20261126b"></script>
+    <script src="js/games/horsering/art/SpotArt.js?v=20261126b"></script>
+    <script src="js/games/horsering/art/Cowgirl.js?v=20261126b"></script>
+    <script src="js/games/horsering/data/HorseModels.js?v=20261126b"></script>
+    <script src="js/games/horsering/data/HorseTools.js?v=20261126b"></script>
+    <script src="js/games/horsering/data/CareTasks.js?v=20261126b"></script>
+    <script src="js/games/horsering/CareSurface.js?v=20261126b"></script>
+    <script src="js/games/horsering/GroomPointer.js?v=20261126b"></script>
+    <script src="js/games/horsering/CareBook.js?v=20261126b"></script>
+    <script src="js/games/horsering/CareGuide.js?v=20261126b"></script>
+    <script src="js/games/horsering/RanchKit.js?v=20261126b"></script>
+    <script src="js/games/horsering/HorseringGame.js?v=20261126b"></script>
+    <script src="js/games/wheeeeel/WheelStore.js?v=20261126b"></script>
+    <script src="js/games/wheeeeel/WheelPainter.js?v=20261126b"></script>
+    <script src="js/games/wheeeeel/WheelFx.js?v=20261126b"></script>
+    <script src="js/games/wheeeeel/WheelEditor.js?v=20261126b"></script>
+    <script src="js/games/wheeeeel/WheeeeelGame.js?v=20261126b"></script>
+    <script src="js/games/wordking/DuelWords.js?v=20261126b"></script>
+    <script src="js/games/wordking/DuelFx.js?v=20261126b"></script>
+    <script src="js/games/wordking/DuelArena.js?v=20261126b"></script>
+    <script src="js/games/wordking/WordKingGame.js?v=20261126b"></script>
+    <script src="js/games/farwest/FarWestScene.js?v=20261126b"></script>
+    <script src="js/games/farwest/Cowboy.js?v=20261126b"></script>
+    <script src="js/games/farwest/WestFx.js?v=20261126b"></script>
+    <script src="js/games/farwest/WestHud.js?v=20261126b"></script>
+    <script src="js/games/farwest/FarWestGame.js?v=20261126b"></script>
+    <script src="js/games/frienbling/RouletteRules.js?v=20261126b"></script>
+    <script src="js/games/frienbling/Gambler.js?v=20261126b"></script>
+    <script src="js/games/frienbling/TableLink.js?v=20261126b"></script>
+    <script src="js/games/frienbling/RouletteWheel.js?v=20261126b"></script>
+    <script src="js/games/frienbling/TableFx.js?v=20261126b"></script>
+    <script src="js/games/frienbling/FrienblingGame.js?v=20261126b"></script>
+    <script src="js/core/App.js?v=20261126b"></script>
   </body>
 </html>

@@ -17,6 +17,10 @@ class HooplabGame extends Game {
   static SLOW_EASE = 10;
   static PATH_EVERY = 0.04;
   static PATH_MAX = 50;
+  static SPAWN_KEY = "r";
+  static SPAWN_HOLD = 1.5;
+  static SPAWN_SHOW = 0.2;
+  static SPAWN_Y = 55;
 
   constructor() {
     super({
@@ -33,7 +37,9 @@ class HooplabGame extends Game {
           ["En l'air : appuyer ailleurs et tirer en arrière", "Tir en arc au ralenti, une fois par lancer ; la petite ligne montre la direction"],
           ["Traverser le cercle en tenant le ballon", "Dunk"],
           ["Boutons gauche / droite", "Changent le côté du panier"],
-          ["↻", "Replace le ballon"],
+          ["↻", "Replace le ballon au point de réapparition"],
+          ["R (un appui)", "Téléporte le ballon au point de réapparition et remet le combo à zéro"],
+          ["R (maintenu 1,5 s)", "Place le point de réapparition sous la souris"],
         ],
         rules: [
           "Swish 3, dunk 3, planche 2, cercle 2, après un rebond au sol 1.",
@@ -66,6 +72,9 @@ class HooplabGame extends Game {
     this.raf = 0;
     this.last = 0;
     this.started = false;
+    this.spawn = null;
+    this.hover = null;
+    this.spawnHold = null;
     this.bind();
     this.showStats();
   }
@@ -81,6 +90,10 @@ class HooplabGame extends Game {
     });
     document.querySelectorAll("[data-hl-side]").forEach((button) => button.addEventListener("click", () => this.setSide(button.dataset.hlSide)));
     $("hlReset").addEventListener("click", () => this.resetBall());
+    this.canvas.addEventListener("pointerleave", () => (this.hover = null));
+    document.addEventListener("keydown", (event) => this.spawnKey(event, true));
+    document.addEventListener("keyup", (event) => this.spawnKey(event, false));
+    window.addEventListener("blur", () => (this.spawnHold = null));
     window.addEventListener("resize", () => {
       if (this.raf) this.resize();
     });
@@ -125,6 +138,7 @@ class HooplabGame extends Game {
   }
 
   move(event) {
+    this.hover = this.world(event);
     if (this.aim.active) {
       this.aim.move(this.world(event));
       return;
@@ -184,17 +198,94 @@ class HooplabGame extends Game {
   setSide(side) {
     if (side === this.side) return;
     this.side = side;
+    this.spawn = null;
     Sfx.play("select");
     this.layout();
     this.resetBall();
   }
 
+  spawnPoint() {
+    if (this.spawn) return this.spawn;
+    return { x: this.side === "right" ? this.court.width * 0.22 : this.court.width * 0.78, y: HooplabGame.SPAWN_Y };
+  }
+
   resetBall() {
     this.drop();
     this.fx.reset();
-    const x = this.side === "right" ? this.court.width * 0.22 : this.court.width * 0.78;
-    this.ball.place(x, 55);
+    const { x, y } = this.spawnPoint();
+    this.ball.place(x, y);
     this.flight = this.newFlight(x, false);
+  }
+
+  spawnKey(event, down) {
+    if (!this.raf || event.key.toLowerCase() !== HooplabGame.SPAWN_KEY || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (event.target.closest && event.target.closest("input, textarea")) return;
+    event.preventDefault();
+    if (down) {
+      if (!event.repeat && !this.spawnHold) this.spawnHold = { t: 0, done: false };
+      return;
+    }
+    const hold = this.spawnHold;
+    this.spawnHold = null;
+    if (hold && !hold.done) this.respawn();
+  }
+
+  respawn() {
+    this.resetBall();
+    this.rules.combo = 0;
+    this.rules.comboLeft = 0;
+    $("hlTimer").classList.remove("run");
+    this.showStats();
+    const { x, y } = this.spawnPoint();
+    this.fx.tap(x, y);
+    Sfx.play("pop");
+  }
+
+  spawnTarget() {
+    const r = HoopBall.RADIUS,
+      at = this.hover || this.ball;
+    return { x: Math.max(r, Math.min(this.court.width - r, at.x)), y: Math.max(HooplabGame.CEILING + r, Math.min(HoopCourt.FLOOR_Y - r, at.y)) };
+  }
+
+  holdSpawn(dt) {
+    const hold = this.spawnHold;
+    if (!hold || hold.done) return;
+    hold.t += dt;
+    if (hold.t < HooplabGame.SPAWN_HOLD) return;
+    hold.done = true;
+    this.spawn = this.spawnTarget();
+    this.fx.tap(this.spawn.x, this.spawn.y);
+    this.fx.popup("Point de réapparition", "appuie sur R pour y revenir", "#4cc3ff", this.spawn.x, Math.max(10, this.spawn.y - 10), 4);
+    Sfx.play("select");
+  }
+
+  drawSpawn(ctx) {
+    const r = HoopBall.RADIUS,
+      spot = this.spawnPoint(),
+      hold = this.spawnHold;
+    ctx.save();
+    ctx.lineWidth = 0.35;
+    ctx.setLineDash([0.9, 0.7]);
+    ctx.strokeStyle = "rgba(76,195,255,0.55)";
+    ctx.beginPath();
+    ctx.arc(spot.x, spot.y, r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    if (hold && !hold.done && hold.t > HooplabGame.SPAWN_SHOW) {
+      const at = this.spawnTarget(),
+        share = Math.min(1, hold.t / HooplabGame.SPAWN_HOLD);
+      ctx.strokeStyle = "rgba(255,255,255,0.35)";
+      ctx.lineWidth = 0.6;
+      ctx.beginPath();
+      ctx.arc(at.x, at.y, r + 1.4, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.strokeStyle = "#4cc3ff";
+      ctx.lineWidth = 0.9;
+      ctx.beginPath();
+      ctx.arc(at.x, at.y, r + 1.4, -Math.PI / 2, -Math.PI / 2 + share * Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
   }
 
   layout() {
@@ -214,6 +305,7 @@ class HooplabGame extends Game {
     this.canvas.height = Math.round(height * this.dpr);
     this.layout();
     this.ball.x = Math.min(this.ball.x * (this.court.width / before), this.court.width - HoopBall.RADIUS);
+    if (this.spawn && before) this.spawn.x = Math.min(this.spawn.x * (this.court.width / before), this.court.width - HoopBall.RADIUS);
   }
 
   sound(name, impact, threshold) {
@@ -340,6 +432,7 @@ class HooplabGame extends Game {
     if (this.aim.active && !this.canArc()) this.drop();
     const dt = realDt * this.timeScale;
     this.time += dt;
+    this.holdSpawn(realDt);
     const ended = this.rules.tick(realDt);
     if (ended) this.comboEnded(ended);
     const h = dt / HooplabGame.SUBSTEPS;
@@ -375,6 +468,7 @@ class HooplabGame extends Game {
     this.fx.drawBack(ctx, this.court, this.time);
     this.ball.drawGround(ctx, HoopCourt.FLOOR_Y);
     this.court.drawHoopBack(ctx, this.fx, this.time);
+    this.drawSpawn(ctx);
     this.fx.drawUnder(ctx);
     this.ball.drawTrail(ctx);
     this.ball.draw(ctx);
@@ -433,6 +527,7 @@ class HooplabGame extends Game {
     cancelAnimationFrame(this.raf);
     this.raf = 0;
     this.drop();
+    this.spawnHold = null;
     this.timeScale = 1;
     $("hooplab").classList.add("hl-paused");
   }
