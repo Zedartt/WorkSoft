@@ -395,6 +395,18 @@
 .wj-cards {
   z-index: 20;
 }
+.wj-focus {
+  position: absolute;
+  z-index: 15;
+  border-radius: 50%;
+  border: 3px dashed rgba(190, 230, 255, 0.85);
+  background: radial-gradient(ellipse, rgba(143, 208, 255, 0.7), rgba(143, 208, 255, 0.35) 50%, rgba(143, 208, 255, 0) 71%);
+  opacity: 0;
+  pointer-events: none;
+}
+.wj-focus.on {
+  animation: wj-glow 0.8s ease-in-out infinite alternate;
+}
 .wj-badges {
   z-index: 35;
 }
@@ -501,6 +513,12 @@
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+.wj-high .wj-plate {
+  left: calc(var(--wj-av, 50px) * 0.5 + 4px);
+  top: 50%;
+  transform: translateY(-50%);
+  text-align: left;
 }
 .wj-me .wj-avatar {
   box-shadow:

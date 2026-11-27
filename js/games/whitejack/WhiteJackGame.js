@@ -15,6 +15,7 @@ class WhiteJackGame extends Game {
   static SHOW_MS = 5500;
   static SOLO_DEAL_MS = 250;
   static RESYNC_MS = 400;
+  static MOVE_WAIT_MS = 2500;
   static MOOD_MS = 6000;
   static NOTICE_MS = 2600;
   static START_MONEY = 100;
@@ -577,7 +578,7 @@ class WhiteJackGame extends Game {
 
   moveKey() {
     const turn = this.myTurn();
-    return turn ? `${this.g.r}:${turn.si}:${turn.hi}:${turn.hand.c.length}` : "";
+    return turn ? `${this.g.r}:${turn.si}:${turn.hi}:${turn.seat.h.map((hand) => hand.c.join(".") + (hand.s ? "s" : "")).join("|")}` : "";
   }
 
   allowed(turn) {
@@ -598,13 +599,23 @@ class WhiteJackGame extends Game {
 
   move(m) {
     const turn = this.myTurn();
-    if (!turn || this.pendingMove || !this.handReady(turn) || !this.allowed(turn)[m]) return;
+    if (!turn || this.waiting() || !this.handReady(turn) || !this.allowed(turn)[m]) return;
     this.pendingMove = this.moveKey();
+    this.pendingAt = this.clock();
     this.act = { r: this.g.r, q: ++this.seq, si: turn.si, hi: turn.hi, k: turn.hand.c.length, m };
     Sfx.play(m === "s" ? "back" : "click");
     if (this.link.isHost) this.hostAct(this.me, this.act);
     else this.link.touch();
     this.touch();
+  }
+
+  waiting() {
+    if (!this.pendingMove) return false;
+    if (this.pendingMove !== this.moveKey() || this.clock() - this.pendingAt > WhiteJackGame.MOVE_WAIT_MS) {
+      this.pendingMove = "";
+      return false;
+    }
+    return true;
   }
 
   insure(yes) {
@@ -926,6 +937,7 @@ class WhiteJackGame extends Game {
         gap = sp / 2 + mini / 2 + 3;
       slot.seat.style.left = `${Math.max(56, Math.min(W - 56, a.x))}px`;
       slot.seat.style.top = `${a.y}px`;
+      slot.seat.classList.toggle("wj-high", Math.sin(this.angle(v)) < -0.5);
       slot.spot.style.left = `${s.x}px`;
       slot.spot.style.top = `${s.y}px`;
       slot.rings[0].style.cssText = `width:${sp}px;height:${sp}px;left:${-sp / 2}px;top:${-sp / 2}px`;
@@ -985,10 +997,10 @@ class WhiteJackGame extends Game {
 
   handBase(v, hi, count) {
     const a = this.angle(v),
-      scale = (v === 0 ? 1.2 : 1) * (count > 1 ? 0.8 : 1),
+      scale = (v === 0 ? 1.2 : 1) * (count > 2 ? 0.78 : count > 1 ? 0.88 : 1),
       base = this.point(0.56, a),
       t = this.tangent(a),
-      off = (hi - (count - 1) / 2) * this.geo.cw * scale * 2;
+      off = ((count - 1) / 2 - hi) * this.geo.cw * scale * 2.3;
     return { x: base.x + t.x * off, y: base.y + t.y * off, scale, a };
   }
 
@@ -1096,11 +1108,11 @@ class WhiteJackGame extends Game {
     return list;
   }
 
-  handLabel(cards, hand) {
+  handLabel(cards, hand, mine = true) {
     const score = JackRules.score(cards);
     if (score.bust) return { text: "Sauté", cls: "wj-bust" };
     if (hand && hand.r) return { text: "Abandon", cls: "wj-push" };
-    if (hand && cards.length === 2 && JackRules.natural(hand)) return { text: "Black Jack", cls: "wj-bj" };
+    if (hand && cards.length === 2 && JackRules.natural(hand)) return { text: mine ? "Black Jack" : "BJ !", cls: "wj-bj" };
     if (hand && !hand.s && score.soft && score.total < 21) return { text: `${score.low}/${score.total}`, cls: "" };
     return { text: String(score.total), cls: "" };
   }
@@ -1122,7 +1134,7 @@ class WhiteJackGame extends Game {
             n = Math.hypot(dx, dy) || 1,
             x = base.x + (dx / n) * (ch * 0.5 + 12),
             y = base.y + (dy / n) * (ch * 0.5 + 12),
-            label = this.handLabel(cards, cards.length === hand.c.length ? hand : null);
+            label = this.handLabel(cards, cards.length === hand.c.length ? hand : null, seat.id === this.me);
           let cls = label.cls,
             text = label.text;
           if (settledView && cards.length === hand.c.length) {
@@ -1141,8 +1153,23 @@ class WhiteJackGame extends Game {
         const spot = this.dealerCardSpot(g.d.length - 1, g.d.length),
           label = this.handLabel(dealerCards, null),
           natural = g.d.length === 2 && dealerCards.length === 2 && JackRules.dealerNatural(g.d);
-        parts.push(`<span class="wj-badge wj-house ${natural ? "wj-bj" : label.cls}" style="left:${(spot.x + this.geo.cw * 1.15).toFixed(1)}px;top:${spot.y.toFixed(1)}px">${natural ? "Black Jack" : label.text}</span>`);
+        parts.push(`<span class="wj-badge wj-house ${natural ? "wj-bj" : label.cls}" style="left:${(spot.x + this.geo.cw * 1.15).toFixed(1)}px;top:${spot.y.toFixed(1)}px">${natural ? "BJ !" : label.text}</span>`);
       }
+    }
+    const focus = $("wjFocus");
+    let focusCss = "";
+    if (g && this.geo && g.ph === "play" && g.t && g.s[g.t[0]]) {
+      const seat = g.s[g.t[0]],
+        base = this.handBase(this.visualOf(seat.p), g.t[1], seat.h.length),
+        cw = this.geo.cw * base.scale,
+        size = cw * (2.6 + 0.42 * Math.max(1, seat.h[g.t[1]].c.length - 1)),
+        high = cw * 2.9;
+      focusCss = `left:${(base.x - size / 2).toFixed(1)}px;top:${(base.y - high / 2).toFixed(1)}px;width:${size.toFixed(1)}px;height:${high.toFixed(1)}px`;
+    }
+    if (focusCss !== this.view.focus) {
+      this.view.focus = focusCss;
+      focus.style.cssText = focusCss;
+      focus.classList.toggle("on", !!focusCss);
     }
     const html = parts.join("");
     if (html === this.view.badgeSig) return;
@@ -1343,7 +1370,7 @@ class WhiteJackGame extends Game {
     } else if (turn) {
       ui = "moves";
       const can = this.allowed(turn),
-        busy = !!this.pendingMove || !this.handReady(turn),
+        busy = this.waiting() || !this.handReady(turn),
         advice = JackRules.advice(turn.hand, g.d[0], { double: can.d, split: can.p, surrender: can.r }),
         score = JackRules.score(turn.hand.c),
         mine = score.soft && score.total < 21 ? `${score.low} ou ${score.total}` : String(score.total);
