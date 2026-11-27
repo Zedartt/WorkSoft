@@ -506,3 +506,143 @@ kbd {
     margin-bottom: 10px;
   }
 }
+.chat-btn {
+  position: relative;
+}
+.chat-btn[hidden] {
+  display: none;
+}
+.chat-btn.on {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.chat-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--bad);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+}
+.chat-badge:empty {
+  display: none;
+}
+.chat-panel {
+  flex: none;
+  width: 280px;
+  min-height: 0;
+  display: none;
+  flex-direction: column;
+  border: 3px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+  color: var(--ink);
+  overflow: hidden;
+}
+.chat-panel.chat-shown {
+  display: flex;
+}
+.chat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px 8px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 15px;
+}
+.chat-close {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 15px;
+  cursor: var(--cur-hand);
+}
+.chat-close:hover {
+  color: var(--ink);
+}
+.chat-list {
+  flex: 1;
+  min-height: 80px;
+  padding: 8px 14px;
+  overflow-y: auto;
+}
+.chat-list:empty::before {
+  content: "Dis bonjour à la table !";
+  color: var(--muted);
+  font-size: 13px;
+}
+.chat-line {
+  margin: 0 0 6px;
+  font-size: 14px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.chat-line b {
+  margin-right: 6px;
+  color: var(--who, var(--accent));
+}
+.chat-mine span {
+  opacity: 0.85;
+}
+.chat-form {
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  border-top: 1px solid var(--line);
+}
+.chat-input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 12px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;
+  outline: 0;
+}
+.chat-input:focus {
+  border-color: var(--accent);
+}
+.chat-send {
+  flex: none;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: var(--cur-hand);
+}
+.chat-note {
+  margin: 0;
+  padding: 0 12px 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+@media (max-width: 1179px), (max-height: 559px) {
+  .chat-panel {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    z-index: 20;
+    width: min(320px, calc(100% - 28px));
+    height: min(70%, 380px);
+    box-shadow: 0 12px 30px var(--shadow);
+  }
+}

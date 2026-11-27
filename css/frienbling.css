@@ -15,8 +15,10 @@
   background: var(--bg);
 }
 .fb-area {
+  position: relative;
   flex: 1 0 auto;
   display: flex;
+  gap: 10px;
   margin: 8px 10px 10px;
 }
 .fb-stage {

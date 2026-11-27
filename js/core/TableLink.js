@@ -1,6 +1,4 @@
 class TableLink {
-  static ROOT = "worksoft/frienbling/v1/";
-  static MAX_PLAYERS = 8;
   static LISTEN_MS = 2500;
   static JOIN_MS = 1600;
   static TICK_MS = 250;
@@ -11,6 +9,8 @@ class TableLink {
   static TABLE_TTL = 6000;
   static RECONNECT_MS = 1500;
   static RECONNECT_TRIES = 4;
+  static CHAT_MAX = 160;
+  static CHAT_GAP = 600;
   static ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   static MSG = {
     offline: "Impossible de joindre le serveur de jeu. Vérifie ta connexion Internet, ou joue en solo.",
@@ -32,45 +32,40 @@ class TableLink {
     return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : null;
   }
 
-  static clean(data) {
+  static num(value, min, max) {
+    const n = Math.round(Number(value) * 100) / 100;
+    return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : null;
+  }
+
+  static text(value, max) {
+    return String(value ?? "")
+      .replace(/[\u0000-\u001f<>]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, max);
+  }
+
+  clean(data) {
     if (!data || typeof data !== "object" || typeof data.id !== "string" || data.id.length > 20) return null;
     const out = {
       id: data.id,
-      name: String(data.name || "?")
-        .replace(/[\u0000-\u001f<>]/g, "")
-        .slice(0, 16),
-      seat: TableLink.int(data.seat, 0, TableLink.MAX_PLAYERS - 1),
+      name: TableLink.text(data.name, 16) || "?",
+      seat: TableLink.int(data.seat, 0, this.max - 1),
       rank: TableLink.int(data.rank, 0, 1e9),
-      money: TableLink.int(data.money, 0, 1e12),
-      br: TableLink.int(data.br, 0, 1e9),
+      money: TableLink.num(data.money, 0, 1e12),
       rd: TableLink.int(data.rd, 0, 1e9) || 0,
-      bets: {},
       h: null,
     };
-    if (out.seat === null || out.rank === null || out.money === null || out.br === null) return null;
-    if (data.bets && typeof data.bets === "object")
-      for (const [key, amount] of Object.entries(data.bets)) {
-        const value = TableLink.int(amount, 0, 1e12);
-        if (value && RouletteRules.bet(key)) out.bets[key] = value;
-      }
-    const h = data.h;
-    if (h && typeof h === "object") {
-      const round = TableLink.int(h.round, 0, 1e9),
-        left = TableLink.int(h.left, -600000, 600000);
-      if (round !== null && left !== null) {
-        out.h = { round, left, last: null };
-        if (h.last && typeof h.last === "object") {
-          const r = TableLink.int(h.last.r, 0, 1e9),
-            n = TableLink.int(h.last.n, 0, 36);
-          if (r !== null && n !== null) out.h.last = { r, n };
-        }
-      }
-    }
-    return out;
+    if (out.seat === null || out.rank === null || out.money === null) return null;
+    return this.extra(data, out) === false ? null : out;
   }
 
-  constructor(events) {
+  constructor(events, { root, max, clean }) {
     this.events = events;
+    this.root = root;
+    this.max = max;
+    this.extra = clean;
+    this.lastChat = 0;
     this.id = TableLink.newId(10);
     this.relay = null;
     this.gen = 0;
@@ -89,7 +84,7 @@ class TableLink {
   }
 
   topic(table) {
-    return TableLink.ROOT + "t/" + table;
+    return this.root + "t/" + table;
   }
 
   publish(topic, data) {
@@ -97,7 +92,7 @@ class TableLink {
   }
 
   async connect(gen) {
-    const relay = await MqttRelay.connectAny(DuelLink.BROKERS, TableLink.ROOT + "#", (topic, text) => this.receive(topic, text, gen));
+    const relay = await MqttRelay.connectAny(DuelLink.BROKERS, this.root + "#", (topic, text) => this.receive(topic, text, gen));
     if (gen !== this.gen) {
       if (relay) relay.close();
       return false;
@@ -123,7 +118,7 @@ class TableLink {
   freshTables(skip) {
     const now = Date.now();
     return [...this.tables.entries()]
-      .filter(([table, info]) => table !== skip && now - info.seen < TableLink.TABLE_TTL && info.n > 0 && info.n < TableLink.MAX_PLAYERS)
+      .filter(([table, info]) => table !== skip && now - info.seen < TableLink.TABLE_TTL && info.n > 0 && info.n < this.max)
       .sort((a, b) => b[1].n - a[1].n || (a[0] < b[0] ? -1 : 1))
       .map(([table]) => table);
   }
@@ -144,7 +139,7 @@ class TableLink {
     await TableLink.wait(TableLink.JOIN_MS);
     if (gen !== this.gen) return false;
     this.prune();
-    if (!this.peers.size || this.peers.size >= TableLink.MAX_PLAYERS) {
+    if (!this.peers.size || this.peers.size >= this.max) {
       this.tables.delete(table);
       this.table = null;
       return false;
@@ -182,7 +177,7 @@ class TableLink {
 
   freeSeat() {
     const taken = new Set([...this.peers.values()].map((peer) => peer.seat));
-    for (let seat = 0; seat < TableLink.MAX_PLAYERS; seat++) if (!taken.has(seat)) return seat;
+    for (let seat = 0; seat < this.max; seat++) if (!taken.has(seat)) return seat;
     return 0;
   }
 
@@ -209,7 +204,7 @@ class TableLink {
       return;
     }
     if (!data || data.id === this.id) return;
-    if (topic === TableLink.ROOT + "lobby") {
+    if (topic === this.root + "lobby") {
       if (data.t === "tbl" && typeof data.table === "string" && data.table.length <= 8) {
         const n = TableLink.int(data.n, 0, 99);
         if (n !== null) this.tables.set(data.table, { n, seen: Date.now() });
@@ -221,8 +216,12 @@ class TableLink {
       if (this.seated) this.dirty = true;
     } else if (data.t === "bye") {
       if (this.peers.delete(data.id)) this.events.peers();
+    } else if (data.t === "c") {
+      const peer = this.peers.get(data.id),
+        text = TableLink.text(data.x, TableLink.CHAT_MAX);
+      if (peer && text && this.seated && this.events.chat) this.events.chat(peer, text);
     } else if (data.t === "p") {
-      const peer = TableLink.clean(data);
+      const peer = this.clean(data);
       if (!peer) return;
       peer.seen = Date.now();
       const known = this.peers.has(peer.id);
@@ -264,7 +263,7 @@ class TableLink {
     if ((this.dirty && now - this.lastSend >= TableLink.SEND_GAP) || now - this.lastSend >= TableLink.BEAT_MS) this.sendState();
     if (this.isHost && now - this.lastAnnounce >= TableLink.ANNOUNCE_MS) {
       this.lastAnnounce = now;
-      this.publish(TableLink.ROOT + "lobby", { t: "tbl", id: this.id, table: this.table, n: this.count });
+      this.publish(this.root + "lobby", { t: "tbl", id: this.id, table: this.table, n: this.count });
     }
     this.mergeCheck();
   }
@@ -274,6 +273,15 @@ class TableLink {
     this.lastSend = Date.now();
     const state = this.events.state();
     this.publish(this.topic(this.table), { t: "p", id: this.id, seat: this.seat, rank: this.rank, ...state });
+  }
+
+  say(text) {
+    const now = Date.now(),
+      clean = TableLink.text(text, TableLink.CHAT_MAX);
+    if (!clean || !this.seated || this.solo || now - this.lastChat < TableLink.CHAT_GAP) return "";
+    this.lastChat = now;
+    this.publish(this.topic(this.table), { t: "c", id: this.id, x: clean });
+    return clean;
   }
 
   touch() {

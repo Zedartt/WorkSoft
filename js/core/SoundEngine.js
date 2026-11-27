@@ -411,6 +411,19 @@ class SoundEngine {
         this.noise(0.03, { f: 2400, q: 2, vol: 0.06, at: 0.16 });
       },
       fbJoin: () => this.arp([659, 880], 0.08, { vol: 0.07, d: 0.2 }),
+      wjCard: () => {
+        this.noise(0.09, { f: 2200, q: 0.8, vol: 0.12 });
+        this.noise(0.03, { f: 3600, q: 2, vol: 0.08, at: 0.08 });
+      },
+      wjFlip: () => {
+        this.noise(0.05, { f: 3000, q: 1.2, vol: 0.12 });
+        this.tone(900, 0.05, { to: 1300, type: "triangle", vol: 0.03 });
+      },
+      wjShuffle: () => {
+        for (let i = 0; i < 14; i++) this.noise(0.03, { f: 2400 + Math.random() * 1600, q: 1.5, vol: 0.07, at: i * 0.045 });
+      },
+      wjTurn: () => this.arp([784, 1047, 1319], 0.07, { vol: 0.08, d: 0.25 }),
+      chatPing: () => this.arp([1175, 1568], 0.06, { vol: 0.05, d: 0.15 }),
       fbGift: () => this.arp([523, 659, 784, 1047, 1319], 0.07, { vol: 0.1 }),
       fbCoins: () => {
         for (let i = 0; i < 8; i++) this.tone(1800 + Math.random() * 1500, 0.08, { type: "triangle", vol: 0.03, at: i * 0.06 });

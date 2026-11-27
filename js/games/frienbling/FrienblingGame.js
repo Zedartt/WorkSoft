@@ -7,7 +7,9 @@ class FrienblingGame extends Game {
   static SHOW_MS = 3500;
   static RESYNC_MS = 400;
   static MOOD_MS = 6000;
-  static IDLE_MS = 7000;
+  static DRAW_MS = 1500;
+  static MAX_PLAYERS = 8;
+  static ROOT = "worksoft/frienbling/v1/";
   static START_MONEY = 100;
   static CHIPS = [1, 5, 10, 25, 100, 500];
   static CHIP_COLORS = { 1: "#eef1f5", 5: "#e5484d", 10: "#2f9be0", 25: "#1fb36b", 100: "#2a2d34", 500: "#9b5cff" };
@@ -68,6 +70,31 @@ class FrienblingGame extends Game {
     return crypto.getRandomValues(new Uint32Array(1))[0] % 37;
   }
 
+  static cleanPeer(data, out) {
+    out.br = TableLink.int(data.br, 0, 1e9);
+    if (out.br === null) return false;
+    out.bets = {};
+    if (data.bets && typeof data.bets === "object")
+      for (const [key, amount] of Object.entries(data.bets)) {
+        const value = TableLink.int(amount, 0, 1e12);
+        if (value && RouletteRules.bet(key)) out.bets[key] = value;
+      }
+    const h = data.h;
+    if (h && typeof h === "object") {
+      const round = TableLink.int(h.round, 0, 1e9),
+        left = TableLink.int(h.left, -600000, 600000);
+      if (round !== null && left !== null) {
+        out.h = { round, left, last: null };
+        if (h.last && typeof h.last === "object") {
+          const r = TableLink.int(h.last.r, 0, 1e9),
+            n = TableLink.int(h.last.n, 0, 36);
+          if (r !== null && n !== null) out.h.last = { r, n };
+        }
+      }
+    }
+    return true;
+  }
+
   static cleanName(text) {
     return String(text)
       .replace(/[^\p{L}\p{N} _.'-]/gu, "")
@@ -87,7 +114,8 @@ class FrienblingGame extends Game {
         goal: "Une table de roulette : mise tes jetons avec les autres joueurs de la table, ou seul en solo, et fais grossir ta fortune.",
         controls: [
           ["Pseudo puis « Rejoindre une table »", "Tu rejoins une table libre (8 joueurs au plus) ; s'il n'y en a pas, une nouvelle table est créée"],
-          ["« Prêt » (en ligne)", "Quand tous les joueurs de la table sont prêts, la roue se lance tout de suite sans attendre la fin de la minute"],
+          ["« Prêt » (en ligne)", "Quand tous les joueurs qui ont misé sont prêts, la roue se lance tout de suite sans attendre la fin de la minute"],
+          ["Bouton bulle de la bande (en ligne)", "Ouvre le chat de la table pour parler avec les autres joueurs"],
           ["« Jouer en solo »", "Tu joues seul contre la maison, même sans connexion Internet ; « Lancer ! » fait tourner la roue sans attendre"],
           ["Jetons sous le tapis", "Choisis la valeur du jeton : 1, 5, 10, 25, 100 ou 500 €"],
           ["Clic sur une case du tapis", "Pose un jeton sur cette case"],
@@ -101,7 +129,9 @@ class FrienblingGame extends Game {
           "Tes jetons sont gros et brillants ; ceux des autres sont plus petits, à la couleur de leur personnage.",
           "Plus ta mise gagnante était rare, et plus tu avais misé de ta fortune, plus la fête est grande.",
           "Le joueur le plus riche de la table porte la couronne.",
-          "Un joueur qui n'a rien misé depuis 7 secondes ne compte plus dans le vote « Prêt » : la roue peut partir sans lui.",
+          "Seuls les joueurs qui ont misé comptent dans le vote « Prêt ». Dès qu'un joueur est prêt, ceux qui ont misé sans cliquer « Prêt » le deviennent tout seuls au bout de 5 secondes.",
+          "Le numéro n'est tiré qu'après la fermeture des mises : personne ne peut le connaître avant.",
+          "Le chat n'est jamais enregistré : tout s'efface quand tu quittes la table.",
           "Pas de pause : la table continue derrière cette fiche.",
         ],
       },
@@ -111,6 +141,8 @@ class FrienblingGame extends Game {
     this.wheel = new RouletteWheel($("fbWheel"));
     this.wheel.onTick = (k) => Sfx.play("fbTick", k);
     this.fx = new TableFx($("fbFx"));
+    this.vote = new ReadyVote();
+    this.chat = new TableChat("fb", (text) => this.say(text));
     this.link = new TableLink({
       seated: (created) => this.seated(created),
       failed: (message) => this.failed(message),
@@ -124,7 +156,8 @@ class FrienblingGame extends Game {
       status: (message) => {
         this.netMsg = message;
       },
-    });
+      chat: (peer, text) => this.chat.add(peer.name, Gambler.color(peer.seat), text, false),
+    }, { root: FrienblingGame.ROOT, max: FrienblingGame.MAX_PLAYERS, clean: FrienblingGame.cleanPeer });
     this.nick = FrienblingGame.cleanName(Store.read(FrienblingGame.NAME_KEY, ""));
     this.money = this.loadMoney();
     this.chip = this.loadChip();
@@ -133,9 +166,6 @@ class FrienblingGame extends Game {
     this.lastBets = this.loadLast();
     this.results = [];
     this.moods = new Map();
-    this.arrivals = new Map();
-    this.seatedAt = 0;
-    this.openAt = 0;
     this.cells = new Map();
     this.slots = [];
     this.netMsg = "";
@@ -155,7 +185,7 @@ class FrienblingGame extends Game {
 
   resetRound() {
     this.readyRound = -1;
-    this.arrivals.clear();
+    this.vote.reset();
     this.synced = false;
     this.round = 0;
     this.spinAt = 0;
@@ -367,8 +397,15 @@ class FrienblingGame extends Game {
     return this.readyRound === this.round;
   }
 
+  say(text) {
+    const sent = this.link.say(text);
+    if (sent) this.chat.add(this.nick, Gambler.color(this.link.seat), sent, true);
+    return sent;
+  }
+
   toggleReady() {
     if (this.link.solo || this.phase() !== "bet") return;
+    if (!this.isReady() && !this.bets.size) return this.refuse("Pose au moins un jeton : seuls ceux qui ont misé votent.", null);
     this.readyRound = this.isReady() ? -1 : this.round;
     this.link.touch();
     Sfx.play(this.isReady() ? "fbChip" : "back");
@@ -376,21 +413,12 @@ class FrienblingGame extends Game {
   }
 
   votes() {
-    const now = this.clock(),
-      list = [{ ready: this.isReady(), bets: FrienblingGame.sum(this.bets), since: this.seatedAt }];
+    const list = [{ id: this.link.id, ready: this.isReady(), bet: this.bets.size > 0, sig: JSON.stringify([...this.bets]) }];
     for (const peer of this.link.peers.values()) {
       const current = peer.br === this.round;
-      list.push({ ready: current && peer.rd === this.round, bets: current ? FrienblingGame.sum(peer.bets) : 0, since: this.arrivals.get(peer.id) || 0 });
+      list.push({ id: peer.id, ready: current && peer.rd === this.round, bet: current && Object.keys(peer.bets).length > 0, sig: current ? JSON.stringify(peer.bets) : "" });
     }
-    let ready = 0,
-      needed = 0;
-    for (const vote of list) {
-      if (vote.ready) {
-        ready++;
-        needed++;
-      } else if (vote.bets || now - Math.max(this.openAt, vote.since) < FrienblingGame.IDLE_MS) needed++;
-    }
-    return { ready, needed, go: ready > 0 && ready === needed };
+    return this.vote.count(this.round, list, this.clock());
   }
 
   checkReady(now) {
@@ -403,7 +431,7 @@ class FrienblingGame extends Game {
 
   seated(created) {
     $("fbLobby").classList.remove("show");
-    this.seatedAt = this.openAt = this.clock();
+    this.chat.enable(!this.link.solo);
     if (created) {
       this.synced = true;
       this.round = 1;
@@ -427,6 +455,7 @@ class FrienblingGame extends Game {
     this.resetRound();
     this.wheel.stop();
     Sfx.loop("roll", false);
+    this.chat.enable(false);
     this.showLobby("home", message);
   }
 
@@ -439,6 +468,7 @@ class FrienblingGame extends Game {
     this.moods.clear();
     this.results = [];
     Sfx.loop("roll", false);
+    this.chat.enable(false);
     this.showLobby("home");
     this.touchView();
   }
@@ -452,11 +482,8 @@ class FrienblingGame extends Game {
 
   onPeer(peer, known) {
     const spin = this.spin;
-    if (spin && !spin.landed && peer.br === spin.round) spin.others.set(peer.id, { bets: { ...peer.bets }, money: peer.money });
-    if (!known) {
-      this.arrivals.set(peer.id, this.clock());
-      Sfx.play("fbJoin");
-    }
+    if (spin && spin.n === null && peer.br === spin.round) spin.others.set(peer.id, { bets: { ...peer.bets }, money: peer.money });
+    if (!known) Sfx.play("fbJoin");
     this.touchView();
   }
 
@@ -465,7 +492,6 @@ class FrienblingGame extends Game {
     if (h.last) this.applyResult(h.last, now);
     if (!this.synced) {
       this.synced = true;
-      this.openAt = now;
       this.round = h.round;
       this.spinAt = now + h.left;
     } else if (h.round === this.round) {
@@ -473,7 +499,6 @@ class FrienblingGame extends Game {
       if (Math.abs(target - this.spinAt) > FrienblingGame.RESYNC_MS) this.spinAt = target;
     } else if (h.round > this.round && !this.spin) {
       this.refundBets();
-      this.openAt = now;
       this.round = h.round;
       this.spinAt = now + h.left;
     }
@@ -500,7 +525,7 @@ class FrienblingGame extends Game {
     if (!this.spin && now >= this.spinAt) this.startSpin(now);
     const spin = this.spin;
     if (!spin) return;
-    if (spin.n === null && this.link.isHost) this.setResult(FrienblingGame.draw(), now);
+    if (spin.n === null && this.link.isHost && now >= spin.start + FrienblingGame.DRAW_MS) this.setResult(FrienblingGame.draw(), now);
     if (spin.n !== null && !spin.landed && now >= spin.landAt) this.land(now);
     if (spin.landed && now >= spin.landedAt + FrienblingGame.SHOW_MS) this.endSpin();
   }
@@ -523,7 +548,6 @@ class FrienblingGame extends Game {
     this.wheel.launch();
     Sfx.play("fbSpin");
     Sfx.loop("roll", true);
-    if (this.link.isHost) this.setResult(FrienblingGame.draw(), now);
     this.link.touch();
     this.touchView();
   }
@@ -593,7 +617,7 @@ class FrienblingGame extends Game {
   }
 
   seatSpot(seat) {
-    const visual = (seat - this.link.seat + TableLink.MAX_PLAYERS) % TableLink.MAX_PLAYERS,
+    const visual = (seat - this.link.seat + this.link.max) % this.link.max,
       slot = this.slots[visual],
       box = slot.avatar.getBoundingClientRect(),
       base = this.fx.canvas.getBoundingClientRect(),
@@ -603,7 +627,6 @@ class FrienblingGame extends Game {
 
   endSpin() {
     this.spin = null;
-    this.openAt = this.clock();
     if (this.money < 1 && !this.bets.size) this.gift();
     this.touchView();
   }
@@ -719,7 +742,7 @@ class FrienblingGame extends Game {
       byVisual = new Map();
     let richest = null;
     for (const person of list) {
-      const visual = (person.seat - this.link.seat + TableLink.MAX_PLAYERS) % TableLink.MAX_PLAYERS;
+      const visual = (person.seat - this.link.seat + this.link.max) % this.link.max;
       if (!byVisual.has(visual) || person.me) byVisual.set(visual, person);
       if (!richest || person.money + person.stake > richest.money + richest.stake) richest = person;
     }
@@ -807,8 +830,12 @@ class FrienblingGame extends Game {
     this.write("fbPhase", text);
     if (!this.link.solo) {
       const votes = phase === "bet" ? this.votes() : null,
-        mine = !!votes && this.isReady();
-      this.write("fbReady", votes ? `${mine ? "Prêt ✓" : "Prêt"} ${votes.ready}/${Math.max(1, votes.needed)}` : "Prêt");
+        wait = votes && votes.waits.get(this.link.id),
+        mine = !!votes && (this.isReady() || (this.bets.size > 0 && votes.go));
+      let label = "Prêt";
+      if (votes && wait) label = `Prêt dans ${Math.ceil(wait / 1000)} s`;
+      else if (votes) label = `${mine ? "Prêt ✓" : "Prêt"} ${votes.ready}/${Math.max(1, votes.needed)}`;
+      this.write("fbReady", label);
       if (this.view.readyOn !== mine) {
         this.view.readyOn = mine;
         $("fbReady").classList.toggle("on", mine);
@@ -852,7 +879,7 @@ class FrienblingGame extends Game {
   renderBar() {
     this.write("fbMoney", FrienblingGame.euros(this.money));
     this.write("fbTable", this.link.seated ? this.link.table : "—");
-    this.write("fbCount", this.link.seated ? (this.link.solo ? "1" : `${this.link.count}/${TableLink.MAX_PLAYERS}`) : "—");
+    this.write("fbCount", this.link.seated ? (this.link.solo ? "1" : `${this.link.count}/${this.link.max}`) : "—");
     const historyKey = this.results.join(",");
     if (historyKey !== this.view.history) {
       this.view.history = historyKey;

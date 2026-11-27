@@ -4,7 +4,7 @@ class App {
     this.replayGuard = new ReplayGuard();
     this.theme = new ThemeSwitch([$("themeBtn"), $("menuThemeBtn")]);
     this.sound = new SoundSwitch([$("soundBtn"), $("menuSoundBtn")]);
-    this.games = [new WikopyGame(), new KaplabGame(), new IncscapeGame(), new CooktouGame(), new WordHuntGame(), new WhereWordGame(), new HooplabGame(), new HorseringGame(), new WheeeeelGame(), new WordKingGame(), new FarWestGame(), new FrienblingGame()];
+    this.games = [new WikopyGame(), new KaplabGame(), new IncscapeGame(), new CooktouGame(), new WordHuntGame(), new WhereWordGame(), new HooplabGame(), new HorseringGame(), new WheeeeelGame(), new WordKingGame(), new FarWestGame(), new FrienblingGame(), new WhiteJackGame()];
     this.help = new HelpPanel(this.games);
     this.records = new RecordBadge(this.games);
     this.launcher = new Launcher(this.games);

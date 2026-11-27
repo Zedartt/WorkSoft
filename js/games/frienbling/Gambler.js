@@ -1,6 +1,6 @@
 class Gambler {
-  static COLORS = ["#2f9be0", "#e5484d", "#f2b705", "#1fb36b", "#9b5cff", "#ff7a1a", "#ff4fa3", "#16c1d4"];
-  static NAMES = ["Bleu", "Rouge", "Or", "Vert", "Violet", "Orange", "Rose", "Turquoise"];
+  static COLORS = ["#2f9be0", "#e5484d", "#f2b705", "#1fb36b", "#9b5cff", "#ff7a1a", "#ff4fa3", "#16c1d4", "#a3e635", "#c0844a"];
+  static NAMES = ["Bleu", "Rouge", "Or", "Vert", "Violet", "Orange", "Rose", "Turquoise", "Citron", "Caramel"];
   static LOOKS = [
     { skin: "#f1c7a3", hair: "#5b3a22", style: "short", extra: ["bowtie"] },
     { skin: "#f6d2b8", hair: "#f0c75a", style: "long", extra: ["earrings", "lips"] },
@@ -10,6 +10,8 @@ class Gambler {
     { skin: "#c68b62", hair: "#3a2a20", style: "bald", extra: ["beard", "shades", "bowtie"] },
     { skin: "#e9b996", hair: "#2a1d14", style: "spiky", extra: ["cap", "tie"] },
     { skin: "#5f3b28", hair: "#ff7fc4", style: "bob", extra: ["earrings", "lips", "shades"] },
+    { skin: "#f3d0b0", hair: "#9a9a9a", style: "short", extra: ["glasses", "mustache", "bowtie"] },
+    { skin: "#d9a27a", hair: "#4a2b16", style: "curly", extra: ["earrings", "lips", "freckles"] },
   ];
 
   static color(seat) {
